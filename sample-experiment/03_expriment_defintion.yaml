@@ -1,0 +1,25 @@
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: example-experimentdef
+spec:
+  # 5 minutes in nanoseconds
+  maxDuration: 300000000000
+  satBehaviours:
+    - satName: sat-1
+      agent:
+        image: amd64/busybox:stable
+        parameters:
+          foo: bar
+      hardwareEvents:
+    - satName: sat-2
+      agent:
+        image: amd64/busybox:stable
+    - satName: sat-3
+      agent:
+        image: amd64/busybox:stable
+    - satName: sat-4
+      agent:
+        image: amd64/busybox:stable
+
+
