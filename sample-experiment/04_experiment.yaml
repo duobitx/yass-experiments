@@ -1,0 +1,13 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: example-experiment
+  namespace: default
+spec:
+  experimentDefRef: example-experimentdef
+  layoutDefRef: example-layout
+  engine:
+    image: "ipfs/kubo:v0.38.0"
+  start: false
+  simulationStartTime: "2025-10-06T14:35:00.123Z"
+
