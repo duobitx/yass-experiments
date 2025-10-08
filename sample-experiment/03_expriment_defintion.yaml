@@ -21,5 +21,9 @@ spec:
     - satName: sat-4
       agent:
         image: amd64/busybox:stable
+    - satName: ground-station-01
+      agent:
+        image: amd64/busybox:stable
+
 
 
