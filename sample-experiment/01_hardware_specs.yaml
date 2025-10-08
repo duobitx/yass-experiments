@@ -6,3 +6,11 @@ spec:
   CPU: "200m"
   Memory: "1Gi"
   DiskSpace: "20G"
+
+---
+apiVersion: int.esa.yass/v1
+kind: HardwareDefinition
+metadata:
+  name: ground-station-hwdef
+spec:
+

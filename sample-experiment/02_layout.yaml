@@ -45,5 +45,5 @@ spec:
       lat: 1.232321
       lng: 23.2399202
       heightOverSeaLevel: 200
-    hardwareSpecRef: example-hwdef
+    hardwareSpecRef: ground-station-hwdef
 
