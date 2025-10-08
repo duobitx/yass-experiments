@@ -6,22 +6,22 @@ spec:
   # 5 minutes in nanoseconds
   maxDuration: 300000000000
   satBehaviours:
-    - satName: sat-1
+    - fsNode: sat-1
       agent:
         image: amd64/busybox:stable
         parameters:
           foo: bar
       hardwareEvents:
-    - satName: sat-2
+    - fsNode: sat-2
       agent:
         image: amd64/busybox:stable
-    - satName: sat-3
+    - fsNode: sat-3
       agent:
         image: amd64/busybox:stable
-    - satName: sat-4
+    - fsNode: sat-4
       agent:
         image: amd64/busybox:stable
-    - satName: ground-station-01
+    - fsNode: ground-station-01
       agent:
         image: amd64/busybox:stable
 
