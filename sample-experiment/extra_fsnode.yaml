@@ -1,7 +1,7 @@
 apiVersion: int.esa.yass/v1
-kind: Sat
+kind: FsNode
 metadata:
-  name: example-sat
+  name: example-fs-node
   namespace: default
   labels:
     yass-experiment: example-experiment
