@@ -8,6 +8,12 @@ spec:
   layoutDefRef: example-layout
   engine:
     image: "ipfs/kubo:v0.38.0"
+    configurationFilesFromConfigMap:
+      mountPath: /some/directory
+      configMapRef: "engine-configuration-config-map"
+    envs:
+      param1: "zzz"
+      param2: "xydw"
   start: false
   simulationStartTime: "2025-10-06T14:35:00.123Z"
 
