@@ -8,23 +8,23 @@ spec:
   behaviours:
     - fsNode: sat-1
       agent:
-        image: amd64/busybox:stable
-        envs:
+        image: szalik/troubleshooting-image
+        envsMap:
           foo: bar
       hardwareEvents:
 
     - fsNode: sat-2
       agent:
-        image: amd64/busybox:stable
+        image: szalik/troubleshooting-image
     - fsNode: sat-3
       agent:
-        image: amd64/busybox:stable
+        image: szalik/troubleshooting-image
     - fsNode: sat-4
       agent:
-        image: amd64/busybox:stable
+        image: szalik/troubleshooting-image
     - fsNode: ground-station-01
       agent:
-        image: amd64/busybox:stable
+        image: szalik/troubleshooting-image
 
 
 

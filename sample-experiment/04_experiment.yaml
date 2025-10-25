@@ -7,13 +7,14 @@ spec:
   experimentDefRef: example-experimentdef
   layoutDefRef: example-layout
   engine:
-    image: "ipfs/kubo:v0.38.0"
+    image: "ghcr.io/esa-philab/yass/fs_engine_udp_ping"
     configurationFilesFromConfigMap:
       mountPath: /some/directory
       configMapRef: "engine-configuration-config-map"
-    envs:
+    envsMap:
       param1: "zzz"
       param2: "xydw"
-  start: false
+      HOST: "sat-1"
+  start: true
   simulationStartTime: "2025-10-06T14:35:00.123Z"
 

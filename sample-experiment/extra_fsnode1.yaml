@@ -1,0 +1,24 @@
+apiVersion: int.esa.yass/v1
+kind: FsNode
+metadata:
+  name: dev1-fs-node
+  namespace: default
+  labels:
+    yass-experiment: dev-experiment
+spec:
+  orbit:
+    tle:
+      - "1,1957-001B,2,PAY,D,CIS,1957-10-04,TYMSC,1958-01-03,96.10,65.00,1080,64,,,EA,IMP"
+      - "2,1957-002A,3,PAY,D,CIS,1957-11-03,TYMSC,1958-04-14,103.74,65.33,1659,211,0.0800,,EA,IMP"
+  rotation:
+    yaw: 0.0
+    roll: 0.0
+    pitch: 0.013
+  agent:
+    image: szalik/troubleshooting-image
+    envs: # map[string]string
+      beEffective: "yes"
+  engine:
+    image: szalik/troubleshooting-image
+    envs: # map[string]string
+  hardwareSpecRef: example-hwdef
