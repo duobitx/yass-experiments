@@ -7,10 +7,7 @@ spec:
   experimentDefRef: example-experimentdef
   layoutDefRef: example-layout
   engine:
-    image: "ghcr.io/esa-philab/yass/fs_engine_udp_ping"
-    configurationFilesFromConfigMap:
-      mountPath: /some/directory
-      configMapRef: "engine-configuration-config-map"
+    image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
     envsMap:
       param1: "zzz"
       param2: "xydw"
