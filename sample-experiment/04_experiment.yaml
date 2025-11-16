@@ -6,12 +6,15 @@ metadata:
 spec:
   experimentDefRef: example-experimentdef
   layoutDefRef: example-layout
-  engine:
-    image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
-    envsMap:
-      param1: "zzz"
-      param2: "xydw"
-      HOST: "sat-1"
+  engineContainers:
+    - image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
+      env:
+        - name: param1
+          value: "zzz"
+        - name: param2
+          value: "xydw"
+        - name: HOST
+          value: "sat-1"
   start: true
   simulationStartTime: "2025-10-06T14:35:00.123Z"
 
