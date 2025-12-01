@@ -16,9 +16,9 @@ spec:
     pitch: 0.013
   agent:
     image: szalik/troubleshooting-image
-    envs: # map[string]string
+    envsMap: # map[string]string
       beEffective: "yes"
-  engine:
-    image: szalik/troubleshooting-image
-    envs: # map[string]string
+  engineContainers:
+    - name: engine
+      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
   hardwareSpecRef: example-hwdef
