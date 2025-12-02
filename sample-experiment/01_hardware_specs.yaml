@@ -3,9 +3,9 @@ kind: HardwareDefinition
 metadata:
   name: example-hwdef
 spec:
-  CPU: "200m"
-  Memory: "1Gi"
-  DiskSpace: "20G"
+  cpu: "200m"
+  memory: "1Gi"
+  diskSpace: "20G"
 
 ---
 
@@ -27,25 +27,25 @@ spec:
   cpu: "120m"  # ERC-32
   memory: "20Mi"  # TSC693E
   diskSpace: "150Gi"  # 50% of NAND
-  networkInterfaces:
-    - name: xband0
-      type: xband
-      description: "X-band downlink: ~ 560 Mbit/s downlink (averaged over the transfer window)"
-      tx: 70000000  # bit/s
-      rx: 0  # bit/s
-      minLatency: 0.015  # s
-    - name: sband0
-      type: sband
-      description: "S-band TT&C: ~ 2 Mbit/s downlink, ~ 64 kbit/s uplink"
-      tx: 2000000  # bit/s
-      rx: 64000  # bit/s
-      minLatency: 0.025  # s
-    - name: edrs0
-      type: edrs
-      description: "EDRS optical relay: up to 1.8 Gbit/s (averaged over transfer window)"
-      tx: 1800000000  # bit/s
-      rx: 0  # bit/s
-      minLatency: 0.026  # s
+#  networkInterfaces:
+#    - name: xband0
+#      type: xband
+#      description: "X-band downlink: ~ 560 Mbit/s downlink (averaged over the transfer window)"
+#      tx: 70000000  # bit/s
+#      rx: 0  # bit/s
+#      minLatency: 0.015  # s
+#    - name: sband0
+#      type: sband
+#      description: "S-band TT&C: ~ 2 Mbit/s downlink, ~ 64 kbit/s uplink"
+#      tx: 2000000  # bit/s
+#      rx: 64000  # bit/s
+#      minLatency: 0.025  # s
+#    - name: edrs0
+#      type: edrs
+#      description: "EDRS optical relay: up to 1.8 Gbit/s (averaged over transfer window)"
+#      tx: 1800000000  # bit/s
+#      rx: 0  # bit/s
+#      minLatency: 0.026  # s
 ---
 apiVersion: int.esa.yass/v1
 kind: HardwareDefinition

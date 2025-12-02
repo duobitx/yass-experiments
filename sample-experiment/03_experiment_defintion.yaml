@@ -5,25 +5,23 @@ metadata:
 spec:
   # 5 minutes in nanoseconds
   maxDuration: 300000000000
-  satBehaviours:
-    - satName: sat-1
+  behaviours:
+    - fsNode: sat-1
       agent:
-        image: amd64/busybox:stable
-        parameters:
+        image: szalik/troubleshooting-image
+        envsMap:
           foo: bar
       hardwareEvents:
-    - satName: sat-2
-      agent:
-        image: amd64/busybox:stable
-    - satName: sat-3
-      agent:
-        image: amd64/busybox:stable
-    - satName: sat-4
-      agent:
-        image: amd64/busybox:stable
-    - satName: ground-station-01
-      agent:
-        image: amd64/busybox:stable
 
-
-
+    - fsNode: sat-2
+      agent:
+        image: szalik/troubleshooting-image
+    - fsNode: sat-3
+      agent:
+        image: szalik/troubleshooting-image
+    - fsNode: sat-4
+      agent:
+        image: szalik/troubleshooting-image
+    - fsNode: ground-station-01
+      agent:
+        image: szalik/troubleshooting-image

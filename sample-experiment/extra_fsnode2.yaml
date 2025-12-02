@@ -1,10 +1,10 @@
 apiVersion: int.esa.yass/v1
-kind: Sat
+kind: FsNode
 metadata:
-  name: example-sat
+  name: dev2-fs-node
   namespace: default
   labels:
-    yass-experiment: example-experiment
+    yass-experiment: dev-experiment
 spec:
   orbit:
     tle:
@@ -15,10 +15,10 @@ spec:
     roll: 0.0
     pitch: 0.013
   agent:
-    image: ghcr.io/example/agent:latest
-    parameters: # map[string]string
+    image: szalik/troubleshooting-image
+    envsMap: # map[string]string
       beEffective: "yes"
-  engine:
-    image: ghcr.io/example/engine:latest
-    parameters: # map[string]string
+  engineContainers:
+    - name: engine
+      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
   hardwareSpecRef: example-hwdef
