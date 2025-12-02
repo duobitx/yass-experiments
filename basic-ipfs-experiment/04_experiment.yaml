@@ -1,0 +1,33 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: basic-ipfs-experiment
+  namespace: default
+spec:
+  experimentDefRef: basic-ipfs-experimentdef
+  layoutDefRef: basic-ipfs-layout
+  engineContainers:
+    - image: ipfs/kubo:v0.39.0
+      ports:
+      - containerPort: 4001
+        protocol: TCP
+      - containerPort: 4001
+        protocol: UDP
+      env:
+        - name: IPFS_TELEMETRY
+          value: 'off'
+        - name: LIBP2P_FORCE_PNET
+          value: '1'  # https://github.com/libp2p/go-libp2p/blob/aefe38980c395efb1957195e7e57ca5b2e1437a5/core/pnet/env.go#L8
+      envFrom:
+      - secretRef:
+          name: ipfs-secrets  # contains IPFS_SWARM_KEY
+      volumeMounts:
+      - name: ipfs-container-init-d
+        mountPath: /container-init.d
+  engineVolumes:
+    - name: ipfs-container-init-d
+      configMap:
+        name: ipfs-container-init-d
+  start: true
+  simulationStartTime: "2025-10-06T14:35:00.123Z"
+
