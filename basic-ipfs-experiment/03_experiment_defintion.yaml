@@ -1,0 +1,24 @@
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: basic-ipfs-experimentdef
+spec:
+  # 5 minutes in nanoseconds
+  maxDuration: 300000000000
+  behaviours:
+    - fsNode: sat-1
+      agent:
+        image: szalik/troubleshooting-image
+        envsMap:
+          foo: bar
+      hardwareEvents:
+
+    - fsNode: sat-2
+      agent:
+        image: szalik/troubleshooting-image
+    - fsNode: sat-3
+      agent:
+        image: szalik/troubleshooting-image
+    - fsNode: ground-station-01
+      agent:
+        image: szalik/troubleshooting-image
