@@ -7,7 +7,8 @@ spec:
   experimentDefRef: example-experimentdef
   layoutDefRef: example-layout
   engineContainers:
-    - image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
+    - name: engine-main
+      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
       env:
         - name: param1
           value: "zzz"
