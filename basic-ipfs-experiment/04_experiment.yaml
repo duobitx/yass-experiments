@@ -7,7 +7,8 @@ spec:
   experimentDefRef: basic-ipfs-experimentdef
   layoutDefRef: basic-ipfs-layout
   engineContainers:
-    - image: ipfs/kubo:v0.39.0
+    - name: kubo
+      image: ipfs/kubo:v0.39.0
       ports:
       - containerPort: 4001
         protocol: TCP
