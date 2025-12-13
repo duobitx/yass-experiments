@@ -2,11 +2,18 @@ apiVersion: int.esa.yass/v1
 kind: Experiment
 metadata:
   name: basic-ipfs-experiment
-  namespace: default
 spec:
   experimentDefRef: basic-ipfs-experimentdef
   layoutDefRef: basic-ipfs-layout
   engineContainers:
+    - name: crud
+      image: ghcr.io/duobitx/yass-engine-api:latest
+      env:
+        DISTRIBUTED_STORAGE_ENGINE: ipfs
+      ports:
+      - name: REST API 
+        containerPort: 8000
+        protocol: TCP
     - name: kubo
       image: ipfs/kubo:v0.39.0
       ports:
@@ -14,6 +21,8 @@ spec:
         protocol: TCP
       - containerPort: 4001
         protocol: UDP
+      - containerPort: 5001
+        protocol: TCP
       env:
         - name: IPFS_TELEMETRY
           value: 'off'
