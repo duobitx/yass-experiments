@@ -9,7 +9,8 @@ spec:
     - name: crud
       image: ghcr.io/duobitx/yass-engine-api:latest
       env:
-        DISTRIBUTED_STORAGE_ENGINE: ipfs
+        - name: DISTRIBUTED_STORAGE_ENGINE
+          value: ipfs
       ports:
       - name: REST API 
         containerPort: 8000
