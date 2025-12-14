@@ -1,0 +1,16 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: netowking-demo-ping-experiment
+spec:
+  experimentDefRef: networking-demo-experimentdef
+  layoutDefRef: networking-demo-layout
+  engineContainers:
+    - name: engine-main
+      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping:20251214t003927"
+      env:
+        - name: HOST
+          value: "new-norcia"
+  start: true
+  simulationStartTime: "2025-12-14T04:00:00.000Z"
+

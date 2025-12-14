@@ -1,0 +1,39 @@
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: networking-demo-layout
+spec:
+  - fsNode: oneweb-0008 # ONEWEB-0008
+    orbit:
+      tle:
+        - "1 44059U 19010C   25347.49126494  .00000026  00000+0  35053-4 0  9990"
+        - "2 44059  87.9045 265.7535 0001501  76.4950 283.6348 13.16596955327295"
+
+    rotation:
+      yaw: 0
+      roll: 0.5
+      pitch: 0
+    hardwareSpecRef: networking-demo-sat-1-hwdef
+  - fsNode: yaogan-25c # YAOGAN 25C
+    orbit:
+      tle:
+        - "1 40340U 14080C   25347.68170226 -.00000094  00000+0 -34110-5 0  9995"
+        - "2 40340  63.3891  69.1388 0350220   8.7364 351.9546 13.45322968540799"
+    rotation:
+      roll: 0.5
+    hardwareSpecRef: networking-demo-sat-1-hwdef
+  - fsNode: kuiper-00060 # Should be out of range of ESA-New-Norcia
+    orbit:
+      tle:
+        - "1 64520U 25134W   25347.67661551  .00090336  00000+0  11772-1 0  9999"
+        - "2 64520  51.9012 241.9729 0002741  78.7504 281.3767 14.79745195 27483"
+    rotation:
+      roll: 0.5
+    hardwareSpecRef: networking-demo-sat-1-hwdef
+  - fsNode: new-norcia # ESA New Norcia Deep Space Station
+    earthPosition:
+      lat: -30.334846
+      lng: 116.8505313
+      heightOverSeaLevel: 225
+    hardwareSpecRef: ground-station-hwdef
+
