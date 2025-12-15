@@ -7,7 +7,7 @@ spec:
   layoutDefRef: networking-demo-layout
   engineContainers:
     - name: engine-main
-      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping:20251214t003927"
+      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping:latest"
       env:
         - name: HOST
           value: "new-norcia"
