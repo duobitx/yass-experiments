@@ -3,6 +3,7 @@ kubectl delete -f 02_layout.yaml
 kubectl delete -f 03_experiment_defintion.yaml
 kubectl delete -f 04_experiment.yaml
 
+sleep 5
 
 
 kubectl create -f 01_hardware_specs.yaml
