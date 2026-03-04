@@ -51,5 +51,7 @@ apiVersion: int.esa.yass/v1
 kind: HardwareDefinition
 metadata:
   name: ground-station-hwdef
-spec: {}
+spec: 
+  cpu: "120"
+  memory: "20000Gi"
 
