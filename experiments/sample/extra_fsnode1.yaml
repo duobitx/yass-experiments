@@ -1,8 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  app.properties: |
+    APP_MODE=production
+    APP_TIMEOUT=30
+
+
+---
 apiVersion: int.esa.yass/v1
 kind: FsNode
 metadata:
-  name: dev2-fs-node
-  namespace: default
+  name: dev1-fs-node
   labels:
     yass-experiment: dev-experiment
 spec:
@@ -21,4 +31,17 @@ spec:
   engineContainers:
     - name: engine
       image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
-  hardwareSpecRef: example-hwdef
+      env:
+        - name: param1
+          value: "zzz"
+        - name: param2
+          value: "xydw"
+      volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+  engineVolumes:
+    - name: config-volume
+      configMap:
+        name: my-config
+
+  hardwareSpecRef: sentinel-2
