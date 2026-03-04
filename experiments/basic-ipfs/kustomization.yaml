@@ -5,7 +5,6 @@ configMapGenerator:
   files:
     - ipfs-container-init-d/01_init.sh
 resources:
-  - ../base
   - 00_namespace.yaml
   - 02_layout.yaml
   - 03_experiment_defintion.yaml

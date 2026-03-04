@@ -1,7 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../base
   - 00_namespace.yaml
   - 01_layout.yaml
   - 02_experiment_defintion.yaml
