@@ -10,19 +10,19 @@ spec:
         image: ghcr.io/duobitx/yass-agent-sleep
         envsMap:
           SLEEP_TIME: 1h
-      hardwareEvents:
+      hardwareEvents: []
     - fsNode: yaogan-25c
       agent:
         image: ghcr.io/duobitx/yass-agent-sleep
         envsMap:
           SLEEP_TIME: 1h
-      hardwareEvents:
+      hardwareEvents: []
     - fsNode: kuiper-00060
       agent:
         image: ghcr.io/duobitx/yass-agent-sleep
         envsMap:
           SLEEP_TIME: 1h
-      hardwareEvents:
+      hardwareEvents: []
 
     - fsNode: new-norcia
       agent:

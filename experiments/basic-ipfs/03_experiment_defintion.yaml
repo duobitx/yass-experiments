@@ -10,14 +10,19 @@ spec:
         image: nginx
         envsMap:
           foo: bar
-      hardwareEvents:
+      hardwareEvents: []
 
     - fsNode: sat-2
       agent:
         image: nginx
+      hardwareEvents: []
+
     - fsNode: sat-3
       agent:
         image: nginx
+      hardwareEvents: []
+
     - fsNode: ground-station-01
       agent:
         image: nginx
+      hardwareEvents: []
