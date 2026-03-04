@@ -13,7 +13,7 @@ spec:
       yaw: 0
       roll: 0.5
       pitch: 0
-    hardwareSpecRef: networking-demo-sat-1-hwdef
+    hardwareSpecRef: sentinel-2
   - fsNode: yaogan-25c # YAOGAN 25C
     orbit:
       tle:
@@ -21,7 +21,7 @@ spec:
         - "2 40340  63.3891  69.1388 0350220   8.7364 351.9546 13.45322968540799"
     rotation:
       roll: 0.5
-    hardwareSpecRef: networking-demo-sat-1-hwdef
+    hardwareSpecRef: sentinel-2
   - fsNode: kuiper-00060 # Should be out of range of ESA-New-Norcia
     orbit:
       tle:
@@ -29,7 +29,7 @@ spec:
         - "2 64520  51.9012 241.9729 0002741  78.7504 281.3767 14.79745195 27483"
     rotation:
       roll: 0.5
-    hardwareSpecRef: networking-demo-sat-1-hwdef
+    hardwareSpecRef: sentinel-2
   - fsNode: new-norcia # ESA New Norcia Deep Space Station
     earthPosition:
       lat: -30.334846
