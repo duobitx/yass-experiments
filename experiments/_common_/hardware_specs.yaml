@@ -41,6 +41,6 @@ kind: HardwareDefinition
 metadata:
   name: ground-station-hwdef
 spec: 
-  cpu: "2"
+  cpu: "1"
   memory: "5Gi"
 
