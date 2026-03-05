@@ -1,0 +1,8 @@
+apiVersion: int.esa.yass/v1
+kind: HardwareDefinition
+metadata:
+  name: networking-demo-sat-1-hwdef
+spec:
+  cpu: "200m"
+  memory: "1Gi"
+  diskSpace: "20G"
