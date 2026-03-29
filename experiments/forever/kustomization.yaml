@@ -5,4 +5,4 @@ resources:
   - 01_layout.yaml
   - 02_experiment_defintion.yaml
   - 03_experiment.yaml
-namespace: sample
+namespace: forever-experiment

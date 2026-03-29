@@ -16,6 +16,16 @@ spec:
   cpu: "120m"  # ERC-32
   memory: "20Mi"  # TSC693E
   diskSpace: "150Gi"  # 50% of NAND
+  batteryCapacityWh: 15000
+  batteryChargeW: 1700
+  lowPowerThresholdWh: 1500 # 10% of battery capacity
+  energyConsumption:
+    normalPowerBaseW: 1500
+    lowPowerBaseW: 900
+    perkByteTXWh: 0.00001
+    perkByteDiskWR: 0.00002
+    perkByteDiskRD: 0.00001
+
 #  networkInterfaces:
 #    - name: xband0
 #      type: xband
@@ -40,7 +50,18 @@ apiVersion: int.esa.yass/v1
 kind: HardwareDefinition
 metadata:
   name: ground-station-hwdef
-spec: 
+spec:
   cpu: "1"
   memory: "5Gi"
+  batteryCapacityWh: 1000
+  batteryChargeW: 1000
+  lowPowerThresholdWh: 0
+  energyConsumption:
+    normalPowerBaseW: 0
+    lowPowerBaseW: 0
+    perkByteTXWh: 0
+    perkByteDiskWR: 0
+    perkByteDiskRD: 0
+
+
 

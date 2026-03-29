@@ -1,21 +1,12 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: my-config
-data:
-  app.properties: |
-    APP_MODE=production
-    APP_TIMEOUT=30
-
-
 ---
 apiVersion: int.esa.yass/v1
 kind: FsNode
 metadata:
-  name: dev1-fs-node
+  name: fs-node-0
   labels:
-    yass-experiment: dev-experiment
+    yass-experiment: no-experiment
 spec:
+  nodeType: "satellite"
   orbit:
     tle:
       - "1,1957-001B,2,PAY,D,CIS,1957-10-04,TYMSC,1958-01-03,96.10,65.00,1080,64,,,EA,IMP"
@@ -25,12 +16,12 @@ spec:
     roll: 0.0
     pitch: 0.013
   agent:
-    image: szalik/troubleshooting-image
+    image: "ghcr.io/duobitx/yass-agent-receive-only:latest"
     envsMap: # map[string]string
       beEffective: "yes"
   engineContainers:
     - name: engine
-      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping"
+      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping:latest"
       env:
         - name: param1
           value: "zzz"
@@ -45,3 +36,14 @@ spec:
         name: my-config
 
   hardwareSpecRef: sentinel-2
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  app.properties: |
+    APP_MODE=production
+    APP_TIMEOUT=30
+

@@ -1,0 +1,61 @@
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: forever
+spec:
+  maxDuration: "999999h"
+  behaviours:
+    - fsNode: sat-1
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+      hardwareEvents: []
+
+    - fsNode: sat-2
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+      hardwareEvents: []
+
+    - fsNode: sat-3
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+      hardwareEvents: []
+
+    - fsNode: sat-4
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+      hardwareEvents: []
+
+    - fsNode: estrack-new-norcia
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+
+    - fsNode: estrack-kiruna
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+
+    - fsNode: estrack-redu
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+
+    - fsNode: estrack-cebreros
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+
+    - fsNode: estrack-santa-maria
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+
+    - fsNode: estrack-kourou
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+
+    - fsNode: estrack-malargue
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
