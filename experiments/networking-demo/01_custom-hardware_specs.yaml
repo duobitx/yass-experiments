@@ -6,3 +6,12 @@ spec:
   cpu: "200m"
   memory: "1Gi"
   diskSpace: "20G"
+  batteryCapacityWh: 15000
+  batteryChargeW: 1700
+  lowPowerThresholdWh: 1500 # 10% of battery capacity
+  energyConsumption:
+    normalPowerBaseW: 1500
+    lowPowerBaseW: 900
+    perkByteTXWh: 0.00001
+    perkByteDiskWR: 0.00002
+    perkByteDiskRD: 0.00001
