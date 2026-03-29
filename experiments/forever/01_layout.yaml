@@ -3,41 +3,32 @@ kind: Layout
 metadata:
   name: forever-layout
 spec:
-  - fsNode: sat-1
+  - fsNode: oneweb-0008 # ONEWEB-0008
     nodeType: satellite
     orbit:
       tle:
-        - "1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927"
-        - "2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537"
+        - "1 44059U 19010C   25347.49126494  .00000026  00000+0  35053-4 0  9990"
+        - "2 44059  87.9045 265.7535 0001501  76.4950 283.6348 13.16596955327295"
     rotation:
       yaw: 0
       roll: 0.5
       pitch: 0
     hardwareSpecRef: sentinel-2
-  - fsNode: sat-2 # NOAA 14
+  - fsNode: yaogan-25c # YAOGAN 25C
     nodeType: satellite
     orbit:
       tle:
-        - "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
-        - "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
+        - "1 40340U 14080C   25347.68170226 -.00000094  00000+0 -34110-5 0  9995"
+        - "2 40340  63.3891  69.1388 0350220   8.7364 351.9546 13.45322968540799"
     rotation:
       roll: 0.5
     hardwareSpecRef: sentinel-2
-  - fsNode: sat-3
+  - fsNode: kuiper-00060 # Should be out of range of ESA-New-Norcia
     nodeType: satellite
     orbit:
       tle:
-        - "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
-        - "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
-    rotation:
-      roll: 0.5
-    hardwareSpecRef: sentinel-2
-  - fsNode: sat-4
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
-        - "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
+        - "1 64520U 25134W   25347.67661551  .00090336  00000+0  11772-1 0  9999"
+        - "2 64520  51.9012 241.9729 0002741  78.7504 281.3767 14.79745195 27483"
     rotation:
       roll: 0.5
     hardwareSpecRef: sentinel-2

@@ -13,4 +13,3 @@ spec:
           value: "estrack-new-norcia,estrack-kiruna,estrack-redu,estrack-cebreros,estrack-santa-maria,estrack-kourou,estrack-malargue"
 
   start: true
-  simulationStartTime: "2025-10-06T14:35:00.123Z"

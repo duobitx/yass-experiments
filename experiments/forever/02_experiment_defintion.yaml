@@ -5,22 +5,17 @@ metadata:
 spec:
   maxDuration: "999999h"
   behaviours:
-    - fsNode: sat-1
+    - fsNode: oneweb-0008
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
       hardwareEvents: []
 
-    - fsNode: sat-2
+    - fsNode: kuiper-00060
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
       hardwareEvents: []
 
-    - fsNode: sat-3
-      agent:
-        image: ghcr.io/duobitx/yass-agent-periodic
-      hardwareEvents: []
-
-    - fsNode: sat-4
+    - fsNode: yaogan-25c
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
       hardwareEvents: []
