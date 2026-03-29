@@ -1,0 +1,93 @@
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: forever-layout
+spec:
+  - fsNode: sat-1
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927"
+        - "2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537"
+    rotation:
+      yaw: 0
+      roll: 0.5
+      pitch: 0
+    hardwareSpecRef: sentinel-2
+  - fsNode: sat-2 # NOAA 14
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
+        - "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
+    rotation:
+      roll: 0.5
+    hardwareSpecRef: sentinel-2
+  - fsNode: sat-3
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
+        - "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
+    rotation:
+      roll: 0.5
+    hardwareSpecRef: sentinel-2
+  - fsNode: sat-4
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 23455U 94089A   97320.90946019  .00000140  00000-0  10191-3 0  2621"
+        - "2 23455  99.0090 272.6745 0008546 223.1686 136.8816 14.11711747148495"
+    rotation:
+      roll: 0.5
+    hardwareSpecRef: sentinel-2
+
+  - fsNode: estrack-new-norcia
+    nodeType: groundStation
+    earthPosition:
+      lat: -31.048
+      lng: 116.192
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kiruna
+    nodeType: groundStation
+    earthPosition:
+      lat: 67.857
+      lng: 20.964
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-redu
+    nodeType: groundStation
+    earthPosition:
+      lat: 50.000
+      lng: 5.167
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-cebreros
+    nodeType: groundStation
+    earthPosition:
+      lat: 40.453
+      lng: -4.368
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-santa-maria
+    nodeType: groundStation
+    earthPosition:
+      lat: 36.97472
+      lng: -25.09472
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kourou
+    nodeType: groundStation
+    earthPosition:
+      lat: 5.251
+      lng: -52.805
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-malargue
+    nodeType: groundStation
+    earthPosition:
+      lat: -35.776
+      lng: -69.398
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef

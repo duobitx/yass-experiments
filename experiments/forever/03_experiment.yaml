@@ -1,0 +1,16 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: forever-experiment
+spec:
+  experimentDefRef: forever
+  layoutDefRef: forever-layout
+  engineContainers:
+    - name: engine-tus
+      image: "ghcr.io/duobitx/yass-tus-fs-engine"
+      env:
+        - name: GROUND_STATIONS
+          value: "estrack-new-norcia,estrack-kiruna,estrack-redu,estrack-cebreros,estrack-santa-maria,estrack-kourou,estrack-malargue"
+
+  start: true
+  simulationStartTime: "2025-10-06T14:35:00.123Z"
