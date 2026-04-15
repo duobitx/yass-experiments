@@ -1,0 +1,24 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: forever-experiment
+spec:
+  experimentDefRef: forever
+  layoutDefRef: forever-layout
+  engineContainers:
+    - name: engine-edfs
+      image: "ghcr.io/duobitx/yass-edfs-engine"
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: WATCH_DIR
+          value: "/mnt/transfer"
+    - name: engine-edfs-driver
+      # TODO: Change to custom image that has both IPFS daemon, cluster and IPFS client and FS watch logic
+      image: "docker.io/ipfs/kubo:v0.40.1"
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: IPFS_TELEMETRY
+          value: "off"
+        - name: LIBP2P_FORCE_PNET
+          value: "0"
+  start: true

@@ -11,5 +11,4 @@ spec:
       env:
         - name: GROUND_STATIONS
           value: "estrack-new-norcia,estrack-kiruna,estrack-redu,estrack-cebreros,estrack-santa-maria,estrack-kourou,estrack-malargue"
-
   start: true
