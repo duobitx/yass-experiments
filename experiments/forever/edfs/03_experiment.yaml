@@ -6,19 +6,24 @@ spec:
   experimentDefRef: forever
   layoutDefRef: forever-layout
   engineContainers:
-    - name: engine-edfs
+    - name: edfs-engine
       image: "ghcr.io/duobitx/yass-edfs-engine"
-      imagePullPolicy: Always
       env:
         - name: WATCH_DIR
           value: "/mnt/transfer"
-    - name: engine-edfs-driver
-      # TODO: Change to custom image that has both IPFS daemon, cluster and IPFS client and FS watch logic
-      image: "docker.io/ipfs/kubo:v0.40.1"
-      imagePullPolicy: IfNotPresent
+    - name: edfs-engine-node
+      image: "ghcr.io/duobitx/yass-edfs-engine-node"
       env:
-        - name: IPFS_TELEMETRY
-          value: "off"
-        - name: LIBP2P_FORCE_PNET
-          value: "0"
+        - name: EDFS_SWARM_KEY
+          value: e0e6161ec71e8e8c6d18c64dd8ee37f178fc50cadf58f20d08c481131a09bbae
+          # Right now we do support only one bootstrap peer, but we can extend
+          # it to multiple peers if needed.
+        - name: EDFS_BOOTSTRAP_PEER_NAME
+          value: estrack-kiruna
+        - name: EDFS_BOOTSTRAP_PEER_HOSTNAME
+          value: estrack-kiruna
+        - name: EDFS_BOOTSTRAP_PEER_ID
+          value: 12D3KooWLJFr7nesNtEQrQ9PqyjT8kvxbdUqfF4xwZZKEzJHnEhT
+        - name: EDFS_BOOTSTRAP_PEER_KEY
+          value: CAESQNU9ILPST19ucrp2ZzY4BN1+LnoLK5XnH86F8m2Ce3R7m7n8DOzBtVlE/3GS9UCxChfcU+Y/lkjR/T5nBJEujGY=
   start: true
