@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - ../base
   - 03_experiment.yaml
-namespace: forever-experiment
+namespace: forever-experiment-edfs
