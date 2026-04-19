@@ -8,7 +8,7 @@ spec:
   engineContainers:
     - name: engine-edfs
       image: "ghcr.io/duobitx/yass-edfs-engine"
-      imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always
       env:
         - name: WATCH_DIR
           value: "/mnt/transfer"
