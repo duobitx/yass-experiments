@@ -21,7 +21,7 @@ spec:
       beEffective: "yes"
   engineContainers:
     - name: engine
-      image: "ghcr.io/duobitx/yass/fs_engine_udp_ping:latest"
+      image: "ghcr.io/duobitx/yass-fs_engine_udp_ping:latest"
       env:
         - name: param1
           value: "zzz"
