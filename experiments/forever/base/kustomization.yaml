@@ -3,5 +3,4 @@ kind: Kustomization
 resources:
   - 00_namespace.yaml
   - 01_layout.yaml
-  - 02_experiment_defintion.yaml
 namespace: forever-experiment
