@@ -32,3 +32,11 @@ spec:
       env:
         - name: EDFS_CLUSTER_SECRET
           value: 50896c846aed59faeec45d1779e6b9ca6fac89d135d988b52c2f366f1b7f373d
+        - name: EDFS_BOOTSTRAP_PEER_NAME
+          value: estrack-kiruna
+        - name: EDFS_BOOTSTRAP_PEER_HOSTNAME
+          value: estrack-kuruna
+        - name: EDFS_BOOTSTRAP_PEER_ID
+          value: 12D3KooWLJFr7nesNtEQrQ9PqyjT8kvxbdUqfF4xwZZKEzJHnEhT
+        - name: EDFS_BOOTSTRAP_PEER_KEY
+          value: CAESQNU9ILPST19ucrp2ZzY4BN1+LnoLK5XnH86F8m2Ce3R7m7n8DOzBtVlE/3GS9UCxChfcU+Y/lkjR/T5nBJEujGY=
