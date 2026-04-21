@@ -12,6 +12,10 @@ spec:
       env:
         - name: WATCH_DIR
           value: "/mnt/transfer"
+        - name: EDFS_CLUSTER_SECRET
+          value: 50896c846aed59faeec45d1779e6b9ca6fac89d135d988b52c2f366f1b7f373d
+        - name: EDFS_CLUSTER_HOST
+          value: "/ip4/127.0.0.1/tcp/9094"
     - name: edfs-engine-node
       image: "ghcr.io/duobitx/yass-edfs-engine-node"
       env:
