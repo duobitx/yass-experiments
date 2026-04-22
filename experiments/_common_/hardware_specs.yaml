@@ -13,7 +13,7 @@ description: |
     Launch Year: 2015	
     CPU class: ERC32 (SPARC V7) OBC ~20 MHz; payload DHU separate
 spec:
-  cpu: "120m"  # ERC-32
+  cpu: "1500m"
   memory: "2Gi"
   diskSpace: "150Gi"  # 50% of NAND
   batteryCapacityWh: 15000
