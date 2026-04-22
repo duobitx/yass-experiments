@@ -32,11 +32,11 @@ $ k exec -it -n forever-experiment-edfs estrack-cebreros -c edfs-engine-node -- 
 Simulate that the `estrack-cebreros` satellite took two photos:
 
 ```
-k exec -it -n forever-experiment-edfs estrack-cebreros -c agent -- touch /mnt/transfer/estrack-cebreros-photo-01.txt
+k exec -it -n forever-experiment-edfs estrack-cebreros -c agent -- sh -c "echo estrack-cebreros-photo-01.txt > /mnt/transfer/estrack-cebreros-photo-01.txt"
 ```
 
 ```
-k exec -it -n forever-experiment-edfs estrack-cebreros -c agent -- touch /mnt/transfer/estrack-cebreros-photo-01.txt
+k exec -it -n forever-experiment-edfs estrack-cebreros -c agent -- sh -c "echo estrack-cebreros-photo-02.txt > /mnt/transfer/estrack-cebreros-photo-02.txt"
 ```
 
 List photos taken by satellites:
@@ -52,14 +52,14 @@ Add photos to the EDFS cluster:
 
 ``` console
 $ k exec -it -n forever-experiment-edfs estrack-cebreros -c edfs-engine-proxy -- \
-  ipfs-cluster-ctl add --replication-min 2 --replication-max 3 /mnt/transfer/estrack-cebreros-photo-01.txt
-added QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH estrack-cebreros-photo-01.txt
+  ipfs-cluster-ctl add --replication-min 1 --replication-max 3 /mnt/transfer/estrack-cebreros-photo-01.txt
+added QmQLt9NxX9dTvfiPSmS5Gr4gLLTemdq92a3nvp19mm4d43 estrack-cebreros-photo-01.txt
 ```
 
 ``` console
 $ k exec -it -n forever-experiment-edfs estrack-cebreros -c edfs-engine-proxy -- \
   ipfs-cluster-ctl add --replication-min 2 --replication-max 3 /mnt/transfer/estrack-cebreros-photo-02.txt
-added QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH estrack-cebreros-photo-02.txt
+added QmUYzm843Yik5JCb1Jq9TFzrv2TLCRAxLMBRMr1tWh9EMf estrack-cebreros-photo-02.txt
 ```
 
 List photos stored in the EDFS cluster:
@@ -67,13 +67,25 @@ List photos stored in the EDFS cluster:
 ``` console
 k exec -it -n forever-experiment-edfs estrack-cebreros -c edfs-engine-proxy -- \
   ipfs-cluster-ctl pin ls
-QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH |  | PIN | Repl. Factor: 2--3 | Allocations: [12D3KooWEHYghCaMtpEMdsaJKYRydsbKiYxcscyqRv7CTWS7V5AQ 12D3KooWJ6tiGs1n68a7Kr3UdBzi3uHDizfxZ9BTTKCDx4qzkpc6 12D3KooWQkR6Ttx8MLSTSW953ZnFbtV9cnmLh1KFL25fD6vuGi72] | Recursive | Metadata: no | Exp: ∞ | Added: 2026-04-21 16:41:22
+QmQLt9NxX9dTvfiPSmS5Gr4gLLTemdq92a3nvp19mm4d43 |  | PIN | Repl. Factor: 1--3 | Allocations: [12D3KooWE6WmWaLeWs8dvHvkxptzKiLQpAZFg44cdN3YheZWxFA7 12D3KooWLJFr7nesNtEQrQ9PqyjT8kvxbdUqfF4xwZZKEzJHnEhT 12D3KooWQ5ZEpQVAiSpeXUBEHUr51ajAkF4RrQhHgbNQb2v8SEV1] | Recursive | Metadata: no | Exp: ∞ | Added: 2026-04-22 10:54:01
+QmUYzm843Yik5JCb1Jq9TFzrv2TLCRAxLMBRMr1tWh9EMf |  | PIN | Repl. Factor: 1--3 | Allocations: [12D3KooWA7LrJKS6jgCrAtjALBExjBA6EMDqSTqZuLZ92zBfC4h7 12D3KooWCS1dDJr5KjjzKnWK1FVBBXEZfkPG9j9Edp3L7GSuALyp 12D3KooWFPQFFtizXdmNR8CbpyfbMbd7JZk3ym84kgNjNMHJVsoF] | Recursive | Metadata: no | Exp: ∞ | Added: 2026-04-22 10:54:12
 ```
 
 Get photo on a different node than the one that created it:
 
 ```
-k exec -it -n forever-experiment-edfs yaogan-25c -c edfs-engine-node -- ipfs get QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH -o /tmp/estrack-cebreros-photo-02.txt
+k exec -it -n forever-experiment-edfs yaogan-25c -c edfs-engine-node -- ipfs get QmQLt9NxX9dTvfiPSmS5Gr4gLLTemdq92a3nvp19mm4d43 -o /tmp/estrack-cebreros-photo-01.txt
+```
+
+```
+k exec -it -n forever-experiment-edfs yaogan-25c -c edfs-engine-node -- ipfs get QmUYzm843Yik5JCb1Jq9TFzrv2TLCRAxLMBRMr1tWh9EMf -o /tmp/estrack-cebreros-photo-02.txt
+```
+
+``` console
+$ k exec -it -n forever-experiment-edfs yaogan-25c -c edfs-engine-node -- ls -lh /tmp
+total 8K
+-rw-r--r--    1 root     root          30 Apr 22 11:04 estrack-cebreros-photo-01.txt
+-rw-r--r--    1 root     root          30 Apr 22 11:04 estrack-cebreros-photo-02.txt
 ```
 
 ```
