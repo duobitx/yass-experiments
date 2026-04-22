@@ -32,7 +32,7 @@ spec:
         - name: EDFS_BOOTSTRAP_PEER_NAME
           value: estrack-kiruna
         - name: EDFS_BOOTSTRAP_PEER_HOSTNAME
-          value: estrack-kiruna
+          value: estrack-kiruna.forever-experiment-edfs.svc.cluster.local
         - name: EDFS_BOOTSTRAP_PEER_ID
           value: 12D3KooWLJFr7nesNtEQrQ9PqyjT8kvxbdUqfF4xwZZKEzJHnEhT
         - name: EDFS_BOOTSTRAP_PEER_KEY
@@ -45,7 +45,7 @@ spec:
         - name: EDFS_BOOTSTRAP_PEER_NAME
           value: estrack-kiruna
         - name: EDFS_BOOTSTRAP_PEER_HOSTNAME
-          value: estrack-kuruna
+          value: estrack-kuruna.forever-experiment-edfs.svc.cluster.local
         - name: EDFS_BOOTSTRAP_PEER_ID
           value: 12D3KooWLJFr7nesNtEQrQ9PqyjT8kvxbdUqfF4xwZZKEzJHnEhT
         - name: EDFS_BOOTSTRAP_PEER_KEY
