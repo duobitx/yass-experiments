@@ -4,12 +4,6 @@ metadata:
   name: forever
 spec:
   maxDuration: "999999h"
-  metricsConfig:
-    deliveryDeadline: "2h"
-    targetGroundStations:
-      oneweb-0008: estrack-kiruna
-      yaogan-25c: estrack-new-norcia
-      kuiper-00060: estrack-redu
   behaviours:
     - fsNode: oneweb-0008
       agent:
