@@ -1,0 +1,50 @@
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: scaling
+spec:
+  maxDuration: "168h"
+  behaviours:
+    - fsNode: oneweb-0008
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "10M"
+          CHECK_INTERVAL_SECONDS: "120"
+      hardwareEvents: []
+    - fsNode: relay-01
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: relay-02
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-new-norcia
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-kiruna
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-redu
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-cebreros
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-santa-maria
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-kourou
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-malargue
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []

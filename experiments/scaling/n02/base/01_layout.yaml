@@ -1,0 +1,74 @@
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: scaling-layout
+spec:
+  - fsNode: oneweb-0008
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44059U 19010C   25347.49126494  .00000026  00000+0  35053-4 0  9990"
+        - "2 44059  87.9045 265.7535 0001501  76.4950 283.6348 13.16596955327295"
+    rotation:
+      yaw: 0
+      roll: 0.5
+      pitch: 0
+    hardwareSpecRef: sentinel-2
+  - fsNode: relay-01
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90001U 25001A   25347.49126494  .00000026  00000+0  35053-4 0  9995"
+        - "2 90001  87.9045 310.7535 0001501  76.4950 328.6348 13.16596955327294"
+    rotation:
+      roll: 0.5
+    hardwareSpecRef: sentinel-2
+  - fsNode: estrack-new-norcia
+    nodeType: groundStation
+    earthPosition:
+      lat: -31.048
+      lng: 116.192
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kiruna
+    nodeType: groundStation
+    earthPosition:
+      lat: 67.857
+      lng: 20.964
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-redu
+    nodeType: groundStation
+    earthPosition:
+      lat: 50.0
+      lng: 5.167
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-cebreros
+    nodeType: groundStation
+    earthPosition:
+      lat: 40.453
+      lng: -4.368
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-santa-maria
+    nodeType: groundStation
+    earthPosition:
+      lat: 36.97472
+      lng: -25.09472
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kourou
+    nodeType: groundStation
+    earthPosition:
+      lat: 5.251
+      lng: -52.805
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-malargue
+    nodeType: groundStation
+    earthPosition:
+      lat: -35.776
+      lng: -69.398
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
