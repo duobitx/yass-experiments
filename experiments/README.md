@@ -5,6 +5,7 @@ Each subdirectory is a self-contained experiment that can be applied with `kubec
 ## Index
 
 - [`forever/`](./forever/) — long-running constellation (3 satellites + 7 ESTRACK ground stations) used to exercise sustained data flow over the simulated network. Has [`edfs/`](./forever/edfs/) and [`tus/`](./forever/tus/) variants on top of a shared [`base/`](./forever/base/) layout.
+- [`scaling/`](./scaling/) — delivery time to a dedicated ground station as a function of constellation size (`n ∈ {1, 2, 3, 5, 8}`), TUS vs EDFS. Per-n overlays + sequential runner.
 - [`networking-demo/`](./networking-demo/) — minimal connectivity demo (3 satellites + 1 ground station, `fs_engine_udp_ping` engine). Verifies that `world-controller` actually shapes traffic with tc.
 - [`_common_/`](./_common_/) — shared `HardwareDefinition` set; not an experiment, included as a base.
 
