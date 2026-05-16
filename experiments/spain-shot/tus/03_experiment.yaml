@@ -1,0 +1,14 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: spain-shot-experiment
+spec:
+  experimentDefRef: spain-shot
+  layoutDefRef: spain-shot-layout
+  engineContainers:
+    - name: engine-tus
+      image: "ghcr.io/duobitx/yass-tus-fs-engine"
+      env:
+        - name: GROUND_STATIONS
+          value: "estrack-new-norcia"
+  start: true

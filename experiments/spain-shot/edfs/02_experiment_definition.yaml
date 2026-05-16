@@ -1,0 +1,67 @@
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: spain-shot
+spec:
+  maxDuration: 6h
+  behaviours:
+    - fsNode: oneweb-0008
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          PHOTO_TARGETS: "spain:40.4:-3.7:500"
+          FILE_SIZE: "2G"
+          MAX_PHOTOS: "1"
+          CHECK_INTERVAL_SECONDS: "5"
+          STOP_AFTER_TRANSFER: "false"
+      hardwareEvents: []
+
+    - fsNode: estrack-new-norcia
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          END_ON_ANY: "true"
+          STOP_AFTER_TRANSFER: "false"
+      hardwareEvents: []
+    - fsNode: estrack-kiruna
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          END_ON_ANY: "true"
+          STOP_AFTER_TRANSFER: "false"
+      hardwareEvents: []
+    - fsNode: estrack-redu
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          END_ON_ANY: "true"
+          STOP_AFTER_TRANSFER: "false"
+      hardwareEvents: []
+    - fsNode: estrack-cebreros
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          END_ON_ANY: "true"
+          STOP_AFTER_TRANSFER: "false"
+      hardwareEvents: []
+    - fsNode: estrack-santa-maria
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          END_ON_ANY: "true"
+          STOP_AFTER_TRANSFER: "false"
+      hardwareEvents: []
+    - fsNode: estrack-kourou
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          END_ON_ANY: "true"
+          STOP_AFTER_TRANSFER: "false"
+      hardwareEvents: []
+    - fsNode: estrack-malargue
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          END_ON_ANY: "true"
+          STOP_AFTER_TRANSFER: "false"
+      hardwareEvents: []
