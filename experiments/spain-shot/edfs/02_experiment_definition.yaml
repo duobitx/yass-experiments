@@ -3,7 +3,7 @@ kind: ExperimentDefinition
 metadata:
   name: spain-shot
 spec:
-  maxDuration: 6h
+  maxDuration: 24h
   behaviours:
     - fsNode: oneweb-0008
       agent:
