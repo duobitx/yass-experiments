@@ -8,8 +8,8 @@ spec:
   layoutDefRef: spain-shot-layout
   engineContainers:
     - name: engine-tus
-      image: "ghcr.io/duobitx/yass-tus-fs-engine:20260522-1784ae26"
-      imagePullPolicy: IfNotPresent
+      image: "ghcr.io/duobitx/yass-tus-fs-engine:latest"
+      imagePullPolicy: Always
       env:
         - name: GROUND_STATIONS
           value: "*"
