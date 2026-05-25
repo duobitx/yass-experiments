@@ -3,7 +3,7 @@ kind: Experiment
 metadata:
   name: spain-shot-experiment
 spec:
-  simulationStartTime: "2026-05-16T23:55:00.000Z" # ~6 minutes to fly over Madrid
+  simulationStartTime: "2026-05-16T23:59:00.000Z" # ~2 minutes to fly over Madrid
   experimentDefRef: spain-shot
   layoutDefRef: spain-shot-layout
   start: true
