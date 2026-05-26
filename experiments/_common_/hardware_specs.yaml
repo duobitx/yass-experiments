@@ -49,6 +49,28 @@ spec:
 apiVersion: int.esa.yass/v1
 kind: HardwareDefinition
 metadata:
+  name: nano-sat
+description: |
+    Generic CubeSat / nanosatellite profile used for large-scale constellation
+    tests (e.g. big-scale, 200 satellites). Much smaller resource footprint
+    than sentinel-2 so a full constellation fits on a single cluster.
+spec:
+  cpu: "200m"
+  memory: "256Mi"
+  diskSpace: "8Gi"
+  batteryCapacityWh: 50
+  batteryChargeW: 30
+  lowPowerThresholdWh: 5
+  energyConsumption:
+    normalPowerBaseW: 10
+    lowPowerBaseW: 5
+    perkByteTXWh: 0.00001
+    perkByteDiskWR: 0.00002
+    perkByteDiskRD: 0.00001
+---
+apiVersion: int.esa.yass/v1
+kind: HardwareDefinition
+metadata:
   name: ground-station-hwdef
 spec:
   cpu: "1"
