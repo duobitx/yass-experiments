@@ -49,8 +49,8 @@ spec:
   - fsNode: estrack-redu
     nodeType: groundStation
     earthPosition:
-      lat: 50.0
-      lng: 5.167
+      lat: 50.003
+      lng: 5.146
       heightOverSeaLevel: 0
     hardwareSpecRef: ground-station-hwdef
   - fsNode: estrack-cebreros
@@ -63,8 +63,8 @@ spec:
   - fsNode: estrack-santa-maria
     nodeType: groundStation
     earthPosition:
-      lat: 36.97472
-      lng: -25.09472
+      lat: 36.997
+      lng: -25.136
       heightOverSeaLevel: 0
     hardwareSpecRef: ground-station-hwdef
   - fsNode: estrack-kourou
