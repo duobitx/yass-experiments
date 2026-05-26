@@ -12,9 +12,9 @@ Usage:
 import pathlib
 import sys
 
-# geo_calc has MAXSAT=200 for the total FsNode count (sats + GS combined),
-# so we cap satellites at 193 to leave room for 7 ground stations.
-N_SATS = 193
+# geo-calculator has a compile-time MAXSAT=200 limit on the total FsNode count
+# (sats + GS combined), so N_SATS + len(GROUND_STATIONS) must stay ≤ 200.
+N_SATS = 60
 HW_REF_SAT = "nano-sat"
 HW_REF_GS = "ground-station-hwdef"
 
