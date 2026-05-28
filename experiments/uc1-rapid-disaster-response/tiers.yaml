@@ -1,0 +1,45 @@
+# UC1 tiered sweep matrix. Driven by ./run.sh --tier <N>.
+#
+# Tier 1: headline curve — time-to-first-delivery vs sat_count, EDFS vs TUS.
+#   Other parameters pinned at S=128M, priority=default, RF=3 (EDFS).
+# Tier 2: parameter sensitivity at the n08 mid-point.
+# Tier 3: deep dive at n55 — optional, only after Tier 1+2 if needed.
+#
+# Producer satellite is always the FIRST satellite in the Layout
+# (oneweb-0012 — the head of the big-scale roster). All other sats are
+# pure relays; the seven ESTRACK GSs are receivers with END_ON_ANY=true.
+
+tier_1:
+  - { engine: edfs, sat_count: 1,  file_size: 128M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 2,  file_size: 128M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 8,  file_size: 128M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 21, file_size: 128M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 55, file_size: 128M, priority: default, rf: 3 }
+  - { engine: tus,  sat_count: 1,  file_size: 128M }
+  - { engine: tus,  sat_count: 2,  file_size: 128M }
+  - { engine: tus,  sat_count: 8,  file_size: 128M }
+  - { engine: tus,  sat_count: 21, file_size: 128M }
+  - { engine: tus,  sat_count: 55, file_size: 128M }
+
+tier_2:
+  # File-size sensitivity at n08
+  - { engine: edfs, sat_count: 8, file_size: 8M,   priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 8, file_size: 1G,   priority: default, rf: 3 }
+  - { engine: tus,  sat_count: 8, file_size: 8M }
+  - { engine: tus,  sat_count: 8, file_size: 1G }
+  # Priority sensitivity at n08 (EDFS only — TUS ignores priority)
+  - { engine: edfs, sat_count: 8, file_size: 128M, priority: low,     rf: 3 }
+  - { engine: edfs, sat_count: 8, file_size: 128M, priority: high,    rf: 3 }
+  # RF sensitivity at n08
+  - { engine: edfs, sat_count: 8, file_size: 128M, priority: default, rf: 1 }
+  - { engine: edfs, sat_count: 8, file_size: 128M, priority: default, rf: 5 }
+
+tier_3:
+  # Optional repeat of Tier 2 at n55 — only run after Tier 1+2 are
+  # analysed and we see a parameter effect worth tracking with scale.
+  - { engine: edfs, sat_count: 55, file_size: 8M,   priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 55, file_size: 1G,   priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 55, file_size: 128M, priority: low,     rf: 3 }
+  - { engine: edfs, sat_count: 55, file_size: 128M, priority: high,    rf: 3 }
+  - { engine: edfs, sat_count: 55, file_size: 128M, priority: default, rf: 1 }
+  - { engine: edfs, sat_count: 55, file_size: 128M, priority: default, rf: 5 }

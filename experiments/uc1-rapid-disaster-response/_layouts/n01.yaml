@@ -1,0 +1,61 @@
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: uc1-n01
+spec:
+  - fsNode: oneweb-0012
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44057U 19010A   26145.53008186  .00000075  00000+0  16216-3 0  9990"
+        - "2 44057  87.9106 233.2835 0002299  92.4563 267.6832 13.16593850348583"
+    hardwareSpecRef: sentinel-2
+  - fsNode: estrack-new-norcia
+    nodeType: groundStation
+    earthPosition:
+      lat: -31.048
+      lng: 116.192
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kiruna
+    nodeType: groundStation
+    earthPosition:
+      lat: 67.857
+      lng: 20.964
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-redu
+    nodeType: groundStation
+    earthPosition:
+      lat: 50.003
+      lng: 5.146
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-cebreros
+    nodeType: groundStation
+    earthPosition:
+      lat: 40.453
+      lng: -4.368
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-santa-maria
+    nodeType: groundStation
+    earthPosition:
+      lat: 36.997
+      lng: -25.136
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kourou
+    nodeType: groundStation
+    earthPosition:
+      lat: 5.251
+      lng: -52.805
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-malargue
+    nodeType: groundStation
+    earthPosition:
+      lat: -35.776
+      lng: -69.398
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef

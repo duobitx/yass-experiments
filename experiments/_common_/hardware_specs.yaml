@@ -13,8 +13,13 @@ description: |
     Launch Year: 2015	
     CPU class: ERC32 (SPARC V7) OBC ~20 MHz; payload DHU separate
 spec:
-  cpu: "1500m"
-  memory: "2Gi"
+  # cpu / memory are translated into the engine container's Limits; K8s
+  # defaults Requests=Limits when Requests is unset, so these are also
+  # what the scheduler reserves. Values picked 2026-05-29 to fit UC1-5
+  # sweeps on cf (measured engine RAM ~8 MB for TUS, ~100-200 MB for
+  # EDFS; original 1500m/2Gi was 100-600× over the real envelope).
+  cpu: "500m"
+  memory: "512Mi"
   diskSpace: "150Gi"  # 50% of NAND
   batteryCapacityWh: 15000
   batteryChargeW: 1700
@@ -73,8 +78,11 @@ kind: HardwareDefinition
 metadata:
   name: ground-station-hwdef
 spec:
-  cpu: "1"
-  memory: "5Gi"
+  # Sized 2026-05-29 to fit UC1-5 sweeps on cf — GS gets more headroom
+  # than a satellite because it serves multiple SATs in parallel and is
+  # the only side of every delivery (so it's the hot path).
+  cpu: "2"
+  memory: "4Gi"
   batteryCapacityWh: 1000
   batteryChargeW: 1000
   lowPowerThresholdWh: 0

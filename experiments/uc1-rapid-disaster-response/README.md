@@ -1,5 +1,30 @@
 # UC1 — Rapid Disaster Response
 
+## Running
+
+The tiered parameter sweep is implemented as templates + a small bash
+driver. To execute it:
+
+```shell
+./run.sh --tier 1 --cluster cf            # headline curve (10 entries)
+./run.sh --tier 2 --cluster cf            # sensitivity at n08 (8 entries)
+./run.sh --tier all --cluster prod        # full plan (incl. n55, prod only)
+./run.sh --tier 1 --cluster cf --dry-run  # render to _runs/ without applying
+```
+
+Tier ordering and per-tier matrix lives in [`tiers.yaml`](./tiers.yaml).
+Each run produces:
+
+- `_runs/<run_id>/{00_namespace,02_experiment_definition,03_experiment}.yaml`
+  — the rendered manifests for archival;
+- `_runs/<run_id>/run.log` — kubectl + export output;
+- `_runs/<run_id>.tar.gz` — bundle from `tools/yass-export/`.
+
+`n55` entries refuse `--cluster cf` (CPU too tight after the
+hardware-spec diet — see the cluster-fit table in
+[`../_common_/hardware_specs.yaml`](../_common_/hardware_specs.yaml)
+header).
+
 ## Abstract
 
 A single Earth-Observation satellite captures one high-value image at a known

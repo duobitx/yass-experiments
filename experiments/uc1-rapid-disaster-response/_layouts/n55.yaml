@@ -1,0 +1,439 @@
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: uc1-n55
+spec:
+  - fsNode: oneweb-0012
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44057U 19010A   26145.53008186  .00000075  00000+0  16216-3 0  9990"
+        - "2 44057  87.9106 233.2835 0002299  92.4563 267.6832 13.16593850348583"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0010
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44058U 19010B   26145.25142175  .00000050  00000+0  97664-4 0  9997"
+        - "2 44058  87.9106 233.3345 0001633  99.1897 260.9419 13.16593225348590"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0008
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44059U 19010C   26145.50476094  .00000017  00000+0  10825-4 0  9993"
+        - "2 44059  87.9105 233.2799 0002169 106.7879 253.3490 13.16594475348742"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0007
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44060U 19010D   26145.36972155 -.00000004  00000+0 -43810-4 0  9996"
+        - "2 44060  87.8989 263.7680 0001808  90.6097 269.5241 13.15547347348379"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0006
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44061U 19010E   26145.29761733  .00000082  00000+0  18495-3 0  9991"
+        - "2 44061  87.9000 263.7444 0001738  98.2500 261.8827 13.15551002348411"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0011
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44062U 19010F   26145.57017781 -.00000021  00000+0 -88975-4 0  9996"
+        - "2 44062  87.9003 263.6994 0001770 105.4162 254.7164 13.15549339348443"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0013
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45131U 20008A   26145.47599882 -.00000769  00000+0 -22704-2 0  9994"
+        - "2 45131  87.8534  57.4051 0002847  73.4147 286.7292 13.09455461303099"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0017
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45132U 20008B   26145.39790975  .00000563  00000+0  15758-2 0  9993"
+        - "2 45132  87.8849  40.8055 0001617  78.1982 281.9327 13.10371445304966"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0020
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45133U 20008C   26145.21530197 -.00000097  00000+0 -31324-3 0  9995"
+        - "2 45133  87.8864  40.8391 0001831  78.3443 281.7890 13.10376612305335"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0021
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45134U 20008D   26145.45932689  .00000556  00000+0  15567-2 0  9992"
+        - "2 45134  87.8854  40.8078 0001869  75.9546 284.1789 13.10375533305677"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0023
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45136U 20008F   26145.47012024  .00000608  00000+0  17055-2 0  9990"
+        - "2 45136  87.8856  40.7865 0001960  81.0710 279.0639 13.10372592305104"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0024
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45137U 20008G   26145.21376709 -.00000170  00000+0 -52426-3 0  9994"
+        - "2 45137  87.8868  40.8291 0001806  78.7275 281.4055 13.10374410305234"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0025
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45138U 20008H   26145.21349781 -.00000144  00000+0 -44765-3 0  9993"
+        - "2 45138  87.8870  40.8180 0001777  95.9599 264.1730 13.10378248305569"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0026
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45139U 20008J   26145.42213139  .00000511  00000+0  14062-2 0  9996"
+        - "2 45139  87.8915  25.5980 0001651  83.1396 276.9920 13.11415953308126"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0028
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45140U 20008K   26145.62063713 -.00000557  00000+0 -16215-2 0  9995"
+        - "2 45140  87.8906  25.5649 0002353  76.6297 283.5093 13.10852579305666"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0032
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45141U 20008L   26145.39970881  .00000501  00000+0  13998-2 0  9995"
+        - "2 45141  87.8851  40.8068 0002342  78.8766 281.2624 13.10371627305311"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0033
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45142U 20008M   26145.45101508  .00000206  00000+0  55511-3 0  9995"
+        - "2 45142  87.8854  40.8043 0001306  78.0891 282.0382 13.10377565305236"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0035
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45143U 20008N   26145.24206636 -.00016439  00000+0 -47146-1 0  9991"
+        - "2 45143  87.8848  40.8378 0001800  72.5340 287.5984 13.10470784304939"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0036
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45144U 20008P   26145.13223119 -.00000401  00000+0 -11947-2 0  9998"
+        - "2 45144  87.8873  40.8646 0002050  81.2334 278.9025 13.09823949305343"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0038
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45145U 20008Q   26145.12724864  .00000406  00000+0  11086-2 0  9998"
+        - "2 45145  87.8923  25.6620 0002188  32.6163 327.5100 13.11414097307301"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0039
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45146U 20008R   26145.14891955  .00000420  00000+0  11673-2 0  9995"
+        - "2 45146  87.8857  40.8541 0002312  74.9473 285.1910 13.10375755305145"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0040
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45147U 20008S   26145.21862418  .00000102  00000+0  25545-3 0  9997"
+        - "2 45147  87.8854  40.8516 0001831  75.4483 284.6848 13.10377085304856"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0043
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45149U 20008U   26145.44936548  .00000025  00000+0  36281-4 0  9994"
+        - "2 45149  87.8857  40.7922 0002389  76.0864 284.0529 13.10375167305209"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0044
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45150U 20008V   26145.40123022  .00000421  00000+0  11705-2 0  9999"
+        - "2 45150  87.8858  40.8011 0001968  76.2276 283.9070 13.10371140305490"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0045
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45151U 20008W   26145.42721661  .00000571  00000+0  15740-2 0  9994"
+        - "2 45151  87.8919  25.5861 0001870  78.7101 281.4237 13.11415743307420"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0047
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45152U 20008X   26145.24175683  .00000618  00000+0  17327-2 0  9997"
+        - "2 45152  87.8858  40.8327 0001885  75.6096 284.5240 13.10412402305193"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0048
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45153U 20008Y   26145.46597085  .00000697  00000+0  19602-2 0  9991"
+        - "2 45153  87.8853  40.8109 0001777  77.6785 282.4542 13.10373861304831"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0049
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45154U 20008Z   26145.46915786  .00000603  00000+0  16916-2 0  9996"
+        - "2 45154  87.8855  40.7991 0002109  89.5282 270.6087 13.10372354305050"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0051
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45155U 20008AA  26145.42552800  .00000485  00000+0  13336-2 0  9998"
+        - "2 45155  87.8910  25.5956 0001826  81.8970 278.2365 13.11414922308100"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0052
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45156U 20008AB  26145.41297942 -.00000142  00000+0 -44438-3 0  9991"
+        - "2 45156  87.8852  40.7959 0002137  89.5920 270.5452 13.10371014304958"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0053
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45157U 20008AC  26145.44603447 -.00000037  00000+0 -14097-3 0  9997"
+        - "2 45157  87.8855  40.8120 0002341  80.9428 279.1965 13.10377663304936"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0054
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45158U 20008AD  26145.40454646  .00000238  00000+0  64442-3 0  9999"
+        - "2 45158  87.8857  40.8008 0001826  81.9856 278.1478 13.10370442305046"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0056
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45159U 20008AE  26145.45254562  .00000270  00000+0  73704-3 0  9997"
+        - "2 45159  87.8864  40.7853 0001731  88.3107 271.8219 13.10370646305204"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0057
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45160U 20008AF  26145.46942729  .00000697  00000+0  19595-2 0  9999"
+        - "2 45160  87.8856  40.7948 0002349  81.2161 278.9233 13.10373877305371"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0058
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45161U 20008AG  26145.45614256  .00000527  00000+0  14745-2 0  9994"
+        - "2 45161  87.8855  40.8046 0001697  72.4569 287.6744 13.10376549305441"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0059
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45162U 20008AH  26145.45282590  .00000297  00000+0  81553-3 0  9993"
+        - "2 45162  87.8856  40.8042 0001896  73.6200 286.5135 13.10371864305341"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0062
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45163U 20008AJ  26145.39943058  .00000498  00000+0  13901-2 0  9994"
+        - "2 45163  87.8858  40.8006 0001431  72.7049 287.4235 13.10370420305203"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0065
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45164U 20008AK  26145.66168624 -.00000637  00000+0 -18608-2 0  9999"
+        - "2 45164  87.8859  40.7565 0002116  86.8277 273.3092 13.10373963304933"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0066
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45424U 20020A   26145.41026029  .00000230  00000+0  61391-3 0  9992"
+        - "2 45424  87.8914  25.6027 0001861  76.2143 283.9192 13.11418239299691"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0067
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45425U 20020B   26145.37195371 -.00000184  00000+0 -55562-3 0  9998"
+        - "2 45425  87.8929  25.5284 0001979  84.6790 275.4563 13.11421146299748"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0080
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45426U 20020C   26145.37139320 -.00000118  00000+0 -36853-3 0  9990"
+        - "2 45426  87.8917  25.6049 0001479  77.7917 282.3377 13.11415063299713"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0090
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45427U 20020D   26145.40021833 -.00000241  00000+0 -71520-3 0  9991"
+        - "2 45427  87.8920  25.6038 0001718  81.6137 278.5186 13.11418239299689"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0061
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45428U 20020E   26145.12697589  .00000418  00000+0  11444-2 0  9990"
+        - "2 45428  87.8916  25.6433 0001777  80.1651 279.9678 13.11415047299601"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0081
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45429U 20020F   26145.41365606  .00000347  00000+0  94307-3 0  9996"
+        - "2 45429  87.8911  25.5975 0001952  78.8306 281.3041 13.11418118299752"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0069
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45430U 20020G   26145.64419763  .00003017  00000+0  85392-2 0  9997"
+        - "2 45430  87.8879  25.5596 0001389  66.9341 293.1933 13.10885222299717"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0031
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45431U 20020H   26145.60353865 -.00000273  00000+0 -80663-3 0  9994"
+        - "2 45431  87.8904  25.5691 0001608  80.5633 279.5677 13.11413886299697"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0027
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45432U 20020J   26145.60982732  .00000090  00000+0  20276-3 0  9995"
+        - "2 45432  87.9160  10.3429 0001557  93.3230 266.8079 13.16052597303382"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0064
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45433U 20020K   26145.60185165 -.00000252  00000+0 -74790-3 0  9993"
+        - "2 45433  87.8907  25.5604 0001618  83.7079 276.4233 13.11415430299721"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0018
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45434U 20020L   26145.40517226  .00000000  00000+0 -35142-4 0  9998"
+        - "2 45434  87.8912  25.5988 0001812  69.1986 290.9336 13.11418753299641"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0083
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45435U 20020M   26145.62401928 -.00000395  00000+0 -11508-2 0  9990"
+        - "2 45435  87.8917  25.5477 0001731  79.9175 280.2148 13.11417089299711"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0095
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45436U 20020N   26145.38665438 -.00000509  00000+0 -14734-2 0  9993"
+        - "2 45436  87.8917  25.6033 0002039 104.6799 255.4555 13.11417992299686"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0092
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45437U 20020P   26145.42423872  .00000494  00000+0  13464-2 0  9993"
+        - "2 45437  87.8915  25.5910 0001990  89.2045 270.9311 13.11953970299802"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0085
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45438U 20020Q   26145.39485945 -.00000390  00000+0 -11359-2 0  9997"
+        - "2 45438  87.8909  25.6017 0001786  81.8098 278.3233 13.11417261299683"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0096
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45439U 20020R   26145.62558982 -.00000357  00000+0 -10443-2 0  9992"
+        - "2 45439  87.8920  25.5498 0001865  81.3945 278.7394 13.11418285299705"
+    hardwareSpecRef: sentinel-2
+  - fsNode: oneweb-0037
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45440U 20020S   26145.13350372  .00000084  00000+0  19991-3 0  9996"
+        - "2 45440  87.8926  25.6229 0001827  84.3194 275.8143 13.11909388299678"
+    hardwareSpecRef: sentinel-2
+  - fsNode: estrack-new-norcia
+    nodeType: groundStation
+    earthPosition:
+      lat: -31.048
+      lng: 116.192
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kiruna
+    nodeType: groundStation
+    earthPosition:
+      lat: 67.857
+      lng: 20.964
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-redu
+    nodeType: groundStation
+    earthPosition:
+      lat: 50.003
+      lng: 5.146
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-cebreros
+    nodeType: groundStation
+    earthPosition:
+      lat: 40.453
+      lng: -4.368
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-santa-maria
+    nodeType: groundStation
+    earthPosition:
+      lat: 36.997
+      lng: -25.136
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kourou
+    nodeType: groundStation
+    earthPosition:
+      lat: 5.251
+      lng: -52.805
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-malargue
+    nodeType: groundStation
+    earthPosition:
+      lat: -35.776
+      lng: -69.398
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef

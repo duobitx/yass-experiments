@@ -1,0 +1,19 @@
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: ${RUN_ID}
+spec:
+  maxDuration: ${MAX_DURATION}
+  behaviours:
+    - fsNode: ${PRODUCER}
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          # The producer takes a single image of the requested size at
+          # priority ${PRIORITY} and exits.
+          PHOTO_TARGETS: "uc1:0:0:1000000"   # huge AOI radius — fires on first overpass
+          FILE_SIZE: "${FILE_SIZE}"
+          FILE_PRIORITY: "${PRIORITY}"
+          MAX_PHOTOS: "1"
+          CHECK_INTERVAL_SECONDS: "5"
+${EXTRA_BEHAVIOURS}
