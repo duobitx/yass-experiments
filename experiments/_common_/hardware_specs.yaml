@@ -76,6 +76,37 @@ spec:
 apiVersion: int.esa.yass/v1
 kind: HardwareDefinition
 metadata:
+  name: oneweb
+description: |
+    Name: OneWeb Gen-1 (Ku-/Ka-band comms satellite)
+    Mass: ~150 kg (vs ~1100 kg for Sentinel-2)
+    Orbit: ~1200 km altitude, 87.9° inclination, 18 orbital planes × 36 sats
+           in the full constellation (we use a sub-sample for UC sweeps).
+    OBC class: ARM-grade SoC, much lighter than Sentinel-2's ERC-32.
+    Payload: comms relay, not Earth observation — no large image buffers
+             so on-board storage is modest.
+    Battery / solar: ~5 kWh capacity, ~800 W average charge from panels.
+spec:
+  # Proportional to sentinel-2 (which is itself the diet'd 500m/512Mi
+  # since 2026-05-29): OneWeb is ~7× lighter than Sentinel-2 so we halve
+  # both CPU and RAM relative to sentinel-2. Storage cut more aggressively
+  # — OneWeb is a relay, not an EO buffer.
+  cpu: "250m"
+  memory: "256Mi"
+  diskSpace: "50Gi"
+  batteryCapacityWh: 5000
+  batteryChargeW: 800
+  lowPowerThresholdWh: 500   # 10% of battery capacity
+  energyConsumption:
+    normalPowerBaseW: 500
+    lowPowerBaseW: 300
+    perkByteTXWh: 0.00001
+    perkByteDiskWR: 0.00002
+    perkByteDiskRD: 0.00001
+---
+apiVersion: int.esa.yass/v1
+kind: HardwareDefinition
+metadata:
   name: ground-station-hwdef
 spec:
   # Sized 2026-05-29 to fit UC1-5 sweeps on cf — GS gets more headroom

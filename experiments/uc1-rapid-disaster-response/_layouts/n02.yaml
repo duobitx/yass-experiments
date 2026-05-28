@@ -2,21 +2,24 @@ apiVersion: int.esa.yass/v1
 kind: Layout
 metadata:
   name: uc1-n02
+  annotations:
+    yass.experiments/source-tles: "../../big-scale/base/01_layout.yaml"
+    yass.experiments/sat-selection: "round-robin across RAAN buckets for orbital-plane diversity"
 spec:
-  - fsNode: oneweb-0012
+  - fsNode: oneweb-0027
     nodeType: satellite
     orbit:
       tle:
-        - "1 44057U 19010A   26145.53008186  .00000075  00000+0  16216-3 0  9990"
-        - "2 44057  87.9106 233.2835 0002299  92.4563 267.6832 13.16593850348583"
-    hardwareSpecRef: sentinel-2
-  - fsNode: oneweb-0010
+        - "1 45432U 20020J   26145.60982732  .00000090  00000+0  20276-3 0  9995"
+        - "2 45432  87.9160  10.3429 0001557  93.3230 266.8079 13.16052597303382"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0018
     nodeType: satellite
     orbit:
       tle:
-        - "1 44058U 19010B   26145.25142175  .00000050  00000+0  97664-4 0  9997"
-        - "2 44058  87.9106 233.3345 0001633  99.1897 260.9419 13.16593225348590"
-    hardwareSpecRef: sentinel-2
+        - "1 45434U 20020L   26145.40517226  .00000000  00000+0 -35142-4 0  9998"
+        - "2 45434  87.8912  25.5988 0001812  69.1986 290.9336 13.11418753299641"
+    hardwareSpecRef: oneweb
   - fsNode: estrack-new-norcia
     nodeType: groundStation
     earthPosition:

@@ -62,9 +62,10 @@ export KUBECONFIG=$KCFG
 edfs_img=ghcr.io/duobitx/yass-edfs-fs-engine:latest
 tus_img=ghcr.io/duobitx/yass-tus-fs-engine:latest
 
-# Producer is the first satellite in the Layout — same TLE across every
-# Layout file so the headline curve is comparable.
-PRODUCER=oneweb-0012
+# Producer is the first satellite in every Layout — chosen once (the
+# first plane-diverse pick) so the headline curve compares apples to
+# apples across sat_count. See README's "Sat selection" section.
+PRODUCER=oneweb-0027
 
 # Read the requested tier list as JSON via yq.
 tiers_to_run=()
@@ -138,11 +139,10 @@ for tier in "${tiers_to_run[@]}"; do
     ns=${run_id,,}
     layout_file=$(printf '%s/_layouts/n%02d.yaml' "$HERE" "$sat_count")
 
-    # Cluster-fit guard
-    if [[ $sat_count == 55 && $CLUSTER == cf ]]; then
-      echo "[$run_id] refusing n55 on cf (CPU bottleneck — use --cluster prod). skip." >&2
-      continue
-    fi
+    # Note: after switching to the `oneweb` HW spec (250m/256Mi),
+    # all sat_counts up to 55 fit cf (n55 ≈ 28 CPU / 42 GiB). No
+    # cluster-fit guard is needed; if you reintroduce the heavier
+    # `sentinel-2` spec, restore the n55→prod guard.
 
     case $engine in
       edfs) engine_image=$edfs_img;
