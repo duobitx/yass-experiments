@@ -1,83 +1,73 @@
 apiVersion: int.esa.yass/v1
 kind: ExperimentDefinition
 metadata:
-  name: spain-shot
+  name: spain-shot-hwfaults
 spec:
-  maxDuration: 24h
+  maxDuration: 10m
   behaviours:
     - fsNode: oneweb-0008
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
           PHOTO_TARGETS: "spain:40.4:-3.7:500"
-          FILE_SIZE: "2G"
+          FILE_SIZE: "32M"
           MAX_PHOTOS: "1"
           CHECK_INTERVAL_SECONDS: "5"
       hardwareEvents:
-        - name: morning-blackout
-          type: NetworkFailure
-          startOffset: 5m
-          duration: 30s
-        - name: bandwidth-flap
+        - name: bw-cap-early
           type: NetworkBandwidthReduced
-          startOffset: 10m
-          schedule:
-            intervalMean: 5m
-            intervalJitterPercent: 20
-            durationMean: 45s
-            durationJitterPercent: 10
-            maxOccurrences: 3
+          startOffset: 30s
+          duration: 30s
           params:
             networkBandwidth:
-              capBitsPerSec: 100000
+              capBitsPerSec: 50000
+        - name: blackout
+          type: NetworkFailure
+          startOffset: 90s
+          duration: 30s
         - name: disk-out
           type: DiskFull
-          startOffset: 30m
-          duration: 999999h
+          startOffset: 180s
+          duration: 60s
         - name: disk-dead
           type: DiskFailure
-          startOffset: 45m
-          duration: 1m
-
+          startOffset: 270s
+          duration: 30s
+        - name: end-of-life
+          type: Destroy
+          startOffset: 360s
     - fsNode: estrack-new-norcia
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
-      hardwareEvents: []
     - fsNode: estrack-kiruna
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
-      hardwareEvents: []
     - fsNode: estrack-redu
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
-      hardwareEvents: []
     - fsNode: estrack-cebreros
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
-      hardwareEvents: []
     - fsNode: estrack-santa-maria
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
-      hardwareEvents: []
     - fsNode: estrack-kourou
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
-      hardwareEvents: []
     - fsNode: estrack-malargue
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
-      hardwareEvents: []
