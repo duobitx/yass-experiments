@@ -19,10 +19,8 @@ spec:
           value: "/ip4/127.0.0.1/tcp/9094"
         - name: EDFS_CONNECTION_RETRIES
           value: "3"
-        - name: EDFS_REPLICATION_FACTOR_MIN
-          value: "1"
-        - name: EDFS_REPLICATION_FACTOR_MAX
-          value: "1"
+        - name: EDFS_REPLICATION_FACTOR
+          value: "0.1"
     - name: edfs-engine-node
       image: "ghcr.io/duobitx/yass-edfs-engine-node"
       env:
