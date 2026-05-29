@@ -10,12 +10,5 @@ spec:
   experimentDefRef: ${RUN_ID}
   layoutDefRef: ${LAYOUT_REF}
   runId: "${RUN_ID}"
-  engineContainers:
-    - name: engine-${ENGINE}
-      image: "${ENGINE_IMAGE}"
-      imagePullPolicy: Always
-      env:
-        - name: GROUND_STATIONS
-          value: "*"
-${ENGINE_EXTRA_ENV}
+${ENGINE_CONTAINERS}
   start: true

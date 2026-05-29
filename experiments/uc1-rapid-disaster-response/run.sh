@@ -59,9 +59,20 @@ echo "using kubeconfig: $KCFG"
 [[ -f $KCFG ]] || { echo "kubeconfig not found at $KCFG" >&2; exit 4; }
 export KUBECONFIG=$KCFG
 
-# Engine image map
-edfs_img=ghcr.io/duobitx/yass-edfs-fs-engine:latest
+# Engine images.
+# TUS is a single container; EDFS is three (engine + node + proxy)
+# with bootstrap-peer config — we reuse the keys from the working
+# spain-shot/edfs setup (bootstrap peer is estrack-new-norcia, which
+# every UC1 Layout includes).
 tus_img=ghcr.io/duobitx/yass-tus-fs-engine:latest
+edfs_engine_img=ghcr.io/duobitx/yass-edfs-engine
+edfs_node_img=ghcr.io/duobitx/yass-edfs-engine-node
+edfs_proxy_img=ghcr.io/duobitx/yass-edfs-engine-proxy
+edfs_cluster_secret=50896c846aed59faeec45d1779e6b9ca6fac89d135d988b52c2f366f1b7f373d
+edfs_swarm_key=e0e6161ec71e8e8c6d18c64dd8ee37f178fc50cadf58f20d08c481131a09bbae
+edfs_bootstrap_peer=estrack-new-norcia
+edfs_bootstrap_peer_id=12D3KooWLJFr7nesNtEQrQ9PqyjT8kvxbdUqfF4xwZZKEzJHnEhT
+edfs_bootstrap_peer_key="CAESQNU9ILPST19ucrp2ZzY4BN1+LnoLK5XnH86F8m2Ce3R7m7n8DOzBtVlE/3GS9UCxChfcU+Y/lkjR/T5nBJEujGY="
 
 # Producer is the first satellite in every Layout — chosen once (the
 # first plane-diverse pick) so the headline curve compares apples to
@@ -128,16 +139,16 @@ for tier in "${tiers_to_run[@]}"; do
     [[ -z $engine ]] && continue
     priority=${priority:-default}
 
-    # runId per the README's convention
+    # runId per the README's convention. Lowercased everywhere because
+    # it doubles as the resource name (K8s requires RFC 1123 subdomain:
+    # [a-z0-9-]+); having spec.runId differ from metadata.name would
+    # only confuse Prometheus/Grafana joins.
     if [[ $engine == edfs ]]; then
-      run_id="uc1-edfs-S${file_size}-P${priority}-N$(printf '%02d' "$sat_count")-RF${rf}"
+      run_id="uc1-edfs-s${file_size,,}-p${priority,,}-n$(printf '%02d' "$sat_count")-rf${rf}"
     else
-      run_id="uc1-tus-S${file_size}-N$(printf '%02d' "$sat_count")"
+      run_id="uc1-tus-s${file_size,,}-n$(printf '%02d' "$sat_count")"
     fi
-    # Namespace = run_id lowercased. K8s namespaces must match
-    # [a-z0-9-]+; our run_id contains 'P' / 'N' / 'RF' uppercase
-    # letters so we just downcase the whole thing.
-    ns=${run_id,,}
+    ns=$run_id
     layout_file=$(printf '%s/_layouts/n%02d.yaml' "$HERE" "$sat_count")
 
     # Note: with the `oneweb` HW spec (250m/256Mi) every sat_count
@@ -146,13 +157,63 @@ for tier in "${tiers_to_run[@]}"; do
     # kubeconfig whose target cluster can hold the run.
 
     case $engine in
-      edfs) engine_image=$edfs_img;
-            engine_extra_env=$(cat <<-YAML
+      tus)
+        engine_containers=$(cat <<-YAML
+  engineContainers:
+    - name: engine-tus
+      image: "${tus_img}"
+      imagePullPolicy: Always
+      env:
+        - name: GROUND_STATIONS
+          value: "*"
+YAML
+)
+        ;;
+      edfs)
+        engine_containers=$(cat <<-YAML
+  engineContainers:
+    - name: edfs-engine
+      image: "${edfs_engine_img}"
+      env:
+        - name: WATCH_DIR
+          value: "/mnt/transfer"
+        - name: EDFS_CLUSTER_SECRET
+          value: ${edfs_cluster_secret}
+        - name: EDFS_CLUSTER_HOST
+          value: "/ip4/127.0.0.1/tcp/9094"
+        - name: EDFS_CONNECTION_RETRIES
+          value: "3"
         - name: EDFS_REPLICATION_FACTOR
           value: "${rf}"
+    - name: edfs-engine-node
+      image: "${edfs_node_img}"
+      env:
+        - name: EDFS_SWARM_KEY
+          value: ${edfs_swarm_key}
+        - name: EDFS_BOOTSTRAP_PEER_NAME
+          value: ${edfs_bootstrap_peer}
+        - name: EDFS_BOOTSTRAP_PEER_HOSTNAME
+          value: ${edfs_bootstrap_peer}
+        - name: EDFS_BOOTSTRAP_PEER_ID
+          value: ${edfs_bootstrap_peer_id}
+        - name: EDFS_BOOTSTRAP_PEER_KEY
+          value: ${edfs_bootstrap_peer_key}
+    - name: edfs-engine-proxy
+      image: "${edfs_proxy_img}"
+      env:
+        - name: EDFS_CLUSTER_SECRET
+          value: ${edfs_cluster_secret}
+        - name: EDFS_BOOTSTRAP_PEER_NAME
+          value: ${edfs_bootstrap_peer}
+        - name: EDFS_BOOTSTRAP_PEER_HOSTNAME
+          value: ${edfs_bootstrap_peer}
+        - name: EDFS_BOOTSTRAP_PEER_ID
+          value: ${edfs_bootstrap_peer_id}
+        - name: EDFS_BOOTSTRAP_PEER_KEY
+          value: ${edfs_bootstrap_peer_key}
 YAML
-            ) ;;
-      tus)  engine_image=$tus_img; engine_extra_env="" ;;
+)
+        ;;
     esac
 
     # Default maxDuration from README
@@ -164,9 +225,10 @@ YAML
     mkdir -p "$out"
 
     # Render
-    export RUN_ID=$run_id NAMESPACE=$ns ENGINE=$engine ENGINE_IMAGE=$engine_image
+    export RUN_ID=$run_id NAMESPACE=$ns
     export FILE_SIZE=$file_size PRIORITY=$priority MAX_DURATION=$max_duration
-    export PRODUCER LAYOUT_REF=$layout_ref ENGINE_EXTRA_ENV=$engine_extra_env
+    export PRODUCER LAYOUT_REF=$layout_ref
+    export ENGINE_CONTAINERS=$engine_containers
     export EXTRA_BEHAVIOURS=$extra
     envsubst < "$HERE/_template/00_namespace.yaml.tmpl"          > "$out/00_namespace.yaml"
     envsubst < "$HERE/_template/02_experiment_definition.yaml.tmpl" > "$out/02_experiment_definition.yaml"
