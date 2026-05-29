@@ -6,22 +6,24 @@ The tiered parameter sweep is implemented as templates + a small bash
 driver. To execute it:
 
 ```shell
-./run.sh --tier 1 --cluster cf            # headline curve (10 entries)
-./run.sh --tier 2 --cluster cf            # sensitivity at n08 (8 entries)
-./run.sh --tier all --cluster cf          # full plan
-./run.sh --tier 1 --cluster cf --dry-run  # render to _runs/ without applying
+./run.sh --tier 1 --kubeconfig <path>             # headline curve (10 entries)
+./run.sh --tier 2 --kubeconfig <path>             # sensitivity at n08 (8 entries)
+./run.sh --tier all --kubeconfig <path>           # full plan
+./run.sh --tier 1 --kubeconfig <path> --dry-run   # render to _runs/ without applying
 ```
 
-Tier ordering and per-tier matrix lives in [`tiers.yaml`](./tiers.yaml).
-Each run produces:
+`--kubeconfig` defaults to `$KUBECONFIG` if set, otherwise
+`~/.kube/config`. Tier ordering and per-tier matrix lives in
+[`tiers.yaml`](./tiers.yaml). Each run produces:
 
 - `_runs/<run_id>/{00_namespace,02_experiment_definition,03_experiment}.yaml`
   — the rendered manifests for archival;
 - `_runs/<run_id>/run.log` — kubectl + export output;
 - `_runs/<run_id>.tar.gz` — bundle from `tools/yass-export/`.
 
-All five `sat_count` values (1, 2, 8, 21, 55) fit cf comfortably with
-the current `oneweb` hardware spec — see "Cluster fit" below.
+Per-`sat_count` resource requests are derived from the OneWeb and
+ground-station HW specs in
+[`../_common_/hardware_specs.yaml`](../_common_/hardware_specs.yaml).
 
 ## Inputs — where the parameters and satellites come from
 
@@ -37,6 +39,27 @@ three sources:
 | Sweep matrix     | [`tiers.yaml`](./tiers.yaml) | Encodes the table from the "Parameters" section below as concrete entries per tier. |
 | Engine images    | `run.sh` constants `edfs_img`, `tus_img` | Default `:latest`; bumpable when needed. |
 | `simulationStartTime` | `_template/03_experiment.yaml.tmpl` | Pinned at `2026-05-16T23:59:00.000Z` — the same epoch spain-shot uses, so the orbital pass schedule is reproducible and TUS-vs-EDFS runs share orbital geometry. |
+
+### Regenerating the Layouts
+
+The five `_layouts/n*.yaml` files are produced by the shared
+generator at
+[`../_common_/regenerate-uc-layouts.py`](../_common_/regenerate-uc-layouts.py).
+It reads the big-scale TLE set + the spain-shot ESTRACK GS
+coordinates, applies the plane-diverse selection algorithm described
+below, and rewrites all five Layout files. Run it whenever the
+upstream TLE set changes:
+
+```shell
+python3 ../_common_/regenerate-uc-layouts.py \
+    --target-dir _layouts \
+    --name-prefix uc1
+```
+
+The script is intentionally self-contained (stdlib only, no PyYAML
+dependency) and idempotent. It is also used by the other UCs that
+follow the same plane-diverse sweep convention — pass a different
+`--name-prefix` per UC.
 
 ### Sat selection — plane-diverse round-robin
 
@@ -65,21 +88,6 @@ single sat in the first bucket, so it is the first pick of the
 round-robin and is present even in `n01`). All other satellites are
 pure relays.
 
-### Cluster fit
-
-Under the current `oneweb` HW spec (`250m / 256Mi`) and
-`ground-station-hwdef` (`2 CPU / 4 GiB`):
-
-| `sat_count` | RAM total | CPU total | cf (~64 GiB / ~32 CPU)? |
-|---|---|---|---|
-| 1   | 28.25 GiB | 14.25 CPU | ✓ |
-| 2   | 28.50 GiB | 14.50 CPU | ✓ |
-| 8   | 30.00 GiB | 16.00 CPU | ✓ |
-| 21  | 33.25 GiB | 19.25 CPU | ✓ |
-| 55  | 41.75 GiB | 27.75 CPU | ✓ |
-
-If you ever swap the satellites back to the heavier `sentinel-2` spec,
-restore the `n55 → --cluster prod` guard in `run.sh`.
 
 ## Abstract
 

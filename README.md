@@ -57,13 +57,9 @@ kubectl label namespace <name> yass-namespace=true
 
 ## Use cases
 
-Each `uc<N>-…/` subdirectory under `experiments/` corresponds to one of
-the five use cases declared in
-[`../CLAUDE.md`](../CLAUDE.md#usecases). Each has its own `README.md`
-covering: abstract, detailed description, main goal, parameters,
-additional metrics. The Polish CLAUDE.md descriptions are the
-source of truth; the per-UC READMEs are the English working
-specifications.
+Each `uc<N>-…/` subdirectory under `experiments/` is one of the five
+canonical use cases. Each has its own `README.md` covering: abstract,
+detailed description, main goal, parameters and additional metrics.
 
 | UC | Headline | Engines |
 |---|---|---|
@@ -96,7 +92,7 @@ ends up as the `run_id` label on Prometheus metrics and as a directory
 hint in `yass-export` bundles, so a flat list of artefacts stays
 unambiguous across UCs and clusters.
 
-## Deliverables (per CLAUDE.md)
+## Deliverables
 
 For every run we keep:
 

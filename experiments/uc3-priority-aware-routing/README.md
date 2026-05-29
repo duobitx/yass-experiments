@@ -42,9 +42,8 @@ actually move the needle?** Specifically:
   priority weighting to win the next-hop selection race.
 
 KPI: at `sat_count ≥ 8`, time-to-first-delivery for `high` is at least
-**20% lower** than for `low` (this mirrors the "20% energy reduction"
-target CLAUDE.md uses elsewhere — same order of magnitude as the
-"interesting effect" threshold).
+**20% lower** than for `low` — large enough to be a clearly meaningful
+routing-preference effect rather than a noise-band wobble.
 
 ## Parameters
 

@@ -10,12 +10,14 @@ set -euo pipefail
 
 usage() {
   cat <<USAGE
-usage: $0 --tier <1|2|3|all> [--cluster <kind|cf|prod>] [--dry-run]
+usage: $0 --tier <1|2|3|all> [--kubeconfig <path>] [--dry-run]
 
-  --tier      Which tier from tiers.yaml to run. Default: 1.
-  --cluster   kind | cf | prod. Default: cf. n55 entries refuse cf.
-  --dry-run   Render YAML to _runs/<run_id>/ and print the matrix;
-              do NOT apply.
+  --tier         Which tier from tiers.yaml to run. Default: 1.
+  --kubeconfig   Path to the kubeconfig to use. Defaults to
+                 \$KUBECONFIG if exactly one file; otherwise
+                 ~/.kube/config.
+  --dry-run      Render YAML to _runs/<run_id>/ and print the matrix;
+                 do NOT apply.
 
 Outputs:
   _runs/<run_id>/{ns,expdef,exp}.yaml — rendered manifests per run
@@ -26,34 +28,33 @@ USAGE
 }
 
 TIER=1
-CLUSTER=cf
+KCFG_ARG=""
 DRY_RUN=0
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --tier)    TIER=$2; shift 2 ;;
-    --cluster) CLUSTER=$2; shift 2 ;;
-    --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) usage ;;
-    *)         echo "unknown arg: $1" >&2; usage ;;
+    --tier)       TIER=$2; shift 2 ;;
+    --kubeconfig) KCFG_ARG=$2; shift 2 ;;
+    --dry-run)    DRY_RUN=1; shift ;;
+    -h|--help)    usage ;;
+    *)            echo "unknown arg: $1" >&2; usage ;;
   esac
 done
 
 # Repo paths
 HERE=$(cd "$(dirname "$0")" && pwd)
-REPO_ROOT=$(cd "$HERE/../../.." && pwd)              # /home/gruszecm/esa
-EXPERIMENTS_ROOT=$(cd "$HERE/../.." && pwd)          # …/yass-experiments
+EXPERIMENTS_ROOT=$(cd "$HERE/../.." && pwd)
 EXPORT_BIN=${YASS_EXPORT_BIN:-"$EXPERIMENTS_ROOT/tools/yass-export/yass-export.sh"}
 
-# Kubeconfig resolution — always derived from --cluster, never from a
-# pre-existing $KUBECONFIG path-list (which gets messy in dev shells).
-case $CLUSTER in
-  kind) KCFG="$HOME/.kube/config" ;;
-  cf)   KCFG="$REPO_ROOT/cf-kubeconfig.yaml" ;;
-  prod) KCFG="$REPO_ROOT/Decentralized-Storage_config.yaml"
-        echo "prod cluster requested — type 'yes prod' to confirm:" >&2
-        read -r line; [[ $line == "yes prod" ]] || { echo "aborted." >&2; exit 3; } ;;
-  *)    echo "unknown cluster: $CLUSTER" >&2; exit 2 ;;
-esac
+# Kubeconfig resolution: explicit --kubeconfig wins, otherwise honour
+# $KUBECONFIG if it is a single file, otherwise fall back to
+# ~/.kube/config.
+if [[ -n $KCFG_ARG ]]; then
+  KCFG=$KCFG_ARG
+elif [[ -n ${KUBECONFIG-} && $KUBECONFIG != *:* && -f $KUBECONFIG ]]; then
+  KCFG=$KUBECONFIG
+else
+  KCFG="$HOME/.kube/config"
+fi
 echo "using kubeconfig: $KCFG"
 [[ -f $KCFG ]] || { echo "kubeconfig not found at $KCFG" >&2; exit 4; }
 export KUBECONFIG=$KCFG
@@ -139,10 +140,10 @@ for tier in "${tiers_to_run[@]}"; do
     ns=${run_id,,}
     layout_file=$(printf '%s/_layouts/n%02d.yaml' "$HERE" "$sat_count")
 
-    # Note: after switching to the `oneweb` HW spec (250m/256Mi),
-    # all sat_counts up to 55 fit cf (n55 ≈ 28 CPU / 42 GiB). No
-    # cluster-fit guard is needed; if you reintroduce the heavier
-    # `sentinel-2` spec, restore the n55→prod guard.
+    # Note: with the `oneweb` HW spec (250m/256Mi) every sat_count
+    # in the matrix fits within ~28 CPU / ~42 GiB of total Requests.
+    # No cluster-fit guard; the caller is responsible for picking a
+    # kubeconfig whose target cluster can hold the run.
 
     case $engine in
       edfs) engine_image=$edfs_img;

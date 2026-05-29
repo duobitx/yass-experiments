@@ -55,7 +55,7 @@ KPI:
 | `sat_count`           | 1, 2, 8, 21, 55                                               | At `sat_count = 1` even EDFS must fail — no peers to replicate to. That is itself a useful data point.                     |
 | `T_destroy`           | `5m`, `15m`, `45m`                                            | Seconds (well, minutes) between "photo taken" and "Destroy fires". Smaller `T_destroy` means tighter race for replication. |
 | `S` (file size)       | `32M`                                                         | Single regime; we focus the sweep on sat_count × T_destroy.                                                                |
-| `priority`            | fixed at `high`                                               | Per CLAUDE.md spec.                                                                                                        |
+| `priority`            | fixed at `high`                                               | UC4 is the canonical high-priority scenario.                                                                               |
 | `RF` (EDFS only)      | fixed at 3                                                    | A single RF keeps the headline result interpretable.                                                                       |
 | `gs_count`            | fixed at 7 (ESTRACK)                                          |                                                                                                                            |
 | `simulationStartTime` | tuned per `sat_count` so the producer is over a pole at `t=0` | Critical: the whole setup hinges on the producer being out of LOS at photo time.                                           |
