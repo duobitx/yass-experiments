@@ -1,0 +1,21 @@
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: hw-events-smoke-layout
+spec:
+  - fsNode: oneweb-0008
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44059U 19010C   25347.49126494  .00000026  00000+0  35053-4 0  9990"
+        - "2 44059  87.9045 265.7535 0001501  76.4950 283.6348 13.16596955327295"
+    rotation:
+      roll: 0.5
+    hardwareSpecRef: sentinel-2
+  - fsNode: estrack-kiruna
+    nodeType: groundStation
+    earthPosition:
+      lat: 67.857
+      lng: 20.964
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
