@@ -230,6 +230,16 @@ YAML
     envsubst < "$HERE/_template/02_experiment_definition.yaml.tmpl"   > "$out/02_experiment_definition.yaml"
     envsubst < "$HERE/_template/03_experiment.yaml.tmpl"              > "$out/03_experiment.yaml"
 
+    # kustomize overlay for this variant: kubectl apply -k _runs/<run_id>/
+    cat > "$out/kustomization.yaml" <<KUST
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - 00_namespace.yaml
+  - 02_experiment_definition.yaml
+  - 03_experiment.yaml
+KUST
+
     echo "[$run_id] rendered → $out"
     [[ $DRY_RUN -eq 1 ]] && continue
 
@@ -263,5 +273,17 @@ YAML
     sleep 30
   done < <(read_tier "$tier")
 done
+
+# Global kustomization: `kubectl apply -k _runs/` launches every rendered
+# variant at once (each subdir is its own overlay).
+{
+  echo "apiVersion: kustomize.config.k8s.io/v1beta1"
+  echo "kind: Kustomization"
+  echo "resources:"
+  for d in "$HERE/_runs"/*/; do
+    [ -f "${d}kustomization.yaml" ] && echo "  - $(basename "$d")"
+  done
+} > "$HERE/_runs/kustomization.yaml"
+echo "wrote global kustomization → $HERE/_runs/kustomization.yaml"
 
 echo "done."
