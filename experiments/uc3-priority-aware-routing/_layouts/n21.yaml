@@ -1,0 +1,204 @@
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: uc3-n21
+  annotations:
+    yass.experiments/source-tles: "../../_common_/oneweb-roster.yaml"
+    yass.experiments/sat-selection: "round-robin across RAAN buckets for orbital-plane diversity"
+spec:
+  - fsNode: oneweb-0027
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45432U 20020J   26145.60982732  .00000090  00000+0  20276-3 0  9995"
+        - "2 45432  87.9160  10.3429 0001557  93.3230 266.8079 13.16052597303382"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0018
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45434U 20020L   26145.40517226  .00000000  00000+0 -35142-4 0  9998"
+        - "2 45434  87.8912  25.5988 0001812  69.1986 290.9336 13.11418753299641"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0013
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45131U 20008A   26145.47599882 -.00000769  00000+0 -22704-2 0  9994"
+        - "2 45131  87.8534  57.4051 0002847  73.4147 286.7292 13.09455461303099"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0008
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44059U 19010C   26145.50476094  .00000017  00000+0  10825-4 0  9993"
+        - "2 44059  87.9105 233.2799 0002169 106.7879 253.3490 13.16594475348742"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0006
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44061U 19010E   26145.29761733  .00000082  00000+0  18495-3 0  9991"
+        - "2 44061  87.9000 263.7444 0001738  98.2500 261.8827 13.15551002348411"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0026
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45139U 20008J   26145.42213139  .00000511  00000+0  14062-2 0  9996"
+        - "2 45139  87.8915  25.5980 0001651  83.1396 276.9920 13.11415953308126"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0017
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45132U 20008B   26145.39790975  .00000563  00000+0  15758-2 0  9993"
+        - "2 45132  87.8849  40.8055 0001617  78.1982 281.9327 13.10371445304966"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0010
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44058U 19010B   26145.25142175  .00000050  00000+0  97664-4 0  9997"
+        - "2 44058  87.9106 233.3345 0001633  99.1897 260.9419 13.16593225348590"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0007
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44060U 19010D   26145.36972155 -.00000004  00000+0 -43810-4 0  9996"
+        - "2 44060  87.8989 263.7680 0001808  90.6097 269.5241 13.15547347348379"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0028
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45140U 20008K   26145.62063713 -.00000557  00000+0 -16215-2 0  9995"
+        - "2 45140  87.8906  25.5649 0002353  76.6297 283.5093 13.10852579305666"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0020
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45133U 20008C   26145.21530197 -.00000097  00000+0 -31324-3 0  9995"
+        - "2 45133  87.8864  40.8391 0001831  78.3443 281.7890 13.10376612305335"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0012
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44057U 19010A   26145.53008186  .00000075  00000+0  16216-3 0  9990"
+        - "2 44057  87.9106 233.2835 0002299  92.4563 267.6832 13.16593850348583"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0011
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 44062U 19010F   26145.57017781 -.00000021  00000+0 -88975-4 0  9996"
+        - "2 44062  87.9003 263.6994 0001770 105.4162 254.7164 13.15549339348443"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0029
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45445U 20020X   26145.59589505 -.00000009  00000+0 -61366-4 0  9996"
+        - "2 45445  87.8903  25.5643 0001949  79.2802 280.8545 13.10885423299697"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0021
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45134U 20008D   26145.45932689  .00000556  00000+0  15567-2 0  9992"
+        - "2 45134  87.8854  40.8078 0001869  75.9546 284.1789 13.10375533305677"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0031
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45431U 20020H   26145.60353865 -.00000273  00000+0 -80663-3 0  9994"
+        - "2 45431  87.8904  25.5691 0001608  80.5633 279.5677 13.11413886299697"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0023
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45136U 20008F   26145.47012024  .00000608  00000+0  17055-2 0  9990"
+        - "2 45136  87.8856  40.7865 0001960  81.0710 279.0639 13.10372592305104"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0037
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45440U 20020S   26145.13350372  .00000084  00000+0  19991-3 0  9996"
+        - "2 45440  87.8926  25.6229 0001827  84.3194 275.8143 13.11909388299678"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0024
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45137U 20008G   26145.21376709 -.00000170  00000+0 -52426-3 0  9994"
+        - "2 45137  87.8868  40.8291 0001806  78.7275 281.4055 13.10374410305234"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0038
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45145U 20008Q   26145.12724864  .00000406  00000+0  11086-2 0  9998"
+        - "2 45145  87.8923  25.6620 0002188  32.6163 327.5100 13.11414097307301"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0025
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45138U 20008H   26145.21349781 -.00000144  00000+0 -44765-3 0  9993"
+        - "2 45138  87.8870  40.8180 0001777  95.9599 264.1730 13.10378248305569"
+    hardwareSpecRef: oneweb
+  - fsNode: estrack-new-norcia
+    nodeType: groundStation
+    earthPosition:
+      lat: -31.048
+      lng: 116.192
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kiruna
+    nodeType: groundStation
+    earthPosition:
+      lat: 67.857
+      lng: 20.964
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-redu
+    nodeType: groundStation
+    earthPosition:
+      lat: 50.003
+      lng: 5.146
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-cebreros
+    nodeType: groundStation
+    earthPosition:
+      lat: 40.453
+      lng: -4.368
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-santa-maria
+    nodeType: groundStation
+    earthPosition:
+      lat: 36.997
+      lng: -25.136
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kourou
+    nodeType: groundStation
+    earthPosition:
+      lat: 5.251
+      lng: -52.805
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-malargue
+    nodeType: groundStation
+    earthPosition:
+      lat: -35.776
+      lng: -69.398
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef

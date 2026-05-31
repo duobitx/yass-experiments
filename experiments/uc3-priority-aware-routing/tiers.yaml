@@ -1,0 +1,34 @@
+# UC3 tiered sweep matrix. Driven by ./run.sh --tier <N>.
+#
+# UC3 is EDFS-only. The variable of interest is file priority.
+# File size is fixed at 1G (large enough for priority weighting to matter).
+# RF is fixed at 3 to isolate the priority effect from replication effects.
+#
+# Tier 1: headline curve — time-to-first-delivery vs priority × sat_count.
+#   All five sat_counts, all three priorities → 15 runs.
+# Tier 2: (no additional sensitivity axes; the full 5×3 sweep IS the headline).
+# Tier 3: empty (UC3 has no additional parameters to explore at depth).
+#
+# Producer satellite is always oneweb-0027 (first plane-diverse pick).
+# The seven ESTRACK GSs are receivers with END_ON_ANY=true.
+
+tier_1:
+  - { engine: edfs, sat_count: 1,  file_size: 1G, priority: low,     rf: 3 }
+  - { engine: edfs, sat_count: 1,  file_size: 1G, priority: default,  rf: 3 }
+  - { engine: edfs, sat_count: 1,  file_size: 1G, priority: high,    rf: 3 }
+  - { engine: edfs, sat_count: 2,  file_size: 1G, priority: low,     rf: 3 }
+  - { engine: edfs, sat_count: 2,  file_size: 1G, priority: default,  rf: 3 }
+  - { engine: edfs, sat_count: 2,  file_size: 1G, priority: high,    rf: 3 }
+  - { engine: edfs, sat_count: 8,  file_size: 1G, priority: low,     rf: 3 }
+  - { engine: edfs, sat_count: 8,  file_size: 1G, priority: default,  rf: 3 }
+  - { engine: edfs, sat_count: 8,  file_size: 1G, priority: high,    rf: 3 }
+  - { engine: edfs, sat_count: 21, file_size: 1G, priority: low,     rf: 3 }
+  - { engine: edfs, sat_count: 21, file_size: 1G, priority: default,  rf: 3 }
+  - { engine: edfs, sat_count: 21, file_size: 1G, priority: high,    rf: 3 }
+  - { engine: edfs, sat_count: 55, file_size: 1G, priority: low,     rf: 3 }
+  - { engine: edfs, sat_count: 55, file_size: 1G, priority: default,  rf: 3 }
+  - { engine: edfs, sat_count: 55, file_size: 1G, priority: high,    rf: 3 }
+
+tier_2: []
+
+tier_3: []
