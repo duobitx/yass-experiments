@@ -1,0 +1,64 @@
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: uc4-n01
+  annotations:
+    yass.experiments/source-tles: "../../_common_/oneweb-roster.yaml"
+    yass.experiments/sat-selection: "round-robin across RAAN buckets for orbital-plane diversity"
+spec:
+  - fsNode: oneweb-0027
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45432U 20020J   26145.60982732  .00000090  00000+0  20276-3 0  9995"
+        - "2 45432  87.9160  10.3429 0001557  93.3230 266.8079 13.16052597303382"
+    hardwareSpecRef: oneweb
+  - fsNode: estrack-new-norcia
+    nodeType: groundStation
+    earthPosition:
+      lat: -31.048
+      lng: 116.192
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kiruna
+    nodeType: groundStation
+    earthPosition:
+      lat: 67.857
+      lng: 20.964
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-redu
+    nodeType: groundStation
+    earthPosition:
+      lat: 50.003
+      lng: 5.146
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-cebreros
+    nodeType: groundStation
+    earthPosition:
+      lat: 40.453
+      lng: -4.368
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-santa-maria
+    nodeType: groundStation
+    earthPosition:
+      lat: 36.997
+      lng: -25.136
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-kourou
+    nodeType: groundStation
+    earthPosition:
+      lat: 5.251
+      lng: -52.805
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef
+  - fsNode: estrack-malargue
+    nodeType: groundStation
+    earthPosition:
+      lat: -35.776
+      lng: -69.398
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-hwdef

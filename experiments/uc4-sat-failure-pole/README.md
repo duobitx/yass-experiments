@@ -1,25 +1,37 @@
 # UC4 — Sat Failure
 
-> **Status — specification only.** Unlike [UC1](../uc1-rapid-disaster-response/),
-> this use case is not yet scaffolded: there are no `_layouts/`, `_template/`,
-> `run.sh` or `tiers.yaml`, so it cannot be executed as-is. The sections below
-> are the agreed design (parameters, KPI, metrics). To build the runnable
-> overlays, mirror UC1's layout and generate the per-`sat_count` layouts from
-> the shared OneWeb roster:
->
-> ```shell
-> python3 ../_common_/regenerate-uc-layouts.py \
->     --target-dir _layouts --name-prefix uc4
-> ```
->
-> **Open implementation item:** unlike the other UCs, UC4 needs a
-> `simulationStartTime` *per `sat_count`* that places the producer over a
-> pole and out of LOS with every ESTRACK station at `t=0`, with the
-> `Destroy` event firing before its first GS contact. That epoch is not yet
-> derived — it must be computed from the producer's TLE (the round-robin
-> producer is `oneweb-0027`) and verified against the ESTRACK visibility
-> windows before the run is meaningful. See the `simulationStartTime` /
-> `T_destroy` rows below.
+## Running
+
+```shell
+# Full sweep on the prod cluster:
+./run.sh --tier all --kubeconfig /path/to/Decentralized-Storage_config.yaml
+
+# Dry-run (renders YAML to _runs/ without applying):
+./run.sh --tier all --kubeconfig /path/to/Decentralized-Storage_config.yaml --dry-run
+```
+
+The driver iterates every matrix entry in `tiers.yaml`, applies the
+cluster-scoped Layouts from `_layouts/`, renders per-run manifests from
+`_template/` into `_runs/<run_id>/`, and waits for each Experiment to reach
+a terminal state before exporting artefacts and deleting the namespace.
+
+Regenerating the Layouts (if the OneWeb roster or GS coordinates change):
+
+```shell
+python3 ../_common_/regenerate-uc-layouts.py \
+    --target-dir _layouts --name-prefix uc4
+```
+
+> **IMPORTANT — pole start-time is a PLACEHOLDER (unvalidated).**
+> `simulationStartTime` is currently pinned to `2026-05-16T23:59:00.000Z`
+> (UC1's working epoch). UC4 requires the producer (`oneweb-0027`) to be
+> **over a pole and out of LOS with every ESTRACK GS at t=0**, with the
+> `Destroy` event firing before the producer's first contact window with any
+> GS. This precondition has **not been verified** — the correct epoch must
+> be derived from `oneweb-0027`'s TLE against the ESTRACK visibility windows.
+> Until that derivation is done, all UC4 results are **provisional** and the
+> headline comparison (EDFS delivers / TUS does not) may not hold because the
+> producer might already be in LOS at the pinned epoch.
 
 ## Abstract
 

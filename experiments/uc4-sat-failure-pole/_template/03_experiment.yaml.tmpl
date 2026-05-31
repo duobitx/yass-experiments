@@ -1,0 +1,18 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: ${RUN_ID}
+  namespace: ${NAMESPACE}
+spec:
+  # PLACEHOLDER: simulationStartTime is pinned to UC1's working epoch.
+  # The UC4 scenario requires the producer (oneweb-0027) to be over a pole
+  # and OUT OF LOS with every ESTRACK GS at t=0, with Destroy firing before
+  # its first GS contact. This precondition is UNVALIDATED — the correct
+  # epoch must be derived from oneweb-0027's TLE vs ESTRACK visibility
+  # windows. Results are provisional until that derivation is done.
+  simulationStartTime: "2026-05-16T23:59:00.000Z"
+  experimentDefRef: ${RUN_ID}
+  layoutDefRef: ${LAYOUT_REF}
+  runId: "${RUN_ID}"
+${ENGINE_CONTAINERS}
+  start: true

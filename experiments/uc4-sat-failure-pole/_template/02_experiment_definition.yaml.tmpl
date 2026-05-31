@@ -1,0 +1,26 @@
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: ${RUN_ID}
+spec:
+  maxDuration: ${MAX_DURATION}
+  behaviours:
+    - fsNode: ${PRODUCER}
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          # Producer takes one high-priority photo of size FILE_SIZE and exits.
+          # PHOTO_TARGETS uses a huge AOI radius so it fires immediately at t=0.
+          PHOTO_TARGETS: "uc4:0:0:1000000"
+          FILE_SIZE: "${FILE_SIZE}"
+          FILE_PRIORITY: "${FILE_PRIORITY}"
+          MAX_PHOTOS: "1"
+          CHECK_INTERVAL_SECONDS: "5"
+      hardwareEvents:
+        # Destroy fires at T_destroy after experiment start, before the
+        # producer has any LOS with any ESTRACK GS.
+        # CRD rule: Destroy is instantaneous+terminal — no duration, no schedule.
+        - name: destroy
+          type: Destroy
+          startOffset: ${T_DESTROY}
+${EXTRA_BEHAVIOURS}

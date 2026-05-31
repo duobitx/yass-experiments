@@ -1,0 +1,54 @@
+# UC4 tiered sweep matrix. Driven by ./run.sh --tier <N>.
+#
+# Tier 1: headline — binary delivery (EDFS vs TUS) vs sat_count,
+#   at the mid T_destroy (15m). All other params fixed.
+# Tier 2: T_destroy sensitivity at sat_count=8 — tighter (5m) and
+#   looser (45m) race window, across both engines.
+# Tier 3: full sat_count × T_destroy cross product — only after
+#   Tier 1+2 confirm there is a meaningful interaction to study.
+#
+# file_size: 32M, priority: high, rf: 3 (EDFS) — fixed across all tiers.
+# TUS entries omit rf and priority (TUS ignores both).
+#
+# CAVEAT: simulationStartTime is a placeholder (see _template/03_experiment.yaml.tmpl).
+# The "producer over a pole, out of LOS at t=0" precondition is unvalidated.
+
+tier_1:
+  # Headline: sat_count sweep at T_destroy=15m (mid-range race window).
+  - { engine: edfs, sat_count: 1,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 2,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 8,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 21, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 55, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: tus,  sat_count: 1,  file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 2,  file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 8,  file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 21, file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 55, file_size: 32M, t_destroy: 15m }
+
+tier_2:
+  # T_destroy sensitivity at sat_count=8: tight race (5m) and relaxed (45m).
+  - { engine: edfs, sat_count: 8, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 8, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: tus,  sat_count: 8, file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 8, file_size: 32M, t_destroy: 45m }
+
+tier_3:
+  # Full sat_count × T_destroy cross product — run only after Tier 1+2
+  # results confirm there is a non-trivial sat_count × T_destroy interaction.
+  - { engine: edfs, sat_count: 1,  file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 1,  file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 2,  file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 2,  file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 21, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 21, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 55, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 55, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: tus,  sat_count: 1,  file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 1,  file_size: 32M, t_destroy: 45m }
+  - { engine: tus,  sat_count: 2,  file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 2,  file_size: 32M, t_destroy: 45m }
+  - { engine: tus,  sat_count: 21, file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 21, file_size: 32M, t_destroy: 45m }
+  - { engine: tus,  sat_count: 55, file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 55, file_size: 32M, t_destroy: 45m }
