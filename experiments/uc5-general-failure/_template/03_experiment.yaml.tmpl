@@ -1,0 +1,12 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: ${RUN_ID}
+  namespace: ${NAMESPACE}
+spec:
+  simulationStartTime: "2026-05-16T23:59:00.000Z"
+  experimentDefRef: ${RUN_ID}
+  layoutDefRef: ${LAYOUT_REF}
+  runId: "${RUN_ID}"
+${ENGINE_CONTAINERS}
+  start: true

@@ -1,16 +1,31 @@
 # UC5 — General Failure (EDFS only)
 
-> **Status — specification only.** Unlike [UC1](../uc1-rapid-disaster-response/),
-> this use case is not yet scaffolded: there are no `_layouts/`, `_template/`,
-> `run.sh` or `tiers.yaml`, so it cannot be executed as-is. The sections below
-> are the agreed design (parameters, KPI, metrics). To build the runnable
-> overlays, mirror UC1's layout (dropping the TUS overlay — UC5 is EDFS-only)
-> and generate the per-`sat_count` layouts from the shared OneWeb roster:
->
-> ```shell
-> python3 ../_common_/regenerate-uc-layouts.py \
->     --target-dir _layouts --name-prefix uc5
-> ```
+## Running
+
+Generate or refresh the per-`sat_count` Layouts (only needed once, or after the
+OneWeb roster changes):
+
+```shell
+cd experiments/_common_
+python3 regenerate-uc-layouts.py --target-dir ../uc5-general-failure/_layouts --name-prefix uc5
+```
+
+Run the full tiered sweep on the production cluster:
+
+```shell
+cd experiments/uc5-general-failure
+./run.sh --tier all --kubeconfig /path/to/kubeconfig.yaml
+```
+
+Run a single tier without applying (dry-run):
+
+```shell
+./run.sh --tier 1 --dry-run
+```
+
+Rendered manifests land in `_runs/<run_id>/`. Artefacts (Grafana exports, raw
+metrics bundle) are written to `_runs/<run_id>.tar.gz` by `yass-export` after
+each run completes.
 
 ## Abstract
 
