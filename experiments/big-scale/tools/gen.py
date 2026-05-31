@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """
 Generate base/01_layout.yaml plus tus/ and edfs/ overlays for the
-big-scale experiment (50 OneWeb satellites + 7 ESTRACK ground stations).
+big-scale experiment (50 satellites across mixed LEO constellations +
+7 ESTRACK ground stations).
 
-Source TLE snapshot: tools/oneweb-tle-snapshot.txt (fetched from celestrak).
+The satellites are deliberately drawn from several constellations so the
+orbits differ in inclination (~43..97 deg) and altitude, instead of one
+constellation where every satellite shares a near-identical orbit.
+
+Source TLE snapshot: tools/tle-snapshot.txt (Orbcomm, Globalstar,
+Starlink, Iridium-NEXT, OneWeb and Planet, fetched from celestrak).
 
 Every satellite runs the periodic-agent and produces a 5 MB file every
 ~5 min; CHECK_INTERVAL_SECONDS is varied per sat (270..329s) so the
@@ -66,7 +72,7 @@ FAULT_TYPES = [
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent
-TLE_FILE = HERE / "oneweb-tle-snapshot.txt"
+TLE_FILE = HERE / "tle-snapshot.txt"
 LAYOUT_FILE   = ROOT / "base" / "01_layout.yaml"
 TUS_EXPDEF    = ROOT / "tus"  / "02_experiment_definition.yaml"
 TUS_EXP       = ROOT / "tus"  / "03_experiment.yaml"
@@ -265,7 +271,11 @@ def main():
     all_sats = list(parse_tle(TLE_FILE))
     if len(all_sats) < N_SATS:
         sys.exit(f"only {len(all_sats)} satellites in TLE snapshot, need {N_SATS}")
-    sats = all_sats[:N_SATS]
+    # Spread the selection evenly across the whole (multi-constellation)
+    # snapshot so a smaller N_SATS still samples every orbital regime rather
+    # than just the first constellation block.
+    step = len(all_sats) / N_SATS
+    sats = [all_sats[int(i * step)] for i in range(N_SATS)]
 
     EDFS_EXPDEF.parent.mkdir(parents=True, exist_ok=True)
 
