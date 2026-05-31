@@ -76,6 +76,22 @@ The other satellites in the constellation do nothing besides act as
 relays; the seven ESTRACK ground stations all have `END_ON_ANY=true` so
 the first RECEIVED terminates the run.
 
+### Producer exit ordering (why `Destroy` does not mark the run failed)
+
+The producer's agent writes its single file and **exits with code 0 within
+seconds of activation** — long before `Destroy` fires at `T_destroy` (≥ 5m).
+This ordering is deliberate and load-bearing: the operator decides the
+experiment's terminal `Success`/`Failure` from the **agent containers' exit
+codes** (`evaluateAgentExitCodes`), not from delivery. Because the producer's
+`agent` container has already terminated 0 before `Destroy`, the SIGKILL that
+`Destroy` delivers to the (now-empty) producer pod does **not** turn the run
+into a `Failure`. The producer agent must therefore always exit 0 right after
+producing; do not give it long-running / post-photo behaviour in UC4.
+
+Whether the file actually reached the ground (the real UC4 outcome) is
+determined by the ground-station agents' end-request on first RECEIVED, and is
+read from the delivery metrics — independently of the producer's destruction.
+
 ## Main goal
 
 Demonstrate that **EDFS survives the loss of the file's original
