@@ -1,5 +1,17 @@
 # UC3 — Priority-Aware Routing (EDFS only)
 
+> **Status — specification only.** Unlike [UC1](../uc1-rapid-disaster-response/),
+> this use case is not yet scaffolded: there are no `_layouts/`, `_template/`,
+> `run.sh` or `tiers.yaml`, so it cannot be executed as-is. The sections below
+> are the agreed design (parameters, KPI, metrics). To build the runnable
+> overlays, mirror UC1's layout (dropping the TUS overlay — UC3 is EDFS-only)
+> and generate the per-`sat_count` layouts from the shared OneWeb roster:
+>
+> ```shell
+> python3 ../_common_/regenerate-uc-layouts.py \
+>     --target-dir _layouts --name-prefix uc3
+> ```
+
 ## Abstract
 
 One satellite produces one large file. We re-run the same scenario for each
@@ -55,7 +67,7 @@ routing-preference effect rather than a noise-band wobble.
 | `RF`                  | fixed at 3                                            | A single RF value isolates the priority effect; sweeping both would confound the analysis.                                                                   |
 | `gs_count`            | fixed at 7 (ESTRACK)                                  |                                                                                                                                                              |
 | `file_size`           | `1G`                                                  | "Large" so the transfer takes long enough for the priority weighting to matter; a 1 MB file would deliver in one bounce and the priority would be invisible. |
-| `simulationStartTime` | fixed across the three priority runs of one sat_count | Cancels orbital luck.                                                                                                                                        |
+| `simulationStartTime` | fixed across the three priority runs of one sat_count | Cancels orbital luck. Use the same pinned epoch as UC1 (`2026-05-16T23:59:00.000Z`) unless a sat_count needs a different one. |
 | `max_duration`        | `4h`                                                  | Generous: large file × low priority × no faults could still take a while.                                                                                    |
 
 ## Additional metrics

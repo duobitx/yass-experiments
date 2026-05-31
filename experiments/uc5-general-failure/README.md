@@ -1,5 +1,17 @@
 # UC5 — General Failure (EDFS only)
 
+> **Status — specification only.** Unlike [UC1](../uc1-rapid-disaster-response/),
+> this use case is not yet scaffolded: there are no `_layouts/`, `_template/`,
+> `run.sh` or `tiers.yaml`, so it cannot be executed as-is. The sections below
+> are the agreed design (parameters, KPI, metrics). To build the runnable
+> overlays, mirror UC1's layout (dropping the TUS overlay — UC5 is EDFS-only)
+> and generate the per-`sat_count` layouts from the shared OneWeb roster:
+>
+> ```shell
+> python3 ../_common_/regenerate-uc-layouts.py \
+>     --target-dir _layouts --name-prefix uc5
+> ```
+
 ## Abstract
 
 Twenty per cent of the constellation produces a small, finite batch of
