@@ -1,5 +1,5 @@
 // Package prom is a stdlib-only Prometheus HTTP API client. It only
-// implements the two endpoints yass-compare needs:
+// implements the two endpoints prom-snapshot needs:
 //
 //	GET /api/v1/query        ?query=...&time=...
 //	GET /api/v1/query_range  ?query=...&start=...&end=...&step=...

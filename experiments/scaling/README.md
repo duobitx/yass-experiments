@@ -84,18 +84,8 @@ N_VALUES="2" ENGINES="edfs" SOAK_SECONDS=600 \
 
 ## Compare
 
-Per `n`, pair the two `run_id`s from `run-ids.tsv` and feed them to
-`yass-compare`:
-
-```sh
-yass-compare \
-  --prometheus http://prometheus.yass-system.svc:9090 \
-  --experiment scaling-experiment \
-  --tus-run  scaling-experiment_20260516T143012Z \
-  --edfs-run scaling-experiment_20260516T220045Z \
-  --window 7h \
-  --out report-n03.md
-```
+Per `n`, pair the two `run_id`s from `run-ids.tsv` and compare the TUS and
+EDFS runs over their respective windows.
 
 The headline panel is `yass_file_delivery_seconds` filtered to
 `target_fsNode=~"estrack-.*"` (delivery to any ESTRACK GS).

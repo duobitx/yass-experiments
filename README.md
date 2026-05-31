@@ -15,7 +15,6 @@ pods.
   `HardwareDefinition` set referenced by every layout via
   `hardwareSpecRef`.
 - [`tools/`](./tools/) — companion CLIs for analysing results:
-  `yass-compare` (TUS vs EDFS markdown / HTML / summary.json report),
   `prom-snapshot` (Prometheus range-vector → per-metric-family CSV),
   `yass-export` (bundle events.ods + events-csv/ + metrics-csv/ +
   experiment.yaml into one `<name>-<run_id>.tar.gz` for archival).
@@ -97,7 +96,7 @@ unambiguous across UCs and clusters.
 For every run we keep:
 
 - Grafana screenshots / exports — typically yass-overview,
-  yass-timeline, yass-compare (and yass-edfs-fragmentation for EDFS).
+  yass-timeline (and yass-edfs-fragmentation for EDFS).
 - Raw metrics: CSV (via `tools/prom-snapshot/`) or `.ods` (via
   `events-exporter`'s ODS mode + `tools/yass-export/`).
 - Short written summary: setup, parameters, observations, KPI verdict.

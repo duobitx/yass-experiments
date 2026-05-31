@@ -7,8 +7,8 @@
 #   4. record the run_id (from the metrics-bridge pod label)
 #   5. kubectl delete -k …/n{n}/{engine}, wait for namespace teardown
 #
-# Run IDs are appended to ./run-ids.tsv next to this script so yass-compare
-# can be pointed at them afterwards.
+# Run IDs are appended to ./run-ids.tsv next to this script so the
+# comparison tooling can be pointed at them afterwards.
 #
 # Override:
 #   N_VALUES="1 2 3"   ENGINES="edfs"   SOAK_SECONDS=600   ./run-scaling.sh
