@@ -32,7 +32,7 @@ three sources:
 
 | Input | Source | Note |
 |---|---|---|
-| Satellite TLEs   | [`../big-scale/base/01_layout.yaml`](../big-scale/base/01_layout.yaml) | 60 OneWeb satellites with real public TLEs. UC1 picks the first `N` after the plane-diverse round-robin reorder (see "Sat selection"). |
+| Satellite TLEs   | [`../_common_/oneweb-roster.yaml`](../_common_/oneweb-roster.yaml) | 60 OneWeb satellites with real public TLEs. A UC-owned roster, independent of the `big-scale` experiment, so the two evolve separately. UC1 picks the first `N` after the plane-diverse round-robin reorder (see "Sat selection"). |
 | Ground stations  | [`../spain-shot/base/01_layout.yaml`](../spain-shot/base/01_layout.yaml) | The seven ESTRACK stations (Cebreros, Kiruna, Kourou, Malargüe, New-Norcia, Redu, Santa-Maria). Fixed across all sat_counts. |
 | Satellite HW spec | [`../_common_/hardware_specs.yaml`](../_common_/hardware_specs.yaml) `name: oneweb` | Sized proportionally to OneWeb's real envelope — ~150 kg comms relay, lighter than Sentinel-2. CPU/RAM at 50% of the diet'd sentinel-2; storage cut more aggressively (OneWeb is a relay, not an EO buffer). |
 | GS HW spec        | [`../_common_/hardware_specs.yaml`](../_common_/hardware_specs.yaml) `name: ground-station-hwdef` | 2 CPU / 4 GiB — sized for parallel receives. |
@@ -45,10 +45,11 @@ three sources:
 The five `_layouts/n*.yaml` files are produced by the shared
 generator at
 [`../_common_/regenerate-uc-layouts.py`](../_common_/regenerate-uc-layouts.py).
-It reads the big-scale TLE set + the spain-shot ESTRACK GS
-coordinates, applies the plane-diverse selection algorithm described
-below, and rewrites all five Layout files. Run it whenever the
-upstream TLE set changes:
+It reads the UC-owned OneWeb roster
+([`../_common_/oneweb-roster.yaml`](../_common_/oneweb-roster.yaml)) +
+the spain-shot ESTRACK GS coordinates, applies the plane-diverse
+selection algorithm described below, and rewrites all five Layout
+files. Run it whenever the roster changes:
 
 ```shell
 python3 ../_common_/regenerate-uc-layouts.py \
@@ -64,10 +65,10 @@ follow the same plane-diverse sweep convention — pass a different
 ### Sat selection — plane-diverse round-robin
 
 OneWeb is a polar constellation (87.9° inclination, 18 nominal planes
-20° apart in RAAN). The 60 satellites in big-scale's TLE set come from
-several launches and cluster into five RAAN buckets (each 20° wide):
+20° apart in RAAN). The 60 satellites in the roster come from several
+launches and cluster into five RAAN buckets (each 20° wide):
 
-| RAAN bucket | Sats in big-scale |
+| RAAN bucket | Sats in roster |
 |---|---|
 |   0°.. 20° | 1   |
 |  20°.. 40° | 26  |

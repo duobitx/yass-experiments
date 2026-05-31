@@ -3,7 +3,7 @@ kind: Layout
 metadata:
   name: uc1-n02
   annotations:
-    yass.experiments/source-tles: "../../big-scale/base/01_layout.yaml"
+    yass.experiments/source-tles: "../../_common_/oneweb-roster.yaml"
     yass.experiments/sat-selection: "round-robin across RAAN buckets for orbital-plane diversity"
 spec:
   - fsNode: oneweb-0027

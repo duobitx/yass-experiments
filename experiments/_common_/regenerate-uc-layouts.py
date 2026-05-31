@@ -2,14 +2,15 @@
 """Regenerate the per-`sat_count` Layouts for a UC experiment.
 
 Why: Layouts are static YAML on disk so they're trivially diff-able,
-but their content is derived from the big-scale TLE roster + the
-spain-shot ESTRACK GS coordinates. If either upstream source changes
-(new TLE epochs, more satellites, different IDs), every UC's sweep
-layouts must be regenerated — this script keeps the derivation
-reproducible and shared across UCs.
+but their content is derived from a frozen OneWeb TLE roster + the
+spain-shot ESTRACK GS coordinates. The roster is owned by the UCs
+(`_common_/oneweb-roster.yaml`) and is deliberately independent of the
+big-scale experiment, so the two can evolve separately. If either
+source changes, every UC's sweep layouts must be regenerated — this
+script keeps the derivation reproducible and shared across UCs.
 
 Inputs (paths are relative to this script's location):
-  ../big-scale/base/01_layout.yaml      satellite TLEs (OneWeb)
+  ./oneweb-roster.yaml                  satellite TLEs (OneWeb)
   ../spain-shot/base/01_layout.yaml     seven ESTRACK GS blocks
 
 Outputs (overwritten in --target-dir):
@@ -34,7 +35,7 @@ import sys
 from collections import defaultdict
 
 HERE = pathlib.Path(__file__).resolve().parent
-BIG_SCALE = HERE.parent / "big-scale" / "base" / "01_layout.yaml"
+ONEWEB_ROSTER = HERE / "oneweb-roster.yaml"
 SPAIN_SHOT = HERE.parent / "spain-shot" / "base" / "01_layout.yaml"
 
 # Sweep granularity used by every UC. If a UC needs a different set
@@ -42,9 +43,7 @@ SPAIN_SHOT = HERE.parent / "spain-shot" / "base" / "01_layout.yaml"
 DEFAULT_COUNTS = [1, 2, 8, 21, 55]
 
 def parse_sat_blocks(layout_yaml: str):
-    """Return list of (name, RAAN_deg, raw_block_text). The text has its
-    hardwareSpecRef rewritten from `nano-sat` (big-scale's value) to
-    `oneweb` (the correct class for these TLEs)."""
+    """Return list of (name, RAAN_deg, raw_block_text) for each OneWeb sat."""
     block_re = re.compile(r"(  - fsNode: oneweb-[\w-]+\n(?:    .*\n)+)", re.MULTILINE)
     blocks = block_re.findall(layout_yaml)
     out = []
@@ -52,7 +51,7 @@ def parse_sat_blocks(layout_yaml: str):
         name = re.search(r"fsNode: (oneweb-\w+)", b).group(1)
         m = re.search(r'"2 \d+\s+\d+\.\d+\s+(\d+\.\d+)\s+', b)
         raan = float(m.group(1)) if m else -1.0
-        out.append((name, raan, b.replace("hardwareSpecRef: nano-sat", "hardwareSpecRef: oneweb")))
+        out.append((name, raan, b))
     return out
 
 def parse_gs_blocks(layout_yaml: str):
@@ -90,7 +89,7 @@ def main():
         sys.exit(2)
     counts = [int(c) for c in args.counts.split(",") if c.strip()]
 
-    annotated = parse_sat_blocks(BIG_SCALE.read_text())
+    annotated = parse_sat_blocks(ONEWEB_ROSTER.read_text())
     gs_blocks = parse_gs_blocks(SPAIN_SHOT.read_text())
     ordered = round_robin(annotated)
     print(f"producer = {ordered[0][0]}  (RAAN ≈ {ordered[0][1]:.1f}°)")
@@ -103,7 +102,7 @@ def main():
             "metadata:\n"
             f"  name: {args.name_prefix}-n{n:02d}\n"
             "  annotations:\n"
-            '    yass.experiments/source-tles: "../../big-scale/base/01_layout.yaml"\n'
+            '    yass.experiments/source-tles: "../../_common_/oneweb-roster.yaml"\n'
             '    yass.experiments/sat-selection: "round-robin across RAAN buckets for orbital-plane diversity"\n'
             "spec:\n"
         )
