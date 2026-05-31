@@ -18,20 +18,33 @@ a terminal state before exporting artefacts and deleting the namespace.
 Regenerating the Layouts (if the OneWeb roster or GS coordinates change):
 
 ```shell
-python3 ../_common_/regenerate-uc-layouts.py \
-    --target-dir _layouts --name-prefix uc4
+python3 tools/make-producer-layouts.py
 ```
 
-> **IMPORTANT — pole start-time is a PLACEHOLDER (unvalidated).**
-> `simulationStartTime` is currently pinned to `2026-05-16T23:59:00.000Z`
-> (UC1's working epoch). UC4 requires the producer (`oneweb-0027`) to be
-> **over a pole and out of LOS with every ESTRACK GS at t=0**, with the
-> `Destroy` event firing before the producer's first contact window with any
-> GS. This precondition has **not been verified** — the correct epoch must
-> be derived from `oneweb-0027`'s TLE against the ESTRACK visibility windows.
-> Until that derivation is done, all UC4 results are **provisional** and the
-> headline comparison (EDFS delivers / TUS does not) may not hold because the
-> producer might already be in LOS at the pinned epoch.
+This runs the shared `_common_/regenerate-uc-layouts.py` and then swaps the
+producer slot for the synthetic `producer` satellite (see below).
+
+### Producer over the pole — by construction
+
+UC4 requires the producer to be over a pole and **out of LOS with every
+ESTRACK ground station at t=0**, then destroyed before its first GS contact.
+Rather than hunting for a moment when a real OneWeb satellite happens to
+satisfy that, UC4 uses a purpose-built satellite **`producer`**
+(`tools/make-producer-layouts.py`):
+
+- polar (inclination 90°) circular orbit at ~1200 km (mean motion 13.16);
+- mean anomaly 270° so its sub-satellite point is exactly over the **South
+  pole** at the TLE epoch;
+- the TLE epoch equals `simulationStartTime` (`2026-05-16T23:59:00.000Z`), so
+  the propagation delta is zero and the producer is over the South pole at t=0.
+
+The South pole is chosen deliberately: the southernmost ESTRACK station,
+Malargüe (−35.8°), is 54° of central angle from the pole — well beyond the
+~28° line-of-sight horizon at this altitude (the North pole would be visible
+from Kiruna at 68° N). So **all seven ESTRACK stations are out of LOS at t=0**,
+and the precondition holds without tuning a start epoch per `sat_count`. The
+producer replaces the first satellite in every Layout; the remaining OneWeb
+satellites are the relays.
 
 ## Abstract
 
@@ -91,7 +104,7 @@ KPI:
 | `priority`            | fixed at `high`                                               | UC4 is the canonical high-priority scenario.                                                                               |
 | `RF` (EDFS only)      | fixed at 3                                                    | A single RF keeps the headline result interpretable.                                                                       |
 | `gs_count`            | fixed at 7 (ESTRACK)                                          |                                                                                                                            |
-| `simulationStartTime` | tuned per `sat_count` so the producer is over a pole at `t=0` | Critical: the whole setup hinges on the producer being out of LOS at photo time.                                           |
+| `simulationStartTime` | fixed `2026-05-16T23:59:00.000Z` (= synthetic producer's TLE epoch) | Same for all sat_counts: the `producer` orbit is designed so its sub-point is over the South pole, out of LOS with every ESTRACK GS, at this epoch. See "Producer over the pole". |
 | `max_duration`        | `4h`                                                          | TUS will run out of budget; EDFS should deliver in well under that.                                                        |
 
 **TUS parameter coverage.** `priority` (fixed at `high`) and `RF` are

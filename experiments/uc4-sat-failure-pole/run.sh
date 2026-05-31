@@ -7,11 +7,11 @@
 #   EDFS: uc4-edfs-td<T_destroy>-n<NN>-rf3
 #   TUS:  uc4-tus-td<T_destroy>-n<NN>
 #
-# CAVEAT: simulationStartTime is a placeholder (2026-05-16T23:59:00.000Z).
-# The "producer (oneweb-0027) over a pole and out of LOS with all ESTRACK
-# GSs at t=0, with Destroy firing before first GS contact" precondition is
-# UNVALIDATED. Results are provisional until the correct start epoch is
-# derived from oneweb-0027's TLE vs ESTRACK visibility windows.
+# Producer is the synthetic satellite `producer` (see tools/make-producer-
+# layouts.py): a polar orbit phased so its sub-point is over the SOUTH pole at
+# the TLE epoch, which equals simulationStartTime. Every ESTRACK station is
+# out of LOS at t=0 by construction, so the "out of LOS at photo time"
+# precondition holds without tuning per sat_count.
 
 set -euo pipefail
 
@@ -74,7 +74,7 @@ edfs_bootstrap_peer_key="CAESQNU9ILPST19ucrp2ZzY4BN1+LnoLK5XnH86F8m2Ce3R7m7n8DOz
 
 # The producer is always the first plane-diverse pick from the OneWeb roster.
 # It is the only node that produces a file; all other SATs are pure relays.
-PRODUCER=oneweb-0027
+PRODUCER=producer
 
 # UC4 fixed parameters.
 FILE_PRIORITY=high
