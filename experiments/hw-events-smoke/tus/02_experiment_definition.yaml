@@ -1,0 +1,46 @@
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: hw-events-smoke
+spec:
+  maxDuration: 8m
+  behaviours:
+    # Producer: writes a small file every 20s (periodic mode, no PHOTO_TARGETS),
+    # so disk/network faults always hit an active write. All 5 hardware events
+    # are one-shot and spaced 60s apart so no two of the same type overlap.
+    - fsNode: oneweb-0008
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "4M"
+          CHECK_INTERVAL_SECONDS: "20"
+      hardwareEvents:
+        - name: bw-cap
+          type: NetworkBandwidthReduced
+          startOffset: 60s
+          duration: 30s
+          params:
+            networkBandwidth:
+              capBitsPerSec: 50000
+        - name: blackout
+          type: NetworkFailure
+          startOffset: 120s
+          duration: 30s
+        - name: disk-full
+          type: DiskFull
+          startOffset: 180s
+          duration: 30s
+        - name: disk-fail
+          type: DiskFailure
+          startOffset: 240s
+          duration: 30s
+        # Terminal — must be the last event on this node (CEL enforced).
+        - name: end-of-life
+          type: Destroy
+          startOffset: 300s
+    # Receiver. No END_ON_ANY: the run must traverse the full event timeline
+    # up to Destroy@300s instead of terminating on first delivery.
+    - fsNode: estrack-kiruna
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap: {}

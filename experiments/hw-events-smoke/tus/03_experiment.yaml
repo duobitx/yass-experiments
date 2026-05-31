@@ -1,0 +1,15 @@
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: hw-events-smoke
+spec:
+  experimentDefRef: hw-events-smoke
+  layoutDefRef: hw-events-smoke-layout
+  engineContainers:
+    - name: engine-tus
+      image: "ghcr.io/duobitx/yass-tus-fs-engine:latest"
+      imagePullPolicy: Always
+      env:
+        - name: GROUND_STATIONS
+          value: "*"
+  start: true
