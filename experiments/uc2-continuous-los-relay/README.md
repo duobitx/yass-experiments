@@ -1,16 +1,30 @@
 # UC2 — Continuous LOS Relay
 
-> **Status — specification only.** Unlike [UC1](../uc1-rapid-disaster-response/),
-> this use case is not yet scaffolded: there are no `_layouts/`, `_template/`,
-> `run.sh` or `tiers.yaml`, so it cannot be executed as-is. The sections below
-> are the agreed design (parameters, KPI, metrics). To build the runnable
-> overlays, mirror UC1's layout and generate the per-`sat_count` layouts from
-> the shared OneWeb roster:
->
-> ```shell
-> python3 ../_common_/regenerate-uc-layouts.py \
->     --target-dir _layouts --name-prefix uc2
-> ```
+## Running
+
+```shell
+cd experiments/uc2-continuous-los-relay
+
+# Dry-run — render all YAML to _runs/ without applying:
+./run.sh --tier all --kubeconfig /path/to/kubeconfig --dry-run
+
+# Full sweep on the prod cluster (background, multi-hour):
+nohup ./run.sh --tier all --kubeconfig /path/to/kubeconfig \
+    > _runs/driver.log 2>&1 &
+
+# Single tier:
+./run.sh --tier 1 --kubeconfig /path/to/kubeconfig
+```
+
+Rendered manifests land in `_runs/<run_id>/`; artefact bundles in
+`_runs/<run_id>.tar.gz`.
+
+To regenerate the `_layouts/` from the shared OneWeb roster:
+
+```shell
+python3 ../_common_/regenerate-uc-layouts.py \
+    --target-dir _layouts --name-prefix uc2
+```
 
 ## Abstract
 
