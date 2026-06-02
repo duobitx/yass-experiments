@@ -217,7 +217,7 @@ YAML
     esac
 
     # Default maxDuration from README
-    max_duration=2h
+    max_duration=4h
     layout_ref=$(printf 'uc1-n%02d' "$sat_count")
     extra=$(make_extra_behaviours "$layout_file")
 
@@ -264,6 +264,11 @@ KUST
       done
     fi
     echo "[$run_id] terminal state: $state"
+
+    # Settle: let the metrics pipeline (bridge -> mqtt2prom -> Prometheus)
+    # scrape the final delivery_seconds/received counters before we export and
+    # tear down — otherwise fast EDFS deliveries are lost to the teardown race.
+    sleep "${SETTLE_SECONDS:-120}"
 
     # Bundle
     if [[ -x $EXPORT_BIN ]]; then

@@ -90,11 +90,32 @@ rm -f "$csv_tar"
   --window 24h \
   --out "$bundle/metrics-csv"
 
-# 4. Save the live Experiment CR for re-runnability.
-kubectl -n "$ns" get experiment "$exp" -o yaml > "$bundle/experiment.yaml"
+# 4. Save the live CRs this run depends on, for full re-runnability:
+# the namespaced Experiment plus the cluster-scoped ExperimentDefinition,
+# Layout and the HardwareDefinitions the Layout references.
+mkdir -p "$bundle/manifests"
+kubectl -n "$ns" get experiment "$exp" -o yaml > "$bundle/manifests/experiment.yaml"
+# Backwards-compatible copy at the bundle root.
+cp "$bundle/manifests/experiment.yaml" "$bundle/experiment.yaml"
 
-# 5. Bundle into tar.gz.
+defref=$(kubectl -n "$ns" get experiment "$exp" -o jsonpath='{.spec.experimentDefRef}' 2>/dev/null || true)
+layref=$(kubectl -n "$ns" get experiment "$exp" -o jsonpath='{.spec.layoutDefRef}'     2>/dev/null || true)
+[ -n "$defref" ] && kubectl get experimentdefinition "$defref" -o yaml > "$bundle/manifests/experimentdefinition.yaml" 2>/dev/null || true
+if [ -n "$layref" ]; then
+  kubectl get layout "$layref" -o yaml > "$bundle/manifests/layout.yaml" 2>/dev/null || true
+  # HardwareDefinitions referenced by the layout's fsNodes (deduped).
+  hwrefs=$(kubectl get layout "$layref" -o jsonpath='{range .spec[*]}{.hardwareSpecRef}{"\n"}{end}' 2>/dev/null | sort -u | grep -v '^$' || true)
+  if [ -n "$hwrefs" ]; then
+    : > "$bundle/manifests/hardwaredefinitions.yaml"
+    for hw in $hwrefs; do
+      kubectl get hardwaredefinition "$hw" -o yaml >> "$bundle/manifests/hardwaredefinitions.yaml" 2>/dev/null || true
+      echo "---" >> "$bundle/manifests/hardwaredefinitions.yaml"
+    done
+  fi
+fi
+
+# 5. Bundle into tar.gz, and keep the uncompressed directory alongside it
+# so results can be browsed without extracting.
 final="$out/$exp-$run_id.tar.gz"
 tar -czf "$final" -C "$out" "$exp-$run_id"
-rm -rf "$bundle"
-echo "wrote $final"
+echo "wrote $final (+ uncompressed dir $bundle)"
