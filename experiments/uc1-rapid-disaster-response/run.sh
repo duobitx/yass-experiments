@@ -217,7 +217,7 @@ YAML
     esac
 
     # Default maxDuration from README
-    max_duration=8h
+    max_duration=10h
     layout_ref=$(printf 'uc1-n%02d' "$sat_count")
     extra=$(make_extra_behaviours "$layout_file")
 
