@@ -38,8 +38,9 @@ tr:hover td{background:#141821}
 .charts{display:flex;flex-direction:column;gap:22px}
 .chart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
 .chart h3{margin:0 0 10px;color:var(--txt)}
-.chart canvas{width:100%!important}
-.chart img{display:block;width:100%;height:auto;border-radius:8px;background:#fff}
+.chart .canvas-box{position:relative;width:100%}
+.chart .canvas-box canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+.chart img{display:block;width:100%;height:auto;border-radius:8px;background:var(--panel)}
 .chart .cap{font-size:12px;color:var(--muted);margin-top:6px}
 
 ul.files{list-style:none;padding:0}

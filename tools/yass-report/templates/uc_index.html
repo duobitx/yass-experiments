@@ -4,15 +4,6 @@
 
 <div class="doc">{{ uc.description_html|safe }}</div>
 
-{% if uc.charts %}
-<h2>Cross-run charts</h2>
-<div class="charts">
-  {% for ch in uc.charts %}
-  <div class="chart"><h3>{{ ch.caption }}</h3><img src="{{ ch.src }}" alt="{{ ch.caption }}"></div>
-  {% endfor %}
-</div>
-{% endif %}
-
 {% if uc.conclusions_md %}
 <h2>Conclusions</h2>
 <div class="doc">{{ uc.conclusions_md|safe }}</div>

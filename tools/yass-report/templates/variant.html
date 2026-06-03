@@ -17,13 +17,13 @@
 <h2>Charts (interactive)</h2>
 <div class="charts">
   <div class="chart"><h3>Per-target delivery time (blue = ground station)</h3>
-    <canvas id="cDeliv" height="{{ v.deliv_h }}"></canvas></div>
+    <div class="canvas-box" style="height:{{ v.deliv_h }}px"><canvas id="cDeliv"></canvas></div></div>
   <div class="chart"><h3>Network by node (MiB)</h3>
-    <canvas id="cNet" height="{{ v.net_h }}"></canvas></div>
+    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cNet"></canvas></div></div>
 </div>
 
 {% if v.pngs %}
-<h2>Charts (matplotlib / gnuplot)</h2>
+<h2>Charts</h2>
 <div class="charts">
   {% for p in v.pngs %}
   <div class="chart"><img src="{{ p.src }}" alt="{{ p.name }}"><div class="cap">{{ p.name }}</div></div>

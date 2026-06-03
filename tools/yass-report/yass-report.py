@@ -18,10 +18,20 @@ stacked full-width) plus matplotlib/gnuplot PNGs. Raw data (raw.xlsx, CSVs)
 is kept gzipped per variant and is NOT meant for publishing.
 """
 import sys, os, csv, re, json, glob, gzip, tarfile, tempfile, shutil, subprocess, argparse
+from datetime import datetime
 import yaml
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+# Dark palette matching the interactive (Chart.js) charts so PNGs blend in.
+PANEL, GRID, FG = "#171a21", "#2a2f3a", "#cfd6e4"
+C_BLUE, C_GREY, C_GREEN, C_RED = "#4c78a8", "#888888", "#54a24b", "#e45756"
+plt.rcParams.update({
+    "figure.facecolor": PANEL, "axes.facecolor": PANEL, "savefig.facecolor": PANEL,
+    "text.color": FG, "axes.labelcolor": FG, "axes.titlecolor": FG,
+    "axes.edgecolor": GRID, "xtick.color": FG, "ytick.color": FG, "grid.color": GRID,
+})
 from openpyxl import Workbook
 import markdown
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -35,6 +45,10 @@ TPL = os.path.join(HERE, "templates")
 KPI_META = {
     "engine": ("—", "Storage/transport engine under test (edfs or tus)"),
     "state": ("—", "Terminal experiment state (Success/TimedOut/Failure)"),
+    "exec_date": ("UTC", "Wall-clock date/time the experiment was launched (CR creationTimestamp)"),
+    "duration": ("—", "Wall-clock experiment duration (creation → last reconcile transition)"),
+    "sim_start": ("UTC", "Simulation clock at experiment start (simulationStartTime)"),
+    "sim_end": ("UTC", "Simulation clock when the experiment finished (experimentTime)"),
     "file_size": ("—", "Size of the produced photo file"),
     "priority": ("—", "File priority class (low/default/high; EDFS PAR)"),
     "sat_count": ("sats", "Number of satellites in the constellation"),
@@ -95,6 +109,33 @@ UC_CFG = {
 DOC_DENY = ("running", "inputs", "regenerating", "sat selection", "run-id", "run id")
 
 # ---------------- parsing ----------------
+
+def parse_ts(s):
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+def fmt_date(s):
+    d = parse_ts(s)
+    return d.strftime("%Y-%m-%d %H:%M UTC") if d else "n/a"
+
+
+def fmt_dur(sec):
+    if sec is None:
+        return "n/a"
+    sec = int(round(sec))
+    h, r = divmod(sec, 3600)
+    m, s = divmod(r, 60)
+    if h:
+        return f"{h}h {m}m {s}s"
+    if m:
+        return f"{m}m {s}s"
+    return f"{s}s"
+
 
 def read_metric(path):
     """[(labels:dict, final:float, peak:float)] from a prom-snapshot CSV."""
@@ -169,8 +210,17 @@ def compute(bundle, rid):
 
     exp = (load_yaml(os.path.join(bundle, "manifests", "experiment.yaml"))
            or load_yaml(os.path.join(bundle, "experiment.yaml")) or {})
-    state = (((exp.get("status") or {}).get("experimentState")) or "?")
+    status = exp.get("status") or {}
+    state = status.get("experimentState") or "?"
     spec = exp.get("spec") or {}
+
+    # Wall-clock execution date + duration: CR creation → last reconcile transition.
+    created = (exp.get("metadata") or {}).get("creationTimestamp")
+    c0 = parse_ts(created)
+    ends = [t for t in (parse_ts(c.get("lastTransitionTime"))
+                        for c in (status.get("conditions") or [])) if t]
+    c1 = max(ends) if ends else None
+    duration_s = (c1 - c0).total_seconds() if (c0 and c1) else None
 
     # Per-producer first-GS delivery: each producing sat's earliest landing on
     # any GS. first_gs = first file to land; last_gs = when the last one landed
@@ -186,7 +236,9 @@ def compute(bundle, rid):
     return dict(
         run_id=rid, **info,
         state=state,
-        sim_start=spec.get("simulationStartTime", "?"),
+        exec_date=created, duration_s=duration_s,
+        sim_start=spec.get("simulationStartTime"),
+        sim_end=status.get("experimentTime"),
         first_gs=min(gs.values()) if gs else None,
         last_gs=last_gs,
         mean_gs=(sum(gs.values()) / len(gs)) if gs else None,
@@ -209,7 +261,10 @@ def kpi_value(k, key):
     fg = f"{k['first_gs']:.0f}" if k["first_gs"] is not None else "n/a"
     lg = f"{k['last_gs']:.0f}" if k["last_gs"] is not None else "n/a"
     return {
-        "engine": k["engine"], "state": k["state"], "file_size": k["file_size"],
+        "engine": k["engine"], "state": k["state"],
+        "exec_date": fmt_date(k["exec_date"]), "duration": fmt_dur(k["duration_s"]),
+        "sim_start": fmt_date(k["sim_start"]), "sim_end": fmt_date(k["sim_end"]),
+        "file_size": k["file_size"],
         "priority": k["priority"], "sat_count": k["sat_count"],
         "RF": k["rf"] if k["rf"] is not None else "n/a",
         "first_GS_delivery_s": fg, "last_GS_delivery_s": lg,
@@ -351,12 +406,15 @@ def gnuplot_delivery(k, gdir):
             f.write(f"{t} {v:.1f}\n")
     with open(os.path.join(gdir, "delivery.gnuplot"), "w") as f:
         f.write(
-            "set terminal pngcairo size 1000,460\n"
+            f"set terminal pngcairo size 1000,460 background rgb '{PANEL}'\n"
             "set output 'delivery.png'\n"
             "set style data histograms\nset style fill solid 0.8\n"
-            "set ylabel 'delivery time (s)'\nset xtics rotate by -45\n"
-            f"set title '{k['run_id']} — per-GS delivery'\n"
-            "plot 'delivery.dat' using 2:xtic(1) notitle\n")
+            f"set border lc rgb '{GRID}'\n"
+            f"set ylabel 'delivery time (s)' textcolor rgb '{FG}'\n"
+            f"set xtics rotate by -45 textcolor rgb '{FG}'\n"
+            f"set ytics textcolor rgb '{FG}'\n"
+            f"set title '{k['run_id']} — per-GS delivery' textcolor rgb '{FG}'\n"
+            f"plot 'delivery.dat' using 2:xtic(1) lc rgb '{C_BLUE}' notitle\n")
 
 
 def render_gnuplot(gdir):
@@ -505,11 +563,17 @@ def variant_page(env, k, bundle, vdir, uc_id):
         for png in sorted(glob.glob(os.path.join(vdir, sub, "*.png"))):
             pngs.append({"src": os.path.relpath(png, vdir), "name": os.path.relpath(png, vdir)})
 
+    kpi_keys = list(cfg["kpis"])
+    # show right after engine, state (final order: exec_date, duration, sim_start, sim_end)
+    for extra in ("sim_end", "sim_start", "duration", "exec_date"):
+        if extra not in kpi_keys:
+            kpi_keys.insert(2, extra)
+
     v = dict(
         run_id=k["run_id"], engine=k["engine"], state=k["state"],
         kpis=[{"key": key, "value": kpi_value(k, key),
                "unit": KPI_META[key][0], "desc": KPI_META[key][1]}
-              for key in cfg["kpis"]],
+              for key in kpi_keys],
         data=json.dumps(data),
         deliv_h=max(220, 22 * len(deliv)) if deliv_horiz else 340,
         deliv_axis="y" if deliv_horiz else "x",
