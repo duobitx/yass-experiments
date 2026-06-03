@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ title }}</title>
+<link rel="stylesheet" href="{{ root }}assets/site.css">
+{% block head %}{% endblock %}
+</head>
+<body><div class="wrap">
+<div class="crumbs">
+  <a href="{{ root }}index.html">YASS results</a>
+  {% for c in crumbs %} / {% if c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% else %}{{ c.text }}{% endif %}{% endfor %}
+</div>
+{% block content %}{% endblock %}
+<footer>YASS — Yet Another Satellite Simulator · EDFS vs TUS · generated report</footer>
+</div></body>
+</html>

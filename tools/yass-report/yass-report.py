@@ -1,29 +1,98 @@
 #!/usr/bin/env python3
-"""yass-report — turn yass-export bundles into per-run abstracts + charts +
-raw spreadsheets, plus a cross-run summary.
+"""yass-report — turn yass-export bundles into a publishable multi-UC HTML site.
 
 Usage:
-    yass-report.py [runs_dir] [--out DIR] [--uc UCN]
+    yass-report.py [experiments_dir] [--out DIR] [--only ucN]
 
-Reads every `*.tar.gz` bundle under runs_dir (default `_runs`), and writes a
-report tree under <out> (default `<runs_dir>/report`). The output dir is wiped
-on each run — only the latest report is kept.
+Discovers `uc<N>-…/` experiment directories under experiments_dir (default
+`<repo>/yass-experiments/experiments`), reads every `_runs/*.tar.gz` bundle in
+each, and writes a static site under <out> (default `<experiments_dir>/../results`):
 
-Per run: README.md (Setup / Parameters / Result / Observations / Conclusions
-template / KPI verdict), matplotlib PNG charts, gnuplot scripts + data, a raw
-data spreadsheet (raw.xlsx, one sheet per CSV) and metrics.json.
-Cross run: SUMMARY.md + delivery-vs-satcount and cost-vs-delivery charts
-(matplotlib + gnuplot).
+    results/index.html              — landing page, all UCs + descriptions
+    results/assets/site.css         — shared stylesheet
+    results/ucN/index.html          — UC description (from README) + variants table
+    results/ucN/<variant>/index.html — per-run KPIs + charts + raw files
+
+The output dir is wiped on each run. Charts are Chart.js (interactive,
+stacked full-width) plus matplotlib/gnuplot PNGs. Raw data (raw.xlsx, CSVs)
+is kept gzipped per variant and is NOT meant for publishing.
 """
-import sys, os, csv, re, json, glob, tarfile, tempfile, shutil, subprocess, argparse
+import sys, os, csv, re, json, glob, gzip, tarfile, tempfile, shutil, subprocess, argparse
 import yaml
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from openpyxl import Workbook
+import markdown
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 NRT_2H, NRT_4H = 7200.0, 14400.0
 MiB = 1024 * 1024
+HERE = os.path.dirname(os.path.abspath(__file__))
+TPL = os.path.join(HERE, "templates")
+
+# KPI metadata: key -> (unit, description). Superset across all UCs.
+KPI_META = {
+    "engine": ("—", "Storage/transport engine under test (edfs or tus)"),
+    "state": ("—", "Terminal experiment state (Success/TimedOut/Failure)"),
+    "file_size": ("—", "Size of the produced photo file"),
+    "priority": ("—", "File priority class (low/default/high; EDFS PAR)"),
+    "sat_count": ("sats", "Number of satellites in the constellation"),
+    "RF": ("copies", "EDFS replication factor (n/a for TUS)"),
+    "first_GS_delivery_s": ("s", "Time from sim start until the first produced file reached any ground station"),
+    "last_GS_delivery_s": ("s", "Time from sim start until the last produced file reached a ground station (all-delivered time)"),
+    "files_to_GS": ("count", "Distinct produced files that reached at least one ground station"),
+    "all_delivered": ("—", "Whether every produced file reached a ground station"),
+    "delivered": ("—", "Whether the photo reached any ground station (UC4 success criterion)"),
+    "GS_with_delivery": ("count", "Ground stations with a recorded delivery time"),
+    "GS_reached": ("count", "Ground stations that received the file (from received_total — independent of the delivery-time metric)"),
+    "distinct_receivers": ("count", "Distinct nodes that received a file (GS + relays)"),
+    "produced": ("files", "Files produced by the producer agent(s)"),
+    "TX_MiB": ("MiB", "Total network bytes transmitted, all nodes"),
+    "RX_MiB": ("MiB", "Total network bytes received, all nodes"),
+    "peak_cpu_m": ("millicores", "Peak CPU across all containers"),
+    "peak_mem_MiB": ("MiB", "Peak memory across all containers"),
+}
+# Secondary KPIs shown for every UC (resource cost + reach).
+_TAIL = ["GS_reached", "distinct_receivers", "TX_MiB", "RX_MiB", "peak_cpu_m", "peak_mem_MiB"]
+
+# Per-UC configuration: headline metric (for cross-run charts/conclusions),
+# the KPI rows on the variant page, and the variant-table columns (excl. state,
+# which the template appends). Column entries are (header, k-field).
+UC_CFG = {
+    "uc1": dict(headline="first_gs", hlabel="time-to-first-GS-delivery (s)",
+        kpis=["engine", "state", "file_size", "priority", "sat_count", "RF",
+              "first_GS_delivery_s", "GS_with_delivery", "produced"] + _TAIL,
+        cols=[("engine", "engine"), ("size", "file_size"), ("priority", "priority"),
+              ("sat", "sat_count"), ("RF", "rf"), ("firstGS(s)", "first_gs")]),
+    "uc2": dict(headline="last_gs", hlabel="time-until-all-files-delivered (s)",
+        kpis=["engine", "state", "priority", "RF", "sat_count", "produced",
+              "files_to_GS", "all_delivered", "first_GS_delivery_s",
+              "last_GS_delivery_s"] + _TAIL,
+        cols=[("engine", "engine"), ("priority", "priority"), ("RF", "rf"),
+              ("sat", "sat_count"), ("produced", "produced"),
+              ("files→GS", "files_to_gs"), ("all?", "all_delivered"),
+              ("lastGS(s)", "last_gs")]),
+    "uc3": dict(headline="first_gs", hlabel="time-to-first-GS-delivery (s)",
+        kpis=["engine", "state", "file_size", "priority", "sat_count", "RF",
+              "first_GS_delivery_s", "GS_with_delivery", "produced"] + _TAIL,
+        cols=[("engine", "engine"), ("size", "file_size"), ("priority", "priority"),
+              ("sat", "sat_count"), ("RF", "rf"), ("firstGS(s)", "first_gs")]),
+    "uc4": dict(headline="first_gs", hlabel="time-to-first-GS-delivery (s)",
+        kpis=["engine", "state", "priority", "sat_count", "delivered",
+              "first_GS_delivery_s", "produced"] + _TAIL,
+        cols=[("engine", "engine"), ("priority", "priority"), ("sat", "sat_count"),
+              ("delivered", "delivered"), ("firstGS(s)", "first_gs")]),
+    "uc5": dict(headline="last_gs", hlabel="time-until-all-files-delivered (s)",
+        kpis=["engine", "state", "sat_count", "RF", "produced", "files_to_GS",
+              "all_delivered", "first_GS_delivery_s", "last_GS_delivery_s"] + _TAIL,
+        cols=[("engine", "engine"), ("sat", "sat_count"), ("RF", "rf"),
+              ("produced", "produced"), ("files→GS", "files_to_gs"),
+              ("all?", "all_delivered"), ("lastGS(s)", "last_gs")]),
+}
+
+# README sections to drop from the published UC description (operational).
+DOC_DENY = ("running", "inputs", "regenerating", "sat selection", "run-id", "run id")
 
 # ---------------- parsing ----------------
 
@@ -85,13 +154,13 @@ def compute(bundle, rid):
     info = parse_run_id(rid)
     m = lambda n: os.path.join(bundle, "metrics-csv", n + ".csv")
 
-    # delivery per (source,target)
     dsum = {(l.get("source_fsNode"), l.get("target_fsNode")): v for l, v, _ in read_metric(m("yass_file_delivery_seconds_sum"))}
     dcnt = {(l.get("source_fsNode"), l.get("target_fsNode")): v for l, v, _ in read_metric(m("yass_file_delivery_seconds_count"))}
     per_t = {k: dsum[k] / dcnt[k] for k in dsum if dcnt.get(k, 0) > 0}
     gs = {k: v for k, v in per_t.items() if (k[1] or "").startswith("estrack")}
 
     recv = {l.get("fsNode") for l, _, _ in read_metric(m("yass_file_received_total"))}
+    gs_reached = len({n for n in recv if (n or "").startswith("estrack")})
     tx = sum(v for _, v, _ in read_metric(m("yass_network_tx_bytes_total")))
     rx = sum(v for _, v, _ in read_metric(m("yass_network_rx_bytes_total")))
     cpu = read_metric(m("yass_container_cpu_millicores"))
@@ -103,13 +172,29 @@ def compute(bundle, rid):
     state = (((exp.get("status") or {}).get("experimentState")) or "?")
     spec = exp.get("spec") or {}
 
+    # Per-producer first-GS delivery: each producing sat's earliest landing on
+    # any GS. first_gs = first file to land; last_gs = when the last one landed
+    # (= "all delivered" time for UC2/UC5). files_to_gs = produced files that
+    # reached a GS; all_delivered when that covers everything produced.
+    by_prod = {}
+    for (src, tgt), v in gs.items():
+        by_prod.setdefault(src, []).append(v)
+    producer_first = {s: min(vs) for s, vs in by_prod.items()}
+    files_to_gs = len(producer_first)
+    last_gs = max(producer_first.values()) if producer_first else None
+
     return dict(
         run_id=rid, **info,
         state=state,
         sim_start=spec.get("simulationStartTime", "?"),
         first_gs=min(gs.values()) if gs else None,
+        last_gs=last_gs,
         mean_gs=(sum(gs.values()) / len(gs)) if gs else None,
         n_gs=len(gs),
+        gs_reached=gs_reached,
+        files_to_gs=files_to_gs,
+        all_delivered=bool(produced) and files_to_gs >= round(produced),
+        delivered=files_to_gs >= 1,
         n_receivers=len([r for r in recv if r]),
         per_target=per_t,
         gs_targets=gs,
@@ -119,21 +204,53 @@ def compute(bundle, rid):
         peak_mem_mib=max([p for _, _, p in mem], default=0.0) / MiB,
     )
 
-# ---------------- per-run outputs ----------------
+
+def kpi_value(k, key):
+    fg = f"{k['first_gs']:.0f}" if k["first_gs"] is not None else "n/a"
+    lg = f"{k['last_gs']:.0f}" if k["last_gs"] is not None else "n/a"
+    return {
+        "engine": k["engine"], "state": k["state"], "file_size": k["file_size"],
+        "priority": k["priority"], "sat_count": k["sat_count"],
+        "RF": k["rf"] if k["rf"] is not None else "n/a",
+        "first_GS_delivery_s": fg, "last_GS_delivery_s": lg,
+        "files_to_GS": k["files_to_gs"],
+        "all_delivered": "yes" if k["all_delivered"] else "no",
+        "delivered": "yes" if k["delivered"] else "no",
+        "GS_with_delivery": k["n_gs"],
+        "GS_reached": k["gs_reached"], "distinct_receivers": k["n_receivers"],
+        "produced": f"{k['produced']:.0f}", "TX_MiB": f"{k['tx_mib']:.0f}",
+        "RX_MiB": f"{k['rx_mib']:.0f}", "peak_cpu_m": f"{k['peak_cpu']:.0f}",
+        "peak_mem_MiB": f"{k['peak_mem_mib']:.0f}",
+    }[key]
+
+
+def col_val(k, field):
+    """Display value for a variant-table column (field = a compute() key)."""
+    if field == "rf":
+        return k["rf"] if k["rf"] is not None else "—"
+    if field in ("first_gs", "last_gs"):
+        return f"{k[field]:.0f}" if k[field] is not None else "n/a"
+    if field == "produced":
+        return f"{k['produced']:.0f}"
+    if field == "all_delivered":
+        return "yes" if k["all_delivered"] else "no"
+    if field == "delivered":
+        return "yes" if k["delivered"] else "no"
+    return k.get(field)
+
+# ---------------- per-run charts / files ----------------
 
 def chart_delivery(k, outpng):
     gs = k["gs_targets"]
     if not gs:
         return False
     items = sorted(gs.items(), key=lambda x: x[1])
-    labels = [t or "?" for (_, t), _ in [((s, t), v) for (s, t), v in items]]
-    labels = [t for (_, t) in [kk for kk, _ in items]]
+    labels = [t for (_, t), _ in items]
     vals = [v for _, v in items]
-    plt.figure(figsize=(8, 4))
-    plt.bar(labels, vals, color="#4c78a8")
-    plt.ylabel("delivery time (s)")
+    plt.figure(figsize=(9, max(4, len(labels) * 0.3)))
+    plt.barh(labels, vals, color="#4c78a8")
+    plt.xlabel("delivery time (s)")
     plt.title(f"{k['run_id']} — per-GS delivery")
-    plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     plt.savefig(outpng, dpi=110)
     plt.close()
@@ -144,7 +261,7 @@ def chart_bar(pairs, ylabel, title, outpng, top=12):
     pairs = sorted(pairs, key=lambda x: x[1], reverse=True)[:top]
     if not pairs:
         return False
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(9, 4))
     plt.bar([p[0] for p in pairs], [p[1] for p in pairs], color="#54a24b")
     plt.ylabel(ylabel)
     plt.title(title)
@@ -155,15 +272,11 @@ def chart_bar(pairs, ylabel, title, outpng, top=12):
     return True
 
 
-def write_xlsx(bundle, outxlsx, k):
+def write_xlsx(bundle, outxlsx):
     wb = Workbook()
     ws = wb.active
-    ws.title = "KPIs"
-    for i, (key, val) in enumerate(sorted(k.items()), 1):
-        if key in ("per_target", "gs_targets"):
-            continue
-        ws.cell(row=i, column=1, value=key)
-        ws.cell(row=i, column=2, value=str(val))
+    ws.title = "_index"
+    ws.append(["sheet", "source csv"])
     seen = set()
     for sub in ("metrics-csv", "events-csv"):
         for csvf in sorted(glob.glob(os.path.join(bundle, sub, "*.csv"))):
@@ -173,11 +286,59 @@ def write_xlsx(bundle, outxlsx, k):
             while t in seen:
                 t = f"{name[:26]}_{n}"; n += 1
             seen.add(t)
+            ws.append([t, os.path.join(sub, os.path.basename(csvf))])
             sh = wb.create_sheet(t)
             with open(csvf) as f:
                 for row in csv.reader(f):
                     sh.append(row)
     wb.save(outxlsx)
+
+
+def gzip_file(path):
+    with open(path, "rb") as fi, gzip.open(path + ".gz", "wb") as fo:
+        shutil.copyfileobj(fi, fo)
+    os.remove(path)
+
+
+def tar_csvs(bundle, outpath):
+    has = False
+    with tarfile.open(outpath, "w:gz") as t:
+        for sub in ("metrics-csv", "events-csv"):
+            d = os.path.join(bundle, sub)
+            if os.path.isdir(d):
+                t.add(d, arcname=sub); has = True
+    if not has:
+        os.remove(outpath)
+    return has
+
+
+MANIFEST_DESC = {
+    "hardwaredefinitions.yaml": "HardwareDefinitions (oneweb / ground-station specs)",
+    "layout.yaml": "Layout — constellation topology (FsNodes, orbits)",
+    "experimentdefinition.yaml": "ExperimentDefinition — behaviours, agents, faults, maxDuration",
+    "experiment.yaml": "Experiment — the run instance (engine, RF, simulationStartTime)",
+}
+
+
+def copy_resources(env, run_id, bundle, resdir):
+    """Copy the bundle's K8s manifests into resdir + write a listing page."""
+    man = os.path.join(bundle, "manifests")
+    if not os.path.isdir(man):
+        return False
+    files = [f for f in sorted(os.listdir(man)) if f.endswith((".yaml", ".yml"))]
+    if not files:
+        return False
+    os.makedirs(resdir, exist_ok=True)
+    for f in files:
+        shutil.copy(os.path.join(man, f), os.path.join(resdir, f))
+    html = env.get_template("resources.html").render(
+        title=f"{run_id} — resources", root="../../../",
+        crumbs=[{"text": run_id.split("-")[0], "href": "../../index.html"},
+                {"text": run_id, "href": "../index.html"}, {"text": "resources"}],
+        run_id=run_id,
+        files=[{"name": f, "desc": MANIFEST_DESC.get(f, "")} for f in files])
+    open(os.path.join(resdir, "index.html"), "w").write(html)
+    return True
 
 
 def gnuplot_delivery(k, gdir):
@@ -190,7 +351,7 @@ def gnuplot_delivery(k, gdir):
             f.write(f"{t} {v:.1f}\n")
     with open(os.path.join(gdir, "delivery.gnuplot"), "w") as f:
         f.write(
-            "set terminal pngcairo size 900,420\n"
+            "set terminal pngcairo size 1000,460\n"
             "set output 'delivery.png'\n"
             "set style data histograms\nset style fill solid 0.8\n"
             "set ylabel 'delivery time (s)'\nset xtics rotate by -45\n"
@@ -199,7 +360,6 @@ def gnuplot_delivery(k, gdir):
 
 
 def render_gnuplot(gdir):
-    """Render every *.gnuplot in gdir to PNG, if gnuplot is installed."""
     if not shutil.which("gnuplot"):
         return
     for g in sorted(glob.glob(os.path.join(gdir, "*.gnuplot"))):
@@ -210,251 +370,170 @@ def render_gnuplot(gdir):
             pass
 
 
-def per_run_readme(k, has_charts):
-    p = []
-    p.append(f"# Run `{k['run_id']}`\n")
-    p.append("## Setup\n")
-    p.append(f"- Engine: **{k['engine']}**")
-    p.append(f"- Terminal state: **{k['state']}**")
-    p.append(f"- simulationStartTime: `{k['sim_start']}`")
-    p.append(f"- Ground stations: 7 (ESTRACK)\n")
-    p.append("## Parameters\n")
-    p.append(f"- File size: **{k['file_size']}**")
-    p.append(f"- Priority: **{k['priority']}**")
-    p.append(f"- sat_count: **{k['sat_count']}**")
-    p.append(f"- RF: **{k['rf'] if k['rf'] is not None else 'n/a (TUS)'}**\n")
-    p.append("## Result (auto)\n")
-    fg = f"{k['first_gs']:.0f} s" if k['first_gs'] is not None else "n/a (not recorded)"
-    p.append(f"- Time-to-first-GS-delivery: **{fg}**")
-    p.append(f"- GS that received (with delivery time): {k['n_gs']}")
-    p.append(f"- Distinct receivers (incl. relays): {k['n_receivers']}")
-    p.append(f"- Files produced: {k['produced']:.0f}")
-    p.append(f"- Network TX / RX: {k['tx_mib']:.0f} / {k['rx_mib']:.0f} MiB")
-    p.append(f"- Peak CPU / mem: {k['peak_cpu']:.0f} m / {k['peak_mem_mib']:.0f} MiB\n")
-    p.append("## Observations (auto)\n")
-    obs = []
-    if k['state'] != "Success":
-        obs.append(f"Experiment ended **{k['state']}** — check delivery.")
-    if k['engine'] == "edfs" and k['first_gs'] is None and k['n_receivers'] > 0:
-        obs.append("EDFS delivered to peers but no GS delivery_seconds recorded "
-                   "(likely DeliveryDeadline eviction — see ANALYSIS).")
-    if k['first_gs'] is not None:
-        obs.append(f"Delivered to ground in {k['first_gs']:.0f} s "
-                   f"({'within' if k['first_gs'] < NRT_2H else 'beyond'} the 2 h NRT target).")
-    p.append("\n".join(f"- {o}" for o in obs) if obs else "- (none)")
-    p.append("\n## Conclusions (fill in)\n")
-    p.append("- _…_\n")
-    p.append("## KPI verdict (auto)\n")
-    if k['first_gs'] is None:
-        p.append("- Delivery time: **n/a** (metric not captured).")
-    else:
-        p.append(f"- < 2 h NRT: {'✅' if k['first_gs'] < NRT_2H else '❌'}; "
-                 f"< 4 h NRT: {'✅' if k['first_gs'] < NRT_4H else '❌'}")
-    p.append("\n## Files\n")
-    p.append("- `charts/` — matplotlib PNGs; `gnuplot/` — gnuplot scripts+data")
-    p.append("- `raw.xlsx` — raw metrics & events (one sheet per CSV)")
-    p.append("- `metrics.json` — KPIs as JSON\n")
-    return "\n".join(p)
-
-# ---------------- cross-run ----------------
-
-def summary(rows, outdir):
-    cdir = os.path.join(outdir, "charts"); os.makedirs(cdir, exist_ok=True)
-    gdir = os.path.join(outdir, "gnuplot"); os.makedirs(gdir, exist_ok=True)
-
-    # delivery vs sat_count, per (engine,file_size)
-    plt.figure(figsize=(8, 5))
-    groups = {}
-    for r in rows:
-        if r['first_gs'] is None:
-            continue
-        groups.setdefault((r['engine'], r['file_size']), []).append((r['sat_count'], r['first_gs']))
-    series = []  # (datfile, title) per (engine,file_size) — one gnuplot line each
-    for (eng, fs), pts in sorted(groups.items()):
-        pts.sort()
-        plt.plot([x for x, _ in pts], [y for _, y in pts], marker="o", label=f"{eng} {fs}")
-        fn = f"delivery_{eng}_{fs}.dat"
-        with open(os.path.join(gdir, fn), "w") as df:
-            df.write("# sat first_gs_s\n")
-            for s, y in pts:
-                df.write(f"{s} {y:.1f}\n")
-        series.append((fn, f"{eng} {fs}"))
-    plt.xlabel("sat_count"); plt.ylabel("time-to-first-GS-delivery (s)")
-    plt.title("UC1 — delivery time vs constellation size"); plt.legend(); plt.grid(True, alpha=.3)
-    plt.tight_layout(); plt.savefig(os.path.join(cdir, "delivery_vs_satcount.png"), dpi=110); plt.close()
-
-    # cost vs delivery (Pareto)
-    plt.figure(figsize=(8, 5))
-    for eng, col in (("tus", "#e45756"), ("edfs", "#4c78a8")):
-        xs = [r['tx_mib'] for r in rows if r['engine'] == eng and r['first_gs'] is not None]
-        ys = [r['first_gs'] for r in rows if r['engine'] == eng and r['first_gs'] is not None]
-        if xs:
-            plt.scatter(xs, ys, label=eng, color=col)
-    plt.xlabel("total network TX (MiB)"); plt.ylabel("time-to-first-GS-delivery (s)")
-    plt.title("UC1 — cost vs delivery"); plt.legend(); plt.grid(True, alpha=.3)
-    plt.tight_layout(); plt.savefig(os.path.join(cdir, "cost_vs_delivery.png"), dpi=110); plt.close()
-
-    plot_cmd = ("plot " + ", ".join(f"'{fn}' using 1:2 with linespoints title '{t}'"
-                                    for fn, t in series)) if series else "plot 0 notitle"
-    with open(os.path.join(gdir, "delivery_vs_satcount.gnuplot"), "w") as f:
-        f.write("set terminal pngcairo size 900,520\nset output 'delivery_vs_satcount.png'\n"
-                "set xlabel 'sat_count'\nset ylabel 'first-GS delivery (s)'\nset key outside\n"
-                "set title 'UC1 delivery vs sat_count'\n"
-                + plot_cmd + "\n")
-    render_gnuplot(gdir)
-
-    # SUMMARY.md
-    s = ["# UC1 — cross-run summary\n", "## All runs\n",
-         "| run_id | eng | sat | size | prio | RF | state | firstGS(s) | recv | TX MiB |",
-         "|---|---|--:|--|--|--|--|--:|--:|--:|"]
-    for r in sorted(rows, key=lambda x: x['run_id']):
-        s.append(f"| {r['run_id']} | {r['engine']} | {r['sat_count']} | {r['file_size']} | "
-                 f"{r['priority']} | {r['rf'] if r['rf'] is not None else '-'} | {r['state']} | "
-                 f"{('%.0f'%r['first_gs']) if r['first_gs'] is not None else 'n/a'} | "
-                 f"{r['n_receivers']} | {r['tx_mib']:.0f} |")
-    s.append("\n## Charts\n- `charts/delivery_vs_satcount.png`\n- `charts/cost_vs_delivery.png`")
-    # auto conclusions: compare edfs vs tus at matching points
-    s.append("\n## Conclusions (auto)\n")
-    auto = []
-    by = {(r['engine'], r['file_size'], r['sat_count'], r['priority'], r['rf']): r for r in rows}
-    for r in rows:
-        if r['engine'] != 'edfs' or r['first_gs'] is None:
-            continue
-        t = by.get(('tus', r['file_size'], r['sat_count'], '-', None))
-        if t and t['first_gs']:
-            sp = t['first_gs'] / r['first_gs']
-            auto.append(f"- n{r['sat_count']} {r['file_size']}: EDFS {r['first_gs']:.0f}s vs "
-                        f"TUS {t['first_gs']:.0f}s → **{sp:.1f}× {'faster' if sp>1 else 'slower'}**")
-    s.append("\n".join(auto) if auto else "- (no matched EDFS/TUS delivery pairs captured)")
-    s.append("\n## Conclusions (fill in)\n- _…_\n")
-    open(os.path.join(outdir, "SUMMARY.md"), "w").write("\n".join(s) + "\n")
-
-# ---------------- HTML ----------------
-
-def _esc(s):
-    return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
-
-
-def aggregate_net(inner, name):
+def aggregate_net(bundle, name):
     agg = {}
-    for l, v, _ in read_metric(os.path.join(inner, "metrics-csv", name + ".csv")):
+    for l, v, _ in read_metric(os.path.join(bundle, "metrics-csv", name + ".csv")):
         node = l.get("fsNode") or l.get("peer_node") or l.get("peer") or "?"
         agg[node] = agg.get(node, 0) + v
     return agg
 
+# ---------------- cross-run (per UC) ----------------
 
-PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UC1 run — __TITLE__</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-<style>
- body{font:15px/1.5 system-ui,sans-serif;margin:0;background:#0f1115;color:#e6e6e6}
- .wrap{max-width:1000px;margin:0 auto;padding:24px}
- h1{font-size:20px} h2{font-size:16px;margin-top:28px;border-bottom:1px solid #2a2f3a;padding-bottom:4px}
- table{border-collapse:collapse;width:100%} td,th{padding:4px 10px;border-bottom:1px solid #222;text-align:left}
- .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
- canvas{background:#171a21;border-radius:8px;padding:8px}
- .badge{display:inline-block;padding:2px 8px;border-radius:10px;background:#2a2f3a}
- a{color:#6db3ff} img{max-width:100%;border-radius:8px;background:#fff}
- code{background:#1c2027;padding:1px 5px;border-radius:4px}
-</style></head><body><div class="wrap">
-<h1>UC1 run <code>__TITLE__</code> <span class="badge">__ENGINE__</span> <span class="badge">__STATE__</span></h1>
-<h2>KPIs</h2><table>__KPITABLE__</table>
-<h2>Charts (interactive)</h2><div class="grid">
- <div><canvas id="cDeliv"></canvas></div>
- <div><canvas id="cNet"></canvas></div>
-</div>
-<h2>Charts (matplotlib / gnuplot PNG)</h2><div class="grid">__PNGS__</div>
-<h2>Conclusions (fill in)</h2><p><em>…</em></p>
-<h2>Files</h2><ul>
- <li><a href="README.md">README.md</a> — written abstract</li>
- <li><a href="raw.xlsx">raw.xlsx</a> — raw metrics &amp; events</li>
- <li><a href="metrics.json">metrics.json</a> — KPIs</li>
- <li><code>charts/</code> (matplotlib PNG), <code>gnuplot/</code> (gnuplot scripts+PNG)</li>
-</ul>
-<script>
-const D = __DATA__;
-const gridc = '#2a2f3a', txt = '#cfd6e4';
-Chart.defaults.color = txt; Chart.defaults.borderColor = gridc;
-const dk = Object.keys(D.delivery);
-new Chart(cDeliv,{type:'bar',data:{labels:dk,
-  datasets:[{label:'delivery (s)',data:dk.map(k=>D.delivery[k].s),
-    backgroundColor:dk.map(k=>D.delivery[k].gs?'#4c78a8':'#888')}]},
-  options:{plugins:{title:{display:true,text:'Per-target delivery (blue=GS)'}},
-    scales:{y:{title:{display:true,text:'seconds'}}}}});
-new Chart(cNet,{type:'bar',data:{labels:D.net.nodes,
-  datasets:[{label:'TX MiB',data:D.net.tx,backgroundColor:'#54a24b'},
-            {label:'RX MiB',data:D.net.rx,backgroundColor:'#e45756'}]},
-  options:{plugins:{title:{display:true,text:'Network by node (MiB)'}}}});
-</script></div></body></html>"""
+def cross_run(uc_id, rows, ucdir, cfg):
+    """Write cross-run PNGs into ucdir/charts; return (charts, conclusions).
+    Uses the UC's headline metric (first_gs or last_gs)."""
+    cdir = os.path.join(ucdir, "charts"); os.makedirs(cdir, exist_ok=True)
+    metric, label = cfg["headline"], cfg["hlabel"]
+    val = lambda r: r.get(metric)
+    charts = []
 
+    groups = {}
+    for r in rows:
+        if val(r) is None:
+            continue
+        groups.setdefault((r["engine"], r["file_size"]), []).append((r["sat_count"], val(r)))
+    if groups:
+        plt.figure(figsize=(9, 5))
+        for (eng, fs), pts in sorted(groups.items()):
+            pts.sort()
+            plt.plot([x for x, _ in pts], [y for _, y in pts], marker="o", label=f"{eng} {fs}")
+        plt.xlabel("sat_count"); plt.ylabel(label)
+        plt.title(f"{uc_id.upper()} — delivery time vs constellation size")
+        plt.legend(); plt.grid(True, alpha=.3); plt.tight_layout()
+        plt.savefig(os.path.join(cdir, "delivery_vs_satcount.png"), dpi=110); plt.close()
+        charts.append({"src": "charts/delivery_vs_satcount.png",
+                       "caption": f"{label} vs constellation size"})
 
-def per_run_html(k, inner, rdir):
+    have_cost = False
+    plt.figure(figsize=(9, 5))
+    for eng, col in (("tus", "#e45756"), ("edfs", "#4c78a8")):
+        xs = [r["tx_mib"] for r in rows if r["engine"] == eng and val(r) is not None]
+        ys = [val(r) for r in rows if r["engine"] == eng and val(r) is not None]
+        if xs:
+            plt.scatter(xs, ys, label=eng, color=col); have_cost = True
+    if have_cost:
+        plt.xlabel("total network TX (MiB)"); plt.ylabel(label)
+        plt.title(f"{uc_id.upper()} — cost vs delivery")
+        plt.legend(); plt.grid(True, alpha=.3); plt.tight_layout()
+        plt.savefig(os.path.join(cdir, "cost_vs_delivery.png"), dpi=110); plt.close()
+        charts.append({"src": "charts/cost_vs_delivery.png",
+                       "caption": "Network cost vs delivery time (Pareto)"})
+    else:
+        plt.close()
+
+    conclusions = []
+    by = {("tus", r["file_size"], r["sat_count"]): r for r in rows if r["engine"] == "tus"}
+    for r in sorted(rows, key=lambda x: x["sat_count"]):
+        if r["engine"] != "edfs" or val(r) is None:
+            continue
+        t = by.get(("tus", r["file_size"], r["sat_count"]))
+        if t and val(t):
+            sp = val(t) / val(r)
+            conclusions.append(f"n{r['sat_count']} {r['file_size']}: EDFS "
+                               f"<b>{val(r):.0f}s</b> vs TUS <b>{val(t):.0f}s</b> "
+                               f"→ <b>{sp:.1f}× {'faster' if sp > 1 else 'slower'}</b>")
+    return charts, conclusions
+
+# ---------------- README → description ----------------
+
+def uc_description(readme_path):
+    """Return (title, description_html, abstract_text) from a UC README,
+    dropping operational sections."""
+    title, abstract = "", ""
+    if not os.path.exists(readme_path):
+        return title, "", ""
+    lines = open(readme_path).read().splitlines()
+    kept, skip, in_abstract = [], False, False
+    for line in lines:
+        h1 = re.match(r"^#\s+(.+)", line)
+        if h1:
+            title = h1.group(1).strip()
+            continue
+        h2 = re.match(r"^##\s+(.+)", line)
+        if h2:
+            t = h2.group(1).lower()
+            skip = any(d in t for d in DOC_DENY)
+            in_abstract = "abstract" in t
+            if skip:
+                continue
+        elif in_abstract and not abstract and line.strip() and not line.startswith("#"):
+            abstract = re.sub(r"[*_`]", "", line.strip())
+        if not skip:
+            kept.append(line)
+    html = markdown.markdown("\n".join(kept), extensions=["tables", "fenced_code"])
+    return title, html, abstract
+
+# ---------------- per-variant page ----------------
+
+def variant_page(env, k, bundle, vdir, uc_id):
+    os.makedirs(vdir, exist_ok=True)
+    cfg = UC_CFG.get(uc_id, UC_CFG["uc1"])
+    cdir = os.path.join(vdir, "charts"); os.makedirs(cdir, exist_ok=True)
+    gdir = os.path.join(vdir, "gnuplot"); os.makedirs(gdir, exist_ok=True)
+
+    chart_delivery(k, os.path.join(cdir, "delivery.png"))
+    chart_bar([(l.get("peer_node") or l.get("peer") or l.get("fsNode") or "?", v)
+               for l, v, _ in read_metric(os.path.join(bundle, "metrics-csv", "yass_network_tx_bytes_total.csv"))],
+              "TX bytes", f"{k['run_id']} — network TX by node", os.path.join(cdir, "network_tx.png"))
+    gnuplot_delivery(k, gdir); render_gnuplot(gdir)
+
+    # raw files (kept local, gzipped)
+    xlsx = os.path.join(vdir, "raw.xlsx")
+    write_xlsx(bundle, xlsx); gzip_file(xlsx)
+    has_csv = tar_csvs(bundle, os.path.join(vdir, "raw-csv.tar.gz"))
+    jk = {x: k[x] for x in k if x not in ("per_target", "gs_targets")}
+    open(os.path.join(vdir, "metrics.json"), "w").write(json.dumps(jk, indent=2))
+
+    # kubernetes resources (CRs) to reproduce the run
+    has_resources = copy_resources(env, k["run_id"], bundle, os.path.join(vdir, "resources"))
+
+    # interactive chart data
     deliv = {}
-    for (src, tgt), sec in k["per_target"].items():
+    for (src, tgt), sec in sorted(k["per_target"].items(), key=lambda x: x[1]):
         deliv[tgt or "?"] = {"s": round(sec, 1), "gs": bool((tgt or "").startswith("estrack"))}
-    tx = aggregate_net(inner, "yass_network_tx_bytes_total")
-    rx = aggregate_net(inner, "yass_network_rx_bytes_total")
+    tx = aggregate_net(bundle, "yass_network_tx_bytes_total")
+    rx = aggregate_net(bundle, "yass_network_rx_bytes_total")
     nodes = sorted(set(tx) | set(rx), key=lambda n: tx.get(n, 0), reverse=True)[:12]
     data = {"delivery": deliv, "net": {"nodes": nodes,
             "tx": [round(tx.get(n, 0) / MiB, 1) for n in nodes],
             "rx": [round(rx.get(n, 0) / MiB, 1) for n in nodes]}}
-    kpi = [("engine", k["engine"]), ("state", k["state"]), ("file_size", k["file_size"]),
-           ("priority", k["priority"]), ("sat_count", k["sat_count"]), ("RF", k["rf"]),
-           ("first_GS_delivery_s", f"{k['first_gs']:.0f}" if k["first_gs"] is not None else "n/a"),
-           ("GS_with_delivery", k["n_gs"]), ("distinct_receivers", k["n_receivers"]),
-           ("produced", f"{k['produced']:.0f}"), ("TX_MiB", f"{k['tx_mib']:.0f}"),
-           ("RX_MiB", f"{k['rx_mib']:.0f}"), ("peak_cpu_m", f"{k['peak_cpu']:.0f}"),
-           ("peak_mem_MiB", f"{k['peak_mem_mib']:.0f}")]
-    kpitable = "".join(f"<tr><th>{_esc(a)}</th><td>{_esc(b)}</td></tr>" for a, b in kpi)
-    pngs = ""
+
+    deliv_horiz = len(deliv) > 18
+    net_horiz = len(nodes) > 6
+    pngs = []
     for sub in ("charts", "gnuplot"):
-        for png in sorted(glob.glob(os.path.join(rdir, sub, "*.png"))):
-            rel = os.path.relpath(png, rdir)
-            pngs += f'<div><img src="{rel}" alt="{_esc(rel)}"><div>{_esc(rel)}</div></div>'
-    if not pngs:
-        pngs = "<div><em>no PNG charts for this run</em></div>"
-    html = (PAGE.replace("__TITLE__", _esc(k["run_id"])).replace("__ENGINE__", _esc(k["engine"]))
-            .replace("__STATE__", _esc(k["state"])).replace("__KPITABLE__", kpitable)
-            .replace("__PNGS__", pngs).replace("__DATA__", json.dumps(data)))
-    open(os.path.join(rdir, "index.html"), "w").write(html)
+        for png in sorted(glob.glob(os.path.join(vdir, sub, "*.png"))):
+            pngs.append({"src": os.path.relpath(png, vdir), "name": os.path.relpath(png, vdir)})
 
-
-def index_html(rows, out):
-    body = ["<!doctype html><meta charset='utf-8'><title>UC1 report</title>",
-            "<style>body{font:15px system-ui,sans-serif;max-width:1000px;margin:24px auto;padding:0 16px}",
-            "table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #ddd;padding:4px 8px;text-align:left}</style>",
-            "<h1>UC1 — runs</h1>",
-            "<p><a href='SUMMARY.md'>SUMMARY.md</a> · cross-run charts: ",
-            "<a href='charts/delivery_vs_satcount.png'>delivery_vs_satcount</a>, ",
-            "<a href='charts/cost_vs_delivery.png'>cost_vs_delivery</a></p>",
-            "<table><tr><th>run</th><th>engine</th><th>sat</th><th>size</th><th>state</th><th>firstGS(s)</th></tr>"]
-    for r in sorted(rows, key=lambda x: x["run_id"]):
-        fg = f"{r['first_gs']:.0f}" if r["first_gs"] is not None else "n/a"
-        body.append(f"<tr><td><a href='{r['run_id']}/index.html'>{r['run_id']}</a></td>"
-                    f"<td>{r['engine']}</td><td>{r['sat_count']}</td><td>{r['file_size']}</td>"
-                    f"<td>{r['state']}</td><td>{fg}</td></tr>")
-    body.append("</table>")
-    open(os.path.join(out, "index.html"), "w").write("\n".join(body))
-
+    v = dict(
+        run_id=k["run_id"], engine=k["engine"], state=k["state"],
+        kpis=[{"key": key, "value": kpi_value(k, key),
+               "unit": KPI_META[key][0], "desc": KPI_META[key][1]}
+              for key in cfg["kpis"]],
+        data=json.dumps(data),
+        deliv_h=max(220, 22 * len(deliv)) if deliv_horiz else 340,
+        deliv_axis="y" if deliv_horiz else "x",
+        deliv_valaxis="x" if deliv_horiz else "y",
+        net_h=max(240, 26 * len(nodes)) if net_horiz else 340,
+        net_axis="y" if net_horiz else "x",
+        pngs=pngs, has_xlsx=True, has_csv=has_csv, has_resources=has_resources,
+    )
+    html = env.get_template("variant.html").render(
+        title=f"{k['run_id']}", root="../../",
+        crumbs=[{"text": k["run_id"].split("-")[0], "href": "../index.html"},
+                {"text": k["run_id"]}],
+        v=v)
+    open(os.path.join(vdir, "index.html"), "w").write(html)
 
 # ---------------- main ----------------
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("runs_dir", nargs="?", default="_runs")
-    ap.add_argument("--out", default=None)
-    ap.add_argument("--uc", default="uc1")
-    a = ap.parse_args()
-    runs = os.path.abspath(a.runs_dir)
-    out = a.out or os.path.join(runs, "report")
-    if os.path.isdir(out):
-        shutil.rmtree(out)
-    os.makedirs(out)
-
-    bundles = sorted(glob.glob(os.path.join(runs, "*.tar.gz")))
+def process_uc(env, ucdir, outroot):
+    uc_id = re.match(r"(uc\d+)", os.path.basename(ucdir)).group(1)
+    cfg = UC_CFG.get(uc_id, UC_CFG["uc1"])
+    bundles = sorted(glob.glob(os.path.join(ucdir, "_runs", "*.tar.gz")))
     if not bundles:
-        print(f"no bundles in {runs}", file=sys.stderr); sys.exit(1)
+        return None
+    ucout = os.path.join(outroot, uc_id); os.makedirs(ucout, exist_ok=True)
 
     rows = []
     for tb in bundles:
@@ -471,25 +550,76 @@ def main():
                 rid = rid[:half]
             k = compute(inner, rid)
             rows.append(k)
-            rdir = os.path.join(out, rid)
-            cdir = os.path.join(rdir, "charts"); os.makedirs(cdir, exist_ok=True)
-            gdir = os.path.join(rdir, "gnuplot"); os.makedirs(gdir, exist_ok=True)
-            chart_delivery(k, os.path.join(cdir, "delivery.png"))
-            chart_bar([(l.get("peer_node") or l.get("peer") or "?", v)
-                       for l, v, _ in read_metric(os.path.join(inner, "metrics-csv", "yass_network_tx_bytes_total.csv"))],
-                      "TX bytes", f"{rid} — network TX by peer", os.path.join(cdir, "network_tx.png"))
-            gnuplot_delivery(k, gdir)
-            render_gnuplot(gdir)
-            write_xlsx(inner, os.path.join(rdir, "raw.xlsx"), k)
-            jk = {x: k[x] for x in k if x not in ("per_target", "gs_targets")}
-            open(os.path.join(rdir, "metrics.json"), "w").write(json.dumps(jk, indent=2))
-            open(os.path.join(rdir, "README.md"), "w").write(per_run_readme(k, True))
-            per_run_html(k, inner, rdir)
-            print(f"  report: {rid}  first_gs={k['first_gs']}  state={k['state']}")
+            variant_page(env, k, inner, os.path.join(ucout, rid), uc_id)
+            print(f"  {uc_id} {rid}  state={k['state']}  firstGS={k['first_gs']}  lastGS={k['last_gs']}")
 
-    summary(rows, out)
-    index_html(rows, out)
-    print(f"\nwrote {len(rows)} per-run reports + SUMMARY.md + index.html under {out}")
+    title, desc_html, abstract = uc_description(os.path.join(ucdir, "README.md"))
+    charts, conclusions = cross_run(uc_id, rows, ucout, cfg)
+
+    # optional authored conclusions (UC level); rendered only if the file exists
+    conclusions_md = ""
+    cpath = os.path.join(ucdir, "CONCLUSIONS.md")
+    if os.path.exists(cpath):
+        txt = open(cpath).read().strip()
+        if txt:
+            conclusions_md = markdown.markdown(txt, extensions=["tables", "fenced_code"])
+
+    variants = []
+    for r in sorted(rows, key=lambda x: (x["engine"], x["sat_count"], x["priority"], x["rf"] or 0)):
+        variants.append({"id": r["run_id"], "state": r["state"],
+                         "cells": [col_val(r, field) for _, field in cfg["cols"]]})
+    var_headers = ["variant"] + [h for h, _ in cfg["cols"]] + ["state"]
+
+    uc = dict(id=uc_id, title=title or uc_id.upper(), description_html=desc_html,
+              abstract=abstract, charts=charts, conclusions=conclusions,
+              conclusions_md=conclusions_md,
+              variants=variants, var_headers=var_headers)
+    html = env.get_template("uc_index.html").render(
+        title=uc["title"], root="../", crumbs=[{"text": uc["title"]}], uc=uc)
+    open(os.path.join(ucout, "index.html"), "w").write(html)
+
+    return dict(id=uc_id, title=uc["title"], abstract=abstract,
+                variant_count=len(rows),
+                engines=sorted({r["engine"] for r in rows}))
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("experiments_dir", nargs="?",
+                    default=os.path.join(HERE, "..", "..", "experiments"))
+    ap.add_argument("--out", default=None)
+    ap.add_argument("--only", default=None, help="render a single UC, e.g. uc1")
+    a = ap.parse_args()
+
+    exp = os.path.abspath(a.experiments_dir)
+    out = os.path.abspath(a.out or os.path.join(exp, "..", "results"))
+    if os.path.isdir(out):
+        shutil.rmtree(out)
+    os.makedirs(out)
+    os.makedirs(os.path.join(out, "assets"), exist_ok=True)
+    shutil.copy(os.path.join(TPL, "site.css"), os.path.join(out, "assets", "site.css"))
+
+    env = Environment(loader=FileSystemLoader(TPL),
+                      autoescape=select_autoescape(["html"]))
+
+    ucdirs = sorted(d for d in glob.glob(os.path.join(exp, "uc*"))
+                    if os.path.isdir(d) and re.match(r"uc\d+", os.path.basename(d)))
+    if a.only:
+        ucdirs = [d for d in ucdirs if os.path.basename(d).startswith(a.only)]
+
+    ucs = []
+    for ucdir in ucdirs:
+        meta = process_uc(env, ucdir, out)
+        if meta:
+            ucs.append(meta)
+
+    html = env.get_template("landing.html").render(
+        title="YASS experiment results", root="", crumbs=[], ucs=ucs)
+    open(os.path.join(out, "index.html"), "w").write(html)
+
+    if not ucs:
+        print(f"no bundles found under {exp}/*/_runs", file=sys.stderr); sys.exit(1)
+    print(f"\nwrote site for {len(ucs)} UC(s) → {out}")
 
 
 if __name__ == "__main__":

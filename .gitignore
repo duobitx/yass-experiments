@@ -2,3 +2,7 @@
 # kept locally, removed from git history
 tools/yass-compare/
 experiments/*/_runs/
+# generated report site (publish manually)
+results/
+tools/yass-report/report-site-proposal.md
+__pycache__/

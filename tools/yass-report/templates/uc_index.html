@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ uc.title }}</h1>
+
+<div class="doc">{{ uc.description_html|safe }}</div>
+
+{% if uc.charts %}
+<h2>Cross-run charts</h2>
+<div class="charts">
+  {% for ch in uc.charts %}
+  <div class="chart"><h3>{{ ch.caption }}</h3><img src="{{ ch.src }}" alt="{{ ch.caption }}"></div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if uc.conclusions_md %}
+<h2>Conclusions</h2>
+<div class="doc">{{ uc.conclusions_md|safe }}</div>
+{% endif %}
+
+{% if uc.conclusions %}
+<h2>Automatic comparison (EDFS vs TUS)</h2>
+<ul>{% for c in uc.conclusions %}<li>{{ c|safe }}</li>{% endfor %}</ul>
+{% endif %}
+
+<h2>Variants ({{ uc.variants|length }})</h2>
+<table class="variants">
+<tr>{% for h in uc.var_headers %}<th>{{ h }}</th>{% endfor %}</tr>
+{% for v in uc.variants %}
+<tr>
+  <td><a href="{{ v.id }}/index.html">{{ v.id }}</a></td>
+  {% for c in v.cells %}<td>{{ c }}</td>{% endfor %}
+  <td>{% if v.state == 'Success' %}<span class="badge ok">{{ v.state }}</span>{% else %}<span class="badge bad">{{ v.state }}</span>{% endif %}</td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

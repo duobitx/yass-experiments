@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>{% endblock %}
+{% block content %}
+<h1><code>{{ v.run_id }}</code>
+  <span class="badge">{{ v.engine }}</span>
+  {% if v.state == 'Success' %}<span class="badge ok">{{ v.state }}</span>{% else %}<span class="badge bad">{{ v.state }}</span>{% endif %}
+</h1>
+
+<h2>KPIs</h2>
+<table class="kpi">
+<tr><th>KPI</th><th>value</th><th>unit</th><th>description</th></tr>
+{% for r in v.kpis %}
+<tr><th>{{ r.key }}</th><td>{{ r.value }}</td><td>{{ r.unit }}</td><td>{{ r.desc }}</td></tr>
+{% endfor %}
+</table>
+
+<h2>Charts (interactive)</h2>
+<div class="charts">
+  <div class="chart"><h3>Per-target delivery time (blue = ground station)</h3>
+    <canvas id="cDeliv" height="{{ v.deliv_h }}"></canvas></div>
+  <div class="chart"><h3>Network by node (MiB)</h3>
+    <canvas id="cNet" height="{{ v.net_h }}"></canvas></div>
+</div>
+
+{% if v.pngs %}
+<h2>Charts (matplotlib / gnuplot)</h2>
+<div class="charts">
+  {% for p in v.pngs %}
+  <div class="chart"><img src="{{ p.src }}" alt="{{ p.name }}"><div class="cap">{{ p.name }}</div></div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<h2>Files</h2>
+<ul class="files">
+  {% if v.has_resources %}<li><a href="resources/index.html">Kubernetes resources</a> — manifests to reproduce this run (hardwaredefinitions, layout, experimentdefinition, experiment)</li>{% endif %}
+  <li><a href="metrics.json">metrics.json</a> — KPIs as JSON</li>
+  {% if v.has_xlsx %}<li><a href="raw.xlsx.gz">raw.xlsx.gz</a> — raw metrics &amp; events (one sheet per CSV, gzipped)</li>{% endif %}
+  {% if v.has_csv %}<li><a href="raw-csv.tar.gz">raw-csv.tar.gz</a> — raw Prometheus/Loki CSVs (gzipped tar)</li>{% endif %}
+</ul>
+
+<script>
+const D = {{ v.data|safe }};
+const grid = '#2a2f3a', txt = '#cfd6e4';
+Chart.defaults.color = txt; Chart.defaults.borderColor = grid;
+const dk = Object.keys(D.delivery);
+new Chart(cDeliv,{type:'bar',data:{labels:dk,
+  datasets:[{label:'delivery (s)',data:dk.map(k=>D.delivery[k].s),
+    backgroundColor:dk.map(k=>D.delivery[k].gs?'#4c78a8':'#888')}]},
+  options:{indexAxis:'{{ v.deliv_axis }}',responsive:true,maintainAspectRatio:false,
+    scales:{ {{ v.deliv_valaxis }}:{title:{display:true,text:'seconds'}} }}});
+new Chart(cNet,{type:'bar',data:{labels:D.net.nodes,
+  datasets:[{label:'TX MiB',data:D.net.tx,backgroundColor:'#54a24b'},
+            {label:'RX MiB',data:D.net.rx,backgroundColor:'#e45756'}]},
+  options:{indexAxis:'{{ v.net_axis }}',responsive:true,maintainAspectRatio:false}});
+</script>
+{% endblock %}

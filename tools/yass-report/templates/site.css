@@ -1,0 +1,49 @@
+:root{
+  --bg:#0f1115; --panel:#171a21; --line:#2a2f3a; --line2:#222;
+  --txt:#e6e6e6; --muted:#9aa4b2; --link:#6db3ff; --accent:#4c78a8;
+}
+*{box-sizing:border-box}
+body{font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:var(--bg);color:var(--txt)}
+.wrap{max-width:1280px;margin:0 auto;padding:24px}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+code{background:#1c2027;padding:1px 5px;border-radius:4px;font-size:.92em}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:17px;margin:30px 0 10px;border-bottom:1px solid var(--line);padding-bottom:5px}
+h3{font-size:15px;margin:20px 0 8px;color:var(--muted)}
+p{margin:10px 0}
+.muted{color:var(--muted)}
+.crumbs{font-size:13px;color:var(--muted);margin-bottom:18px}
+.crumbs a{color:var(--muted)}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;background:var(--line);font-size:12px;margin-left:4px}
+.badge.ok{background:#1f4d2e;color:#bdf0c8}
+.badge.bad{background:#5a2330;color:#ffd0d6}
+
+/* tables */
+table{border-collapse:collapse;width:100%;margin:8px 0}
+td,th{padding:6px 12px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+table.kpi td:nth-child(2){font-variant-numeric:tabular-nums;font-weight:600}
+table.kpi td:nth-child(3){color:var(--muted);white-space:nowrap}
+table.kpi td:nth-child(4){color:var(--muted)}
+table.variants td:first-child a{font-weight:600}
+tr:hover td{background:#141821}
+
+/* description block (rendered markdown) */
+.doc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 22px;margin:10px 0}
+.doc table{width:auto}
+.doc pre{background:#11141a;padding:12px;border-radius:8px;overflow:auto}
+
+/* charts: one per row, full width */
+.charts{display:flex;flex-direction:column;gap:22px}
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.chart h3{margin:0 0 10px;color:var(--txt)}
+.chart canvas{width:100%!important}
+.chart img{display:block;width:100%;height:auto;border-radius:8px;background:#fff}
+.chart .cap{font-size:12px;color:var(--muted);margin-top:6px}
+
+ul.files{list-style:none;padding:0}
+ul.files li{padding:3px 0}
+.uc-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:14px 0}
+.uc-card h2{border:0;margin:0 0 6px;font-size:18px}
+footer{margin:40px 0 10px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:12px}

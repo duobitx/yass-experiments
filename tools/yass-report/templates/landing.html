@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>YASS experiment results</h1>
+<p class="muted">Comparing EDFS (IPFS-based distributed file system) with the
+current communication standard (TUS) across use cases UC1–UC5, simulated on the
+YASS satellite/ground-station simulator.</p>
+
+{% for uc in ucs %}
+<div class="uc-card">
+  <h2><a href="{{ uc.id }}/index.html">{{ uc.title }}</a></h2>
+  <p class="muted">{{ uc.variant_count }} variant(s){% if uc.engines %} · engines: {{ uc.engines|join(', ') }}{% endif %}</p>
+  {% if uc.abstract %}<p>{{ uc.abstract }}</p>{% endif %}
+</div>
+{% endfor %}
+{% endblock %}

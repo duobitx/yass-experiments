@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Kubernetes resources — <code>{{ run_id }}</code></h1>
+<p class="muted">The manifests below are the exact custom resources this run was
+created from. Apply them (after the YASS operator + HardwareDefinitions are
+installed) to reproduce the experiment.</p>
+<div class="doc">
+<pre>kubectl apply -f hardwaredefinitions.yaml
+kubectl apply -f layout.yaml
+kubectl apply -f experimentdefinition.yaml
+kubectl apply -f experiment.yaml</pre>
+</div>
+<h2>Files</h2>
+<ul class="files">
+  {% for f in files %}<li><a href="{{ f.name }}">{{ f.name }}</a>{% if f.desc %} — {{ f.desc }}{% endif %}</li>{% endfor %}
+</ul>
+{% endblock %}
