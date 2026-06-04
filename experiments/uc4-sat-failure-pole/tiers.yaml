@@ -15,16 +15,18 @@
 
 tier_1:
   # Headline: sat_count sweep at T_destroy=15m (mid-range race window).
-  - { engine: edfs, sat_count: 1,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 2,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 8,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 21, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 55, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: tus,  sat_count: 1,  file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 2,  file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 8,  file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 21, file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 55, file_size: 32M, t_destroy: 15m }
+  - { engine: edfs, sat_count: 1,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 2,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 200, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: tus,  sat_count: 1,   file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 2,   file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 8,   file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 21,  file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 100, file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 200, file_size: 32M, t_destroy: 15m }
 
 tier_2:
   # T_destroy sensitivity at sat_count=8: tight race (5m) and relaxed (45m).
@@ -36,19 +38,23 @@ tier_2:
 tier_3:
   # Full sat_count × T_destroy cross product — run only after Tier 1+2
   # results confirm there is a non-trivial sat_count × T_destroy interaction.
-  - { engine: edfs, sat_count: 1,  file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
-  - { engine: edfs, sat_count: 1,  file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
-  - { engine: edfs, sat_count: 2,  file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
-  - { engine: edfs, sat_count: 2,  file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
-  - { engine: edfs, sat_count: 21, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
-  - { engine: edfs, sat_count: 21, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
-  - { engine: edfs, sat_count: 55, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
-  - { engine: edfs, sat_count: 55, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
-  - { engine: tus,  sat_count: 1,  file_size: 32M, t_destroy: 5m }
-  - { engine: tus,  sat_count: 1,  file_size: 32M, t_destroy: 45m }
-  - { engine: tus,  sat_count: 2,  file_size: 32M, t_destroy: 5m }
-  - { engine: tus,  sat_count: 2,  file_size: 32M, t_destroy: 45m }
-  - { engine: tus,  sat_count: 21, file_size: 32M, t_destroy: 5m }
-  - { engine: tus,  sat_count: 21, file_size: 32M, t_destroy: 45m }
-  - { engine: tus,  sat_count: 55, file_size: 32M, t_destroy: 5m }
-  - { engine: tus,  sat_count: 55, file_size: 32M, t_destroy: 45m }
+  - { engine: edfs, sat_count: 1,   file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 1,   file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 2,   file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 2,   file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 200, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 200, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: tus,  sat_count: 1,   file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 1,   file_size: 32M, t_destroy: 45m }
+  - { engine: tus,  sat_count: 2,   file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 2,   file_size: 32M, t_destroy: 45m }
+  - { engine: tus,  sat_count: 21,  file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 21,  file_size: 32M, t_destroy: 45m }
+  - { engine: tus,  sat_count: 100, file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 100, file_size: 32M, t_destroy: 45m }
+  - { engine: tus,  sat_count: 200, file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 200, file_size: 32M, t_destroy: 45m }

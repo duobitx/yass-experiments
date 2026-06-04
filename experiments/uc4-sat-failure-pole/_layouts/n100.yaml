@@ -1,10 +1,10 @@
 apiVersion: int.esa.yass/v1
 kind: Layout
 metadata:
-  name: uc2-n55
+  name: uc4-n100
   annotations:
     yass.experiments/source-tles: "../../_common_/oneweb-roster.yaml"
-    yass.experiments/sat-selection: "round-robin across RAAN buckets for orbital-plane diversity"
+    yass.experiments/sat-selection: "all 60 real sats + 40 synthetic OneWeb-like sats (oneweb-9NNN) spread across planes"
 spec:
   - fsNode: oneweb-0027
     nodeType: satellite
@@ -390,6 +390,321 @@ spec:
       tle:
         - "1 45161U 20008AG  26145.45614256  .00000527  00000+0  14745-2 0  9994"
         - "2 45161  87.8855  40.8046 0001697  72.4569 287.6744 13.10376549305441"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0096
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45439U 20020R   26145.62558982 -.00000357  00000+0 -10443-2 0  9992"
+        - "2 45439  87.8920  25.5498 0001865  81.3945 278.7394 13.11418285299705"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0059
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45162U 20008AH  26145.45282590  .00000297  00000+0  81553-3 0  9993"
+        - "2 45162  87.8856  40.8042 0001896  73.6200 286.5135 13.10371864305341"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0098
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45442U 20020U   26145.61116210 -.00000535  00000+0 -15453-2 0  9993"
+        - "2 45442  87.8913  25.5591 0001714  80.7339 279.3982 13.11414521299684"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0062
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45163U 20008AJ  26145.39943058  .00000498  00000+0  13901-2 0  9994"
+        - "2 45163  87.8858  40.8006 0001431  72.7049 287.4235 13.10370420305203"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-0065
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 45164U 20008AK  26145.66168624 -.00000637  00000+0 -18608-2 0  9999"
+        - "2 45164  87.8859  40.7565 0002116  86.8277 273.3092 13.10373963304933"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9000
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90000U 26001A   26145.50000000  .00000050  00000+0  10000-4 0  9990"
+        - "2 90000  87.9106   0.0000 0002299  92.4563   0.0000 13.16593850000015"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9001
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90001U 26001B   26145.50000000  .00000050  00000+0  10000-4 0  9991"
+        - "2 90001  87.9106  20.0000 0002299  92.4563  11.0000 13.16593850000010"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9002
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90002U 26001C   26145.50000000  .00000050  00000+0  10000-4 0  9992"
+        - "2 90002  87.9106  40.0000 0002299  92.4563  22.0000 13.16593850000015"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9003
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90003U 26001D   26145.50000000  .00000050  00000+0  10000-4 0  9993"
+        - "2 90003  87.9106  60.0000 0002299  92.4563  33.0000 13.16593850000010"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9004
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90004U 26001E   26145.50000000  .00000050  00000+0  10000-4 0  9994"
+        - "2 90004  87.9106  80.0000 0002299  92.4563  44.0000 13.16593850000015"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9005
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90005U 26001F   26145.50000000  .00000050  00000+0  10000-4 0  9995"
+        - "2 90005  87.9106 100.0000 0002299  92.4563  55.0000 13.16593850000011"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9006
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90006U 26001G   26145.50000000  .00000050  00000+0  10000-4 0  9996"
+        - "2 90006  87.9106 120.0000 0002299  92.4563  66.0000 13.16593850000016"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9007
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90007U 26001H   26145.50000000  .00000050  00000+0  10000-4 0  9997"
+        - "2 90007  87.9106 140.0000 0002299  92.4563  77.0000 13.16593850000011"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9008
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90008U 26001I   26145.50000000  .00000050  00000+0  10000-4 0  9998"
+        - "2 90008  87.9106 160.0000 0002299  92.4563  88.0000 13.16593850000016"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9009
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90009U 26001J   26145.50000000  .00000050  00000+0  10000-4 0  9999"
+        - "2 90009  87.9106 180.0000 0002299  92.4563  99.0000 13.16593850000011"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9010
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90010U 26001K   26145.50000000  .00000050  00000+0  10000-4 0  9991"
+        - "2 90010  87.9106 200.0000 0002299  92.4563 110.0000 13.16593850000010"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9011
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90011U 26001L   26145.50000000  .00000050  00000+0  10000-4 0  9992"
+        - "2 90011  87.9106 220.0000 0002299  92.4563 121.0000 13.16593850000015"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9012
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90012U 26001M   26145.50000000  .00000050  00000+0  10000-4 0  9993"
+        - "2 90012  87.9106 240.0000 0002299  92.4563 132.0000 13.16593850000010"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9013
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90013U 26001N   26145.50000000  .00000050  00000+0  10000-4 0  9994"
+        - "2 90013  87.9106 260.0000 0002299  92.4563 143.0000 13.16593850000015"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9014
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90014U 26001O   26145.50000000  .00000050  00000+0  10000-4 0  9995"
+        - "2 90014  87.9106 280.0000 0002299  92.4563 154.0000 13.16593850000010"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9015
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90015U 26001P   26145.50000000  .00000050  00000+0  10000-4 0  9996"
+        - "2 90015  87.9106 300.0000 0002299  92.4563 165.0000 13.16593850000016"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9016
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90016U 26001Q   26145.50000000  .00000050  00000+0  10000-4 0  9997"
+        - "2 90016  87.9106 320.0000 0002299  92.4563 176.0000 13.16593850000011"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9017
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90017U 26001R   26145.50000000  .00000050  00000+0  10000-4 0  9998"
+        - "2 90017  87.9106 340.0000 0002299  92.4563 187.0000 13.16593850000016"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9018
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90018U 26001S   26145.50000000  .00000050  00000+0  10000-4 0  9999"
+        - "2 90018  87.9106   0.0000 0002299  92.4563  20.0000 13.16593850000016"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9019
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90019U 26001T   26145.50000000  .00000050  00000+0  10000-4 0  9990"
+        - "2 90019  87.9106  20.0000 0002299  92.4563  31.0000 13.16593850000011"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9020
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90020U 26001U   26145.50000000  .00000050  00000+0  10000-4 0  9992"
+        - "2 90020  87.9106  40.0000 0002299  92.4563  42.0000 13.16593850000017"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9021
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90021U 26001V   26145.50000000  .00000050  00000+0  10000-4 0  9993"
+        - "2 90021  87.9106  60.0000 0002299  92.4563  53.0000 13.16593850000012"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9022
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90022U 26001W   26145.50000000  .00000050  00000+0  10000-4 0  9994"
+        - "2 90022  87.9106  80.0000 0002299  92.4563  64.0000 13.16593850000017"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9023
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90023U 26001X   26145.50000000  .00000050  00000+0  10000-4 0  9995"
+        - "2 90023  87.9106 100.0000 0002299  92.4563  75.0000 13.16593850000013"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9024
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90024U 26001Y   26145.50000000  .00000050  00000+0  10000-4 0  9996"
+        - "2 90024  87.9106 120.0000 0002299  92.4563  86.0000 13.16593850000018"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9025
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90025U 26001Z   26145.50000000  .00000050  00000+0  10000-4 0  9997"
+        - "2 90025  87.9106 140.0000 0002299  92.4563  97.0000 13.16593850000013"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9026
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90026U 26001A   26145.50000000  .00000050  00000+0  10000-4 0  9998"
+        - "2 90026  87.9106 160.0000 0002299  92.4563 108.0000 13.16593850000019"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9027
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90027U 26001B   26145.50000000  .00000050  00000+0  10000-4 0  9999"
+        - "2 90027  87.9106 180.0000 0002299  92.4563 119.0000 13.16593850000014"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9028
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90028U 26001C   26145.50000000  .00000050  00000+0  10000-4 0  9990"
+        - "2 90028  87.9106 200.0000 0002299  92.4563 130.0000 13.16593850000011"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9029
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90029U 26001D   26145.50000000  .00000050  00000+0  10000-4 0  9991"
+        - "2 90029  87.9106 220.0000 0002299  92.4563 141.0000 13.16593850000016"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9030
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90030U 26001E   26145.50000000  .00000050  00000+0  10000-4 0  9993"
+        - "2 90030  87.9106 240.0000 0002299  92.4563 152.0000 13.16593850000012"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9031
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90031U 26001F   26145.50000000  .00000050  00000+0  10000-4 0  9994"
+        - "2 90031  87.9106 260.0000 0002299  92.4563 163.0000 13.16593850000017"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9032
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90032U 26001G   26145.50000000  .00000050  00000+0  10000-4 0  9995"
+        - "2 90032  87.9106 280.0000 0002299  92.4563 174.0000 13.16593850000012"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9033
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90033U 26001H   26145.50000000  .00000050  00000+0  10000-4 0  9996"
+        - "2 90033  87.9106 300.0000 0002299  92.4563 185.0000 13.16593850000018"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9034
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90034U 26001I   26145.50000000  .00000050  00000+0  10000-4 0  9997"
+        - "2 90034  87.9106 320.0000 0002299  92.4563 196.0000 13.16593850000013"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9035
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90035U 26001J   26145.50000000  .00000050  00000+0  10000-4 0  9998"
+        - "2 90035  87.9106 340.0000 0002299  92.4563 207.0000 13.16593850000019"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9036
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90036U 26001K   26145.50000000  .00000050  00000+0  10000-4 0  9999"
+        - "2 90036  87.9106   0.0000 0002299  92.4563  40.0000 13.16593850000018"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9037
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90037U 26001L   26145.50000000  .00000050  00000+0  10000-4 0  9990"
+        - "2 90037  87.9106  20.0000 0002299  92.4563  51.0000 13.16593850000013"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9038
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90038U 26001M   26145.50000000  .00000050  00000+0  10000-4 0  9991"
+        - "2 90038  87.9106  40.0000 0002299  92.4563  62.0000 13.16593850000018"
+    hardwareSpecRef: oneweb
+  - fsNode: oneweb-9039
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90039U 26001N   26145.50000000  .00000050  00000+0  10000-4 0  9992"
+        - "2 90039  87.9106  60.0000 0002299  92.4563  73.0000 13.16593850000013"
     hardwareSpecRef: oneweb
   - fsNode: estrack-new-norcia
     nodeType: groundStation

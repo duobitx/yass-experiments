@@ -135,9 +135,9 @@ TUS** at the same `sat_count` and the same `S`.
 | Parameter                 | Values                   | Notes                                                                                                                    |
 |---------------------------|--------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | `engine`                  | `tus`, `edfs`            | TUS is the baseline.                                                                                                     |
-| `S` (file size)           | `8M`, `128M`, `1G`       | Spans the regimes "fits in one pass", "needs several passes", "large transfer".                                          |
+| `S` (file size)           | `128M`, `1G`, `5G`       | Spans the regimes "needs several passes", "large transfer", "very large transfer".                                       |
 | `priority`                | `low`, `default`, `high` | Set via the producer agent's `FILE_PRIORITY` env, written to `.priority` so `fs_engine_wrapper` attaches it to the file. |
-| `sat_count`               | 1, 2, 8, 21, 55          | Walker-like sweep; "1" is a degenerate single-satellite control.                                                         |
+| `sat_count`               | 1, 2, 8, 21, 100, 200    | Walker-like sweep; "1" is a degenerate single-satellite control. 100/200 add synthetic OneWeb-like relays on top of the 60 real roster sats. |
 | `RF` (replication factor) | 1, 3, 5 — **EDFS only**  | TUS has no replication concept; for TUS runs `RF` is omitted.                                                            |
 | `gs_count`                | fixed at 7 (ESTRACK)     | Constant across the sweep to keep the headline result a one-dimensional EDFS-vs-TUS comparison.                          |
 | `max_duration`            | `2h`                     | Far longer than any plausible EDFS delivery; cuts off pathological TUS runs.                                             |

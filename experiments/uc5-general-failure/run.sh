@@ -3,7 +3,7 @@
 # declared in tiers.yaml: for every entry, render the templates, apply,
 # wait for terminal state, export artefacts, delete the namespace.
 #
-# 20% of sats (min 1) are producers: each writes 5 x 8M files, spaced
+# 20% of sats (min 1) are producers: each writes 5 x 32M files, spaced
 # 2m apart (CHECK_INTERVAL_SECONDS=120, MAX_PHOTOS=5).
 # Every fsNode (producers, relays, GS) carries a recurring non-Destroy
 # fault schedule: rotate NetworkBandwidthReduced / NetworkFailure /
@@ -74,7 +74,7 @@ FAULT_TYPES=(NetworkBandwidthReduced NetworkFailure DiskFull DiskFailure)
 
 # UC5 producer parameters.
 FILES_PER_PRODUCER=5
-FILE_SIZE=8M
+FILE_SIZE=32M
 FILE_PRIORITY=default
 CHECK_INTERVAL_SECONDS=120   # 2m between photos
 

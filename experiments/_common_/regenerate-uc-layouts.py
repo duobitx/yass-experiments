@@ -13,8 +13,7 @@ Inputs (paths are relative to this script's location):
   ./oneweb-roster.yaml                  satellite TLEs (OneWeb)
   ../spain-shot/base/01_layout.yaml     seven ESTRACK GS blocks
 
-Outputs (overwritten in --target-dir):
-  n01.yaml n02.yaml n08.yaml n21.yaml n55.yaml
+Outputs (overwritten in --target-dir): one nNN.yaml per --counts entry.
 
 Selection algorithm — plane-diverse round-robin:
   1. Parse each satellite's RAAN from line 2 of its TLE.
@@ -24,6 +23,12 @@ Selection algorithm — plane-diverse round-robin:
      from each bucket per pass.
   5. The first plane-diverse pick is the producer for every UC that
      uses a single producer (UC1, UC3, UC4).
+
+Counts larger than the roster (currently 60 real OneWeb sats) are
+topped up with synthetic OneWeb-like sats (NORAD 90000+, names
+oneweb-9NNN sorting after every real sat) spread evenly across orbital
+planes. Every real sat — and therefore every UC's hardcoded producer —
+is always included before any synthetic sat is added.
 
 Run:
   python3 regenerate-uc-layouts.py --target-dir ../uc1-rapid-disaster-response/_layouts --name-prefix uc1
@@ -56,6 +61,53 @@ def parse_sat_blocks(layout_yaml: str):
 
 def parse_gs_blocks(layout_yaml: str):
     return re.compile(r"(  - fsNode: estrack-[\w-]+\n(?:    .*\n)+)", re.MULTILINE).findall(layout_yaml)
+
+# Synthetic OneWeb-like template, derived from real OneWeb element values
+# (incl 87.91°, e≈0.0002, mean motion 13.166 rev/day ≈ 1200 km). Only the
+# satellite number, RAAN and mean anomaly vary; everything else is fixed.
+SYNTH_EPOCH   = "26145.50000000"
+SYNTH_DRAG    = " .00000050  00000+0  10000-4 0"
+SYNTH_INCL    = "87.9106"
+SYNTH_ECC     = "0002299"
+SYNTH_ARGP    = "92.4563"
+SYNTH_MEANMOT = "13.16593850"
+SYNTH_PLANES  = 18
+
+def _tle_checksum(line: str) -> int:
+    return sum(int(c) if c.isdigit() else (1 if c == "-" else 0) for c in line[:-1]) % 10
+
+def _with_checksum(line: str) -> str:
+    return line[:-1] + str(_tle_checksum(line))
+
+def gen_synthetic(count):
+    """Return `count` (name, RAAN, block) synthetic sats, plane-diverse:
+    consecutive indices step to the next orbital plane so a simple prefix
+    slice stays spread across planes."""
+    out = []
+    for i in range(count):
+        plane = i % SYNTH_PLANES
+        slot = i // SYNTH_PLANES
+        raan = (plane * 360.0 / SYNTH_PLANES) % 360.0
+        ma = (slot * 360.0 / SYNTH_PLANES + plane * 11.0) % 360.0
+        norad = 90000 + i
+        name = f"oneweb-9{i:03d}"
+        intl = f"26001{chr(ord('A') + i % 26)}  "
+        l1 = _with_checksum(
+            f"1 {norad:05d}U {intl} {SYNTH_EPOCH} {SYNTH_DRAG}  9990")
+        l2 = _with_checksum(
+            f"2 {norad:05d}  {SYNTH_INCL} {raan:8.4f} {SYNTH_ECC}  "
+            f"{SYNTH_ARGP} {ma:8.4f} {SYNTH_MEANMOT}000010")
+        block = (
+            f"  - fsNode: {name}\n"
+            f"    nodeType: satellite\n"
+            f"    orbit:\n"
+            f"      tle:\n"
+            f'        - "{l1}"\n'
+            f'        - "{l2}"\n'
+            f"    hardwareSpecRef: oneweb\n"
+        )
+        out.append((name, raan, block))
+    return out
 
 def round_robin(annotated):
     buckets = defaultdict(list)
@@ -92,10 +144,21 @@ def main():
     annotated = parse_sat_blocks(ONEWEB_ROSTER.read_text())
     gs_blocks = parse_gs_blocks(SPAIN_SHOT.read_text())
     ordered = round_robin(annotated)
-    print(f"producer = {ordered[0][0]}  (RAAN ≈ {ordered[0][1]:.1f}°)")
+    extra = gen_synthetic(max(0, max(counts) - len(ordered)))
+    print(f"producer = {ordered[0][0]}  (RAAN ≈ {ordered[0][1]:.1f}°); "
+          f"{len(ordered)} real + {len(extra)} synthetic available")
     for n in counts:
         out_file = target / f"n{n:02d}.yaml"
-        chosen = ordered[:n]
+        if n <= len(ordered):
+            chosen = ordered[:n]
+            synth = 0
+        else:
+            chosen = ordered + extra[:n - len(ordered)]
+            synth = n - len(ordered)
+        sel = ("round-robin across RAAN buckets for orbital-plane diversity"
+               if synth == 0 else
+               f"all {len(ordered)} real sats + {synth} synthetic OneWeb-like "
+               "sats (oneweb-9NNN) spread across planes")
         header = (
             "apiVersion: int.esa.yass/v1\n"
             "kind: Layout\n"
@@ -103,12 +166,13 @@ def main():
             f"  name: {args.name_prefix}-n{n:02d}\n"
             "  annotations:\n"
             '    yass.experiments/source-tles: "../../_common_/oneweb-roster.yaml"\n'
-            '    yass.experiments/sat-selection: "round-robin across RAAN buckets for orbital-plane diversity"\n'
+            f'    yass.experiments/sat-selection: "{sel}"\n'
             "spec:\n"
         )
         out_file.write_text(header + "".join(b for _, _, b in chosen) + "".join(gs_blocks))
         raan_set = sorted({int(r // 20) * 20 for _, r, _ in chosen})
-        print(f"wrote {out_file.relative_to(target.parent)}: {n} SAT (RAAN buckets {raan_set}) + {len(gs_blocks)} GS")
+        print(f"wrote {out_file.relative_to(target.parent)}: {n} SAT "
+              f"({synth} synthetic, RAAN buckets {raan_set}) + {len(gs_blocks)} GS")
 
 if __name__ == "__main__":
     main()

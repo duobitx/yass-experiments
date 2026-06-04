@@ -1,7 +1,7 @@
 # UC5 tiered sweep matrix. Driven by ./run.sh --tier <N>.
 #
 # Engine: EDFS only (TUS cannot survive sustained non-catastrophic faults).
-# 20% of sats are producers (min 1); each writes 5 files x 8M.
+# 20% of sats are producers (min 1); each writes 5 files x 32M.
 # Every fsNode (producers, relays, and all 7 GS) carries a recurring
 # non-Destroy hardware fault schedule (NetworkBandwidthReduced /
 # NetworkFailure / DiskFull / DiskFailure, intervalMean 5m, jitter 50%).
@@ -9,14 +9,15 @@
 #
 # Tier 1: headline RF=3 curve across sat_counts.
 # Tier 2: RF sensitivity at n08 and n21 mid-points.
-# Tier 3: optional deep-dive at n55 — run only after Tier 1+2 are analysed.
+# Tier 3: optional deep-dive at n100 — run only after Tier 1+2 are analysed.
 
 tier_1:
-  - { engine: edfs, sat_count: 1,  rf: 1 }
-  - { engine: edfs, sat_count: 2,  rf: 1 }
-  - { engine: edfs, sat_count: 8,  rf: 3 }
-  - { engine: edfs, sat_count: 21, rf: 3 }
-  - { engine: edfs, sat_count: 55, rf: 3 }
+  - { engine: edfs, sat_count: 1,   rf: 1 }
+  - { engine: edfs, sat_count: 2,   rf: 1 }
+  - { engine: edfs, sat_count: 8,   rf: 3 }
+  - { engine: edfs, sat_count: 21,  rf: 3 }
+  - { engine: edfs, sat_count: 100, rf: 3 }
+  - { engine: edfs, sat_count: 200, rf: 3 }
 
 tier_2:
   - { engine: edfs, sat_count: 8,  rf: 1 }
@@ -25,5 +26,5 @@ tier_2:
   - { engine: edfs, sat_count: 21, rf: 5 }
 
 tier_3:
-  - { engine: edfs, sat_count: 55, rf: 1 }
-  - { engine: edfs, sat_count: 55, rf: 5 }
+  - { engine: edfs, sat_count: 100, rf: 1 }
+  - { engine: edfs, sat_count: 100, rf: 5 }

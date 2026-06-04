@@ -84,7 +84,7 @@ expected to fall below.
 |-------------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
 | `engine`          | `tus`, `edfs`                                       | Both engines are tested under the same fault schedule.                                                            |
 | `priority`        | `low`, `default`, `high`                            | Set via the producer agent's `FILE_PRIORITY`.                                                                     |
-| `sat_count`       | 1, 2, 8, 21, 55                                     | Same Walker-like sweep as UC1.                                                                                    |
+| `sat_count`       | 1, 2, 8, 21, 100, 200                               | Same Walker-like sweep as UC1.                                                                                    |
 | `RF`              | 1, 3, 5 — **EDFS only**                             | Probes "is more replication actually helpful here?"                                                               |
 | `gs_count`        | fixed at 7 (ESTRACK)                                |                                                                                                                   |
 | `file_size`       | `32M`                                               | One regime per UC2 run; we sweep RF/sat_count rather than file size to keep the deliverable set focused.          |
