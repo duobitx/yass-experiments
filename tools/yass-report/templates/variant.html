@@ -37,6 +37,21 @@
 </div>
 {% endif %}
 
+{% if v.deliveries %}
+<h2>File deliveries</h2>
+<table class="deliveries">
+<tr><th>file</th><th>received by</th><th>delivery (s from creation)</th><th>#fsNodes with file</th></tr>
+{% for d in v.deliveries %}
+<tr>
+  <td>{{ d.file }}</td>
+  <td>{{ d.fsNode }}{% if d.is_gs %} <span class="badge ok">GS</span>{% endif %}</td>
+  <td>{{ d.delivery_s }}</td>
+  <td>{{ d.holders }}</td>
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+
 {% if v.pngs %}
 <h2>Charts</h2>
 <div class="charts">

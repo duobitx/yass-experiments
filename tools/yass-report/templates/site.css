@@ -27,6 +27,7 @@ table.kpi td:nth-child(2){font-variant-numeric:tabular-nums;font-weight:600}
 table.kpi td:nth-child(3){color:var(--muted);white-space:nowrap}
 table.kpi td:nth-child(4){color:var(--muted)}
 table.variants td:first-child a{font-weight:600}
+table.deliveries td:nth-child(3),table.deliveries td:nth-child(4){font-variant-numeric:tabular-nums;text-align:right}
 tr:hover td{background:#141821}
 
 /* description block (rendered markdown) */

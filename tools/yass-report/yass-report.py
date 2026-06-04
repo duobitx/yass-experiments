@@ -492,6 +492,34 @@ def build_propagation(bundle):
     return {"source": used, "files": sorted(files), "nodes": nodes,
             "events": events, "tmax": max((e["t"] for e in events), default=0.0)}
 
+
+def build_deliveries(bundle):
+    """Per (file, receiver) delivery table from events-csv/file_delivered.csv:
+    which file reached which fsNode and after how long from its creation, plus
+    how many fsNodes hold the file (distinct receivers + the producer). Works for
+    both engines. Returns a flat list of rows sorted by file then delivery time."""
+    per_file = {}  # name -> {"holders": set, "rx": {receiver: seconds}}
+    for r in read_events(os.path.join(bundle, "events-csv", "file_delivered.csv")):
+        name, tgt, src = r.get("name"), r.get("target"), r.get("source")
+        if not name or not tgt:
+            continue
+        d = per_file.setdefault(name, {"holders": set(), "rx": {}})
+        d["holders"].add(tgt)
+        if src:
+            d["holders"].add(src)
+        sec = _to_float(r.get("deliverySeconds"))
+        # keep the earliest delivery if the same (file, receiver) repeats
+        if tgt not in d["rx"] or sec < d["rx"][tgt]:
+            d["rx"][tgt] = sec
+    rows = []
+    for name in sorted(per_file):
+        d = per_file[name]
+        holders = len(d["holders"])
+        for tgt, sec in sorted(d["rx"].items(), key=lambda x: x[1]):
+            rows.append({"file": name, "fsNode": tgt, "delivery_s": round(sec, 1),
+                         "holders": holders, "is_gs": _node_kind(tgt) == "gs"})
+    return rows
+
 # ---------------- cross-run (per UC) ----------------
 
 def cross_run(uc_id, rows, ucdir, cfg):
@@ -614,6 +642,7 @@ def variant_page(env, k, bundle, vdir, uc_id):
             "rx": [round(rx.get(n, 0) / MiB, 1) for n in nodes]}}
 
     graph = build_propagation(bundle)
+    deliveries = build_deliveries(bundle)
 
     deliv_horiz = len(deliv) > 18
     net_horiz = len(nodes) > 6
@@ -641,6 +670,7 @@ def variant_page(env, k, bundle, vdir, uc_id):
         net_axis="y" if net_horiz else "x",
         pngs=pngs, has_xlsx=True, has_csv=has_csv, has_resources=has_resources,
         has_graph=bool(graph), graph=json.dumps(graph) if graph else "null",
+        deliveries=deliveries,
     )
     html = env.get_template("variant.html").render(
         title=f"{k['run_id']}", root="../../",
