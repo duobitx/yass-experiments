@@ -27,9 +27,9 @@ tier_1:
 tier_2:
   # File-size sensitivity at n08
   - { engine: edfs, sat_count: 8, file_size: 1G,   priority: default, rf: 3 }
-  - { engine: edfs, sat_count: 8, file_size: 5G,   priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 8, file_size: 2G,   priority: default, rf: 3 }
   - { engine: tus,  sat_count: 8, file_size: 1G }
-  - { engine: tus,  sat_count: 8, file_size: 5G }
+  - { engine: tus,  sat_count: 8, file_size: 2G }
   # Priority sensitivity at n08 (EDFS only — TUS ignores priority)
   - { engine: edfs, sat_count: 8, file_size: 128M, priority: low,     rf: 3 }
   - { engine: edfs, sat_count: 8, file_size: 128M, priority: high,    rf: 3 }
@@ -41,7 +41,7 @@ tier_3:
   # Optional repeat of Tier 2 at n100 — only run after Tier 1+2 are
   # analysed and we see a parameter effect worth tracking with scale.
   - { engine: edfs, sat_count: 100, file_size: 1G,   priority: default, rf: 3 }
-  - { engine: edfs, sat_count: 100, file_size: 5G,   priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 100, file_size: 2G,   priority: default, rf: 3 }
   - { engine: edfs, sat_count: 100, file_size: 128M, priority: low,     rf: 3 }
   - { engine: edfs, sat_count: 100, file_size: 128M, priority: high,    rf: 3 }
   - { engine: edfs, sat_count: 100, file_size: 128M, priority: default, rf: 1 }
