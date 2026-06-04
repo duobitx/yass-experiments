@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+{% if v.has_graph %}<script src="https://cdn.jsdelivr.net/npm/vis-network@9/standalone/umd/vis-network.min.js"></script>{% endif %}{% endblock %}
 {% block content %}
 <h1><code>{{ v.run_id }}</code>
   <span class="badge">{{ v.engine }}</span>
@@ -21,6 +22,20 @@
   <div class="chart"><h3>Network by node (MiB)</h3>
     <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cNet"></canvas></div></div>
 </div>
+
+{% if v.has_graph %}
+<h2>File propagation graph</h2>
+<div class="chart">
+  <div class="graph-controls">
+    <label>file <select id="gFile"></select></label>
+    <button id="gPlay" class="badge">▶ play</button>
+    <input id="gTime" type="range" min="0" step="0.1">
+    <span id="gTimeLbl" class="muted"></span>
+  </div>
+  <div id="gNet" class="graph-box"></div>
+  <div class="cap">■ ground station · ● satellite · ◆ producer. Edge <code>from → to</code> = bytes transferred up to the selected time (hover for details). <span id="gSrc" class="muted"></span></div>
+</div>
+{% endif %}
 
 {% if v.pngs %}
 <h2>Charts</h2>
@@ -54,4 +69,68 @@ new Chart(cNet,{type:'bar',data:{labels:D.net.nodes,
             {label:'RX MiB',data:D.net.rx,backgroundColor:'#e45756'}]},
   options:{indexAxis:'{{ v.net_axis }}',responsive:true,maintainAspectRatio:false}});
 </script>
+
+{% if v.has_graph %}
+<script>
+const G = {{ v.graph|safe }};
+(function(){
+  if(!G || !G.events.length) return;
+  const palette=['#4c78a8','#54a24b','#e45756','#f1a340','#9467bd','#17becf','#8c564b','#e377c2'];
+  const fcol={}; G.files.forEach((f,i)=>fcol[f]=palette[i%palette.length]);
+  const sel=document.getElementById('gFile');
+  const all=document.createElement('option'); all.value='__all__'; all.text='all files ('+G.files.length+')'; sel.add(all);
+  G.files.forEach(f=>{const o=document.createElement('option');o.value=f;o.text=f;sel.add(o);});
+  const tEl=document.getElementById('gTime'), lbl=document.getElementById('gTimeLbl');
+  tEl.max=G.tmax||0; tEl.value=G.tmax||0;
+  document.getElementById('gSrc').textContent='source: '+G.source;
+
+  const fmt=b=>b>=1048576?(b/1048576).toFixed(1)+' MiB':b>=1024?(b/1024).toFixed(0)+' KiB':b+' B';
+  const nodesDS=new vis.DataSet(G.nodes.map(n=>({
+    id:n.id, label:n.id,
+    shape:n.producer?'diamond':(n.kind==='gs'?'square':'dot'),
+    color:n.kind==='gs'?{background:'#1f4d2e',border:'#6db3ff'}:{background:'#2a2f3a',border:'#888'},
+    borderWidth:n.producer?3:1, font:{color:'#cfd6e4'}
+  })));
+  const edgesDS=new vis.DataSet();
+  const net=new vis.Network(document.getElementById('gNet'),{nodes:nodesDS,edges:edgesDS},{
+    edges:{arrows:'to',smooth:{type:'dynamic'}}, interaction:{hover:true},
+    physics:{stabilization:{iterations:150}}});
+
+  function rebuild(){
+    const t=parseFloat(tEl.value), file=sel.value;
+    lbl.textContent='t ≤ '+t.toFixed(1)+' s / '+(G.tmax||0).toFixed(1)+' s';
+    const agg={};
+    for(const e of G.events){
+      if(e.t>t) continue;
+      if(file!=='__all__' && e.file!==file) continue;
+      const key=e.from+'\u0001'+e.to+'\u0001'+e.file;
+      agg[key]=(agg[key]||0)+e.bytes;
+    }
+    const edges=[];
+    for(const key in agg){
+      const p=key.split('\u0001'), b=agg[key];
+      edges.push({id:key,from:p[0],to:p[1],color:{color:fcol[p[2]]||'#888'},
+        width:Math.max(1,Math.log10(b+1)),title:p[2]+': '+fmt(b),
+        label:file==='__all__'?'':fmt(b),font:{color:'#cfd6e4',size:11,strokeWidth:0}});
+    }
+    edgesDS.clear(); edgesDS.add(edges);
+  }
+  tEl.oninput=rebuild; sel.onchange=rebuild;
+
+  let timer=null;
+  document.getElementById('gPlay').onclick=function(){
+    if(timer){clearInterval(timer);timer=null;this.textContent='▶ play';return;}
+    this.textContent='⏸ pause';
+    if(parseFloat(tEl.value)>=(G.tmax||0)) tEl.value=0;
+    const step=(G.tmax||1)/60||0.5;
+    timer=setInterval(()=>{
+      let v=parseFloat(tEl.value)+step;
+      if(v>=(G.tmax||0)){v=G.tmax||0;clearInterval(timer);timer=null;document.getElementById('gPlay').textContent='▶ play';}
+      tEl.value=v; rebuild();
+    },120);
+  };
+  rebuild(); // default view = final state (t = tmax)
+})();
+</script>
+{% endif %}
 {% endblock %}

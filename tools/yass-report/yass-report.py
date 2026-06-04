@@ -435,6 +435,63 @@ def aggregate_net(bundle, name):
         agg[node] = agg.get(node, 0) + v
     return agg
 
+# ---------------- file-propagation graph ----------------
+
+def read_events(path):
+    """events-csv/<kind>.csv -> list of header-keyed dict rows."""
+    if not os.path.exists(path):
+        return []
+    with open(path) as f:
+        return list(csv.DictReader(f))
+
+
+def _node_kind(name):
+    return "gs" if (name or "").startswith("estrack") else "sat"
+
+
+def _to_float(x):
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def build_propagation(bundle):
+    """Per-file transfer edges for the propagation graph.
+    EDFS: events-csv/block_recv.csv (multi-source, per block, from the bitswap
+    tracer). TUS / fallback: events-csv/file_delivered.csv (origin->target star).
+    Returns a dict for the template, or None when there are no transfer events."""
+    ev_dir = os.path.join(bundle, "events-csv")
+    raw = []  # (t_epoch, file, from, to, bytes)
+    for r in read_events(os.path.join(ev_dir, "block_recv.csv")):
+        frm, to, f = r.get("from_fsNode"), r.get("to_fsNode"), r.get("file")
+        if frm and to and f:
+            raw.append((parse_ts(r.get("experimentTime")), f, frm, to, _to_float(r.get("size"))))
+    used = "block_recv" if raw else "file_delivered"
+    delivered = read_events(os.path.join(ev_dir, "file_delivered.csv"))
+    if not raw:  # TUS, or EDFS bundle predating the tracer
+        for r in delivered:
+            frm, to, f = r.get("source"), r.get("target"), r.get("name")
+            if frm and to and f:
+                raw.append((parse_ts(r.get("experimentTime")), f, frm, to, _to_float(r.get("size"))))
+    if not raw:
+        return None
+
+    producers = {r["source"] for r in delivered if r.get("source")}
+    ts = [t for t, *_ in raw if t is not None]
+    t0 = min(ts) if ts else None
+
+    events, node_ids, files = [], set(), set()
+    for t, f, frm, to, b in raw:
+        rel = round((t - t0).total_seconds(), 1) if (t and t0) else 0.0
+        events.append({"t": rel, "file": f, "from": frm, "to": to, "bytes": b})
+        node_ids.update((frm, to)); files.add(f)
+
+    nodes = [{"id": n, "kind": _node_kind(n), "producer": n in producers}
+             for n in sorted(node_ids)]
+    return {"source": used, "files": sorted(files), "nodes": nodes,
+            "events": events, "tmax": max((e["t"] for e in events), default=0.0)}
+
 # ---------------- cross-run (per UC) ----------------
 
 def cross_run(uc_id, rows, ucdir, cfg):
@@ -556,6 +613,8 @@ def variant_page(env, k, bundle, vdir, uc_id):
             "tx": [round(tx.get(n, 0) / MiB, 1) for n in nodes],
             "rx": [round(rx.get(n, 0) / MiB, 1) for n in nodes]}}
 
+    graph = build_propagation(bundle)
+
     deliv_horiz = len(deliv) > 18
     net_horiz = len(nodes) > 6
     pngs = []
@@ -581,6 +640,7 @@ def variant_page(env, k, bundle, vdir, uc_id):
         net_h=max(240, 26 * len(nodes)) if net_horiz else 340,
         net_axis="y" if net_horiz else "x",
         pngs=pngs, has_xlsx=True, has_csv=has_csv, has_resources=has_resources,
+        has_graph=bool(graph), graph=json.dumps(graph) if graph else "null",
     )
     html = env.get_template("variant.html").render(
         title=f"{k['run_id']}", root="../../",
