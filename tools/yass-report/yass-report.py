@@ -577,6 +577,58 @@ def cross_run(uc_id, rows, ucdir, cfg):
                                f"→ <b>{sp:.1f}× {'faster' if sp > 1 else 'slower'}</b>")
     return charts, conclusions
 
+
+def _mean(xs):
+    xs = [x for x in xs if x is not None]
+    return sum(xs) / len(xs) if xs else None
+
+
+ENG_COLORS = {"edfs": "#4c78a8", "tus": "#e45756"}
+
+
+def engine_compare(uc_id, rows, ucdir, cfg):
+    """EDFS-vs-TUS comparison PNGs into ucdir/charts. Only for UCs that ran both
+    engines. Returns [{src, caption}]."""
+    if not ({"edfs", "tus"} <= {r["engine"] for r in rows}):
+        return []
+    cdir = os.path.join(ucdir, "charts"); os.makedirs(cdir, exist_ok=True)
+    metric, label = cfg["headline"], cfg["hlabel"]
+    out = []
+
+    # 1) headline delivery metric vs constellation size — grouped bars EDFS|TUS.
+    sats = sorted({r["sat_count"] for r in rows if r.get(metric) is not None})
+    if sats:
+        x = list(range(len(sats)))
+        w = 0.38
+        plt.figure(figsize=(9, 5))
+        for eng, off in (("edfs", -w / 2), ("tus", w / 2)):
+            vals = [_mean([r.get(metric) for r in rows
+                           if r["engine"] == eng and r["sat_count"] == s]) for s in sats]
+            plt.bar([i + off for i in x], [v or 0 for v in vals], w,
+                    label=eng.upper(), color=ENG_COLORS[eng])
+        plt.xticks(x, [str(s) for s in sats]); plt.xlabel("sat_count"); plt.ylabel(label)
+        plt.title(f"{uc_id.upper()} — {label}: EDFS vs TUS")
+        plt.legend(); plt.grid(True, axis="y", alpha=.3); plt.tight_layout()
+        plt.savefig(os.path.join(cdir, "compare_delivery.png"), dpi=110); plt.close()
+        out.append({"src": "charts/compare_delivery.png",
+                    "caption": f"{label}: EDFS vs TUS (mean per sat_count)"})
+
+    # 2) secondary metrics (resource cost) — 2x2 grouped bars, mean across runs.
+    metrics = [("peak_mem_mib", "peak RAM (MiB)"), ("peak_cpu", "peak CPU (millicores)"),
+               ("tx_mib", "network TX (MiB)"), ("rx_mib", "network RX (MiB)")]
+    fig, axes = plt.subplots(2, 2, figsize=(10, 7))
+    for ax, (key, lbl) in zip(axes.flat, metrics):
+        e = _mean([r[key] for r in rows if r["engine"] == "edfs"]) or 0
+        t = _mean([r[key] for r in rows if r["engine"] == "tus"]) or 0
+        ax.bar(["EDFS", "TUS"], [e, t], color=[ENG_COLORS["edfs"], ENG_COLORS["tus"]])
+        ax.set_title(lbl); ax.grid(True, axis="y", alpha=.3)
+    fig.suptitle(f"{uc_id.upper()} — resource usage: EDFS vs TUS (mean across runs)")
+    fig.tight_layout()
+    fig.savefig(os.path.join(cdir, "compare_resources.png"), dpi=110); plt.close(fig)
+    out.append({"src": "charts/compare_resources.png",
+                "caption": "Resource usage (RAM, CPU, TX, RX): EDFS vs TUS (mean across runs)"})
+    return out
+
 # ---------------- README → description ----------------
 
 def uc_description(readme_path):
@@ -709,6 +761,9 @@ def process_uc(env, ucdir, outroot):
 
     title, desc_html, abstract = uc_description(os.path.join(ucdir, "README.md"))
     charts, conclusions = cross_run(uc_id, rows, ucout, cfg)
+    # EDFS-vs-TUS comparison PNGs into ucN/charts/ — generated but NOT linked on
+    # the UC index page (kept as hidden deliverable artifacts).
+    engine_compare(uc_id, rows, ucout, cfg)
 
     # optional authored conclusions (UC level); rendered only if the file exists
     conclusions_md = ""
