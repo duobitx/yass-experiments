@@ -22,6 +22,12 @@ spec:
           value: "2"
     - name: edfs-engine-node
       image: "ghcr.io/duobitx/yass-edfs-engine-node"
+      readinessProbe:
+        tcpSocket:
+          port: 5001
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 2
       env:
         - name: EDFS_SWARM_KEY
           value: "e0e6161ec71e8e8c6d18c64dd8ee37f178fc50cadf58f20d08c481131a09bbae"
@@ -35,6 +41,12 @@ spec:
           value: "CAESQNU9ILPST19ucrp2ZzY4BN1+LnoLK5XnH86F8m2Ce3R7m7n8DOzBtVlE/3GS9UCxChfcU+Y/lkjR/T5nBJEujGY="
     - name: edfs-engine-proxy
       image: "ghcr.io/duobitx/yass-edfs-engine-proxy"
+      readinessProbe:
+        tcpSocket:
+          port: 9094
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 2
       env:
         - name: EDFS_CLUSTER_SECRET
           value: "50896c846aed59faeec45d1779e6b9ca6fac89d135d988b52c2f366f1b7f373d"

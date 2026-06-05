@@ -158,6 +158,12 @@ for tier in "${tiers_to_run[@]}"; do
           value: "${rf}"
     - name: edfs-engine-node
       image: "${edfs_node_img}"
+      readinessProbe:
+        tcpSocket:
+          port: 5001
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 2
       env:
         - name: EDFS_SWARM_KEY
           value: ${edfs_swarm_key}
@@ -171,6 +177,12 @@ for tier in "${tiers_to_run[@]}"; do
           value: ${edfs_bootstrap_peer_key}
     - name: edfs-engine-proxy
       image: "${edfs_proxy_img}"
+      readinessProbe:
+        tcpSocket:
+          port: 9094
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 2
       env:
         - name: EDFS_CLUSTER_SECRET
           value: ${edfs_cluster_secret}
