@@ -264,8 +264,8 @@ for tier in "${tiers_to_run[@]}"; do
     - name: edfs-engine-node
       image: "${edfs_node_img}"
       readinessProbe:
-        tcpSocket:
-          port: 5001
+        exec:
+          command: ["sh", "-c", "nc -z 127.0.0.1 5001"]
         initialDelaySeconds: 5
         periodSeconds: 5
         timeoutSeconds: 2
@@ -283,8 +283,8 @@ for tier in "${tiers_to_run[@]}"; do
     - name: edfs-engine-proxy
       image: "${edfs_proxy_img}"
       readinessProbe:
-        tcpSocket:
-          port: 9094
+        exec:
+          command: ["sh", "-c", "nc -z 127.0.0.1 9094"]
         initialDelaySeconds: 5
         periodSeconds: 5
         timeoutSeconds: 2
