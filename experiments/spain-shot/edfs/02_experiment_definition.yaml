@@ -11,7 +11,7 @@ spec:
         envsMap:
           PHOTO_TARGETS: "spain:40.4:-3.7:500"
           FILE_SIZE: "2G"
-          FILE_PRIORITY: "normal"
+          FILE_PRIORITY: "default"
           MAX_PHOTOS: "1"
           CHECK_INTERVAL_SECONDS: "5"
           STOP_AFTER_TRANSFER: "false"
