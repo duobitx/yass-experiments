@@ -92,7 +92,11 @@ spec:
   # both CPU and RAM relative to sentinel-2. Storage cut more aggressively
   # — OneWeb is a relay, not an EO buffer.
   cpu: "250m"
-  memory: "256Mi"
+  # 1536Mi (not 256Mi): the operator splits this RAM evenly across the 3 EDFS
+  # engine containers (engine/kubo-node/cluster-proxy). At 256Mi each gets ~85Mi
+  # and the ipfs-cluster proxy is OOMKilled while handling an /add, killing
+  # ingestion+delivery. 1536Mi → ~512Mi/container, enough for streamed adds.
+  memory: "1536Mi"
   diskSpace: "50Gi"
   batteryCapacityWh: 5000
   batteryChargeW: 800
