@@ -100,23 +100,39 @@ fi
 # duobitx/yass-agent-receive-only with END_ON_ANY=true.
 make_extra_behaviours() {
   local layout_file=$1
-  awk '
-    /  - fsNode:/ { fsnode=$3; next }
-    fsnode && /  - fsNode:|^---|^[^ ]/ { fsnode="" }
-    END { }
-    # emit a Behaviour for every non-producer fsNode
-    fsnode && fsnode != "'"$PRODUCER"'" { print fsnode }
+  # One Behaviour per non-producer fsNode, branching on node type:
+  #   ground stations gate on first delivery (END_ON_ANY → first-GA metric);
+  #   relay satellites report success immediately and keep relaying — they never
+  #   receive the file, and their no-LOS `tc` filter cuts the END_ON_ANY signal,
+  #   so gating them on receipt would hang the experiment forever.
+  awk -v producer="$PRODUCER" '
+    /^  - fsNode:/ {
+      if (fsnode != "" && fsnode != producer) print fsnode "\t" type
+      fsnode=$3; type="satellite"; next
+    }
+    /^    nodeType:/ { type=$2 }
+    END { if (fsnode != "" && fsnode != producer) print fsnode "\t" type }
   ' "$layout_file" \
-    | grep -v "^$" \
     | sort -u \
-    | while read -r fsn; do
-        cat <<-YAML
+    | while IFS="$(printf '\t')" read -r fsn typ; do
+        [ -z "$fsn" ] && continue
+        if [ "$typ" = "groundStation" ]; then
+          cat <<-YAML
     - fsNode: $fsn
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
 YAML
+        else
+          cat <<-YAML
+    - fsNode: $fsn
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          REPORT_SUCCESS_ON_START: "true"
+YAML
+        fi
       done
 }
 
