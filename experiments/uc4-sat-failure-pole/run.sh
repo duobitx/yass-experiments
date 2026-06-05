@@ -97,25 +97,41 @@ if [[ $DRY_RUN -eq 0 ]]; then
   echo "applied $(ls "$HERE/_layouts"/n*.yaml | wc -l) Layouts"
 fi
 
-# Build receive-only behaviours for every non-producer fsNode in the layout.
+# Build receive-only behaviours for every non-producer fsNode, branching on node
+# type: ground stations gate on first delivery (END_ON_ANY → reached-a-GA metric);
+# relay satellites report success immediately and keep relaying (they never
+# receive the file, and their no-LOS `tc` filter cuts the END_ON_ANY signal, so
+# gating them on receipt would hang the experiment forever).
 make_extra_behaviours() {
   local layout_file=$1
-  awk '
-    /  - fsNode:/ { fsnode=$3; next }
-    fsnode && /  - fsNode:|^---|^[^ ]/ { fsnode="" }
-    END { }
-    fsnode && fsnode != "'"$PRODUCER"'" { print fsnode }
+  awk -v producer="$PRODUCER" '
+    /^  - fsNode:/ {
+      if (fsnode != "" && fsnode != producer) print fsnode "\t" type
+      fsnode=$3; type="satellite"; next
+    }
+    /^    nodeType:/ { type=$2 }
+    END { if (fsnode != "" && fsnode != producer) print fsnode "\t" type }
   ' "$layout_file" \
-    | grep -v "^$" \
     | sort -u \
-    | while read -r fsn; do
-        cat <<-YAML
+    | while IFS="$(printf '\t')" read -r fsn typ; do
+        [ -z "$fsn" ] && continue
+        if [ "$typ" = "groundStation" ]; then
+          cat <<-YAML
     - fsNode: $fsn
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
         envsMap:
           END_ON_ANY: "true"
 YAML
+        else
+          cat <<-YAML
+    - fsNode: $fsn
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          REPORT_SUCCESS_ON_START: "true"
+YAML
+        fi
       done
 }
 
