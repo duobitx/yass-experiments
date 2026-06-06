@@ -42,9 +42,11 @@ actually move the needle?** Specifically:
 - The effect should grow with sat_count: more peers → more chances for the
   priority weighting to win the next-hop selection race.
 
-KPI: at `sat_count ≥ 8`, time-to-first-delivery for `high` is at least
-**20% lower** than for `low` — large enough to be a clearly meaningful
-routing-preference effect rather than a noise-band wobble.
+KPI: **`time_to_first_GS_delivery`** — at `sat_count ≥ 8`,
+`first_GS(high) ≤ 0.80 × first_GS(low)` (high-priority delivers at least
+**20% faster** than low — meaningful routing-preference, not noise).
+Secondary: **priority monotonicity** `first_GS(high) ≤ first_GS(default) ≤
+first_GS(low)` at every `sat_count`.
 
 ## Parameters
 
@@ -55,7 +57,7 @@ routing-preference effect rather than a noise-band wobble.
 | `sat_count`           | 1, 2, 8, 21, 100, 200                                 | Same Walker sweep as UC1.                                                                                                                                    |
 | `RF`                  | fixed at 3                                            | A single RF value isolates the priority effect; sweeping both would confound the analysis.                                                                   |
 | `gs_count`            | fixed at 7 (ESTRACK)                                  |                                                                                                                                                              |
-| `file_size`           | `1G`                                                  | "Large" so the transfer takes long enough for the priority weighting to matter; a 1 MB file would deliver in one bounce and the priority would be invisible. |
+| `file_size`           | `256M` (spec: `1G`)                                   | Executed at **256M**. The UC was specified at `1G` — "large" so the transfer spans many passes and the priority weighting becomes visible (a tiny file delivers in one bounce, hiding priority). At 256M the transfer is ~4× shorter, weakening the priority signal: scope UC3 conclusions to the "256M regime" or re-run at 1G. |
 | `simulationStartTime` | fixed across the three priority runs of one sat_count | Cancels orbital luck. Use the same pinned epoch as UC1 (`2026-05-16T23:59:00.000Z`) unless a sat_count needs a different one. |
 | `max_duration`        | `4h`                                                  | Generous: large file × low priority × no faults could still take a while.                                                                                    |
 
@@ -80,9 +82,9 @@ exposed by the producer's agent on its own metrics):
 
 ## Running
 
-The full sweep is 15 runs (5 sat_counts × 3 priorities), all EDFS. Run
+The full sweep is **18 runs** (6 sat_counts × 3 priorities), all EDFS. Run
 time per entry is up to `max_duration=4h`; the total wall-clock budget for
-the full sweep is roughly 60 h plus inter-run drain pauses.
+the full sweep is roughly 72 h plus inter-run drain pauses.
 
 ```shell
 # Dry-run (renders YAML to _runs/, no cluster contact)

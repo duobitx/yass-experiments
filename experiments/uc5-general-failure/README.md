@@ -69,8 +69,9 @@ The run ends when (a) every file has been received by at least one GS, or
 Show that **EDFS eventually delivers every file under sustained
 non-catastrophic faults**, and quantify "how long is eventual?":
 
-- `delivery_success_rate = files_received_by_any_gs / files_produced`.
-  Target ≥ 95%.
+- `delivery_success_rate = (distinct files delivered to ≥1 GS) /
+  files_produced`, with `files_produced = floor(0.2·sat_count)·5`.
+  Target ≥ 95% (at `RF ≥ 3`).
 - Time-to-all-delivered when the run terminates by (a).
 - The trade-off between `RF` and total energy / network spent: higher
   `RF` should improve `delivery_success_rate` at the cost of more
@@ -103,9 +104,14 @@ KPI:
 
 Beyond `yass_file_delivery_seconds`:
 
-- `delivery_success_rate` — explicit Prometheus query:
-  `sum(yass_file_received_total{is_target_gs="true"}) /
-   sum(yass_file_produced_total)`.
+- `delivery_success_rate` — `count(distinct file names delivered to ≥1
+  estrack GS) / total_files_produced`, with the **deterministic**
+  `total_files_produced = floor(0.2·sat_count)·5`. Source:
+  `events-csv/file_delivered.csv` (numerator = distinct `name` where `target`
+  starts with `estrack`). Do **not** use
+  `yass_file_received_total{is_target_gs="true"}` — that label does not exist
+  on the metric and it counts receive *events*, over-counting repeated GS
+  receipts (> 1.0).
 - "Eventual completion" plot: cumulative `delivery_success_rate` as a
   function of wall-clock time. We expect a smooth monotonic climb that
   asymptotes at or close to 1.0 for `RF ≥ 3`.

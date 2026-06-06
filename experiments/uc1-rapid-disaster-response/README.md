@@ -6,9 +6,9 @@ The tiered parameter sweep is implemented as templates + a small bash
 driver. To execute it:
 
 ```shell
-./run.sh --tier 1 --kubeconfig <path>             # headline curve (10 entries)
-./run.sh --tier 2 --kubeconfig <path>             # sensitivity at n08 (8 entries)
-./run.sh --tier all --kubeconfig <path>           # full plan
+./run.sh --tier 1 --kubeconfig <path>             # headline curve (12 entries)
+./run.sh --tier 2 --kubeconfig <path>             # sensitivity (6 entries)
+./run.sh --tier all --kubeconfig <path>           # full plan (tier_1+2+3 = 23 entries)
 ./run.sh --tier 1 --kubeconfig <path> --dry-run   # render to _runs/ without applying
 ```
 
@@ -127,20 +127,23 @@ of constellation size and file size. The hypothesis is:
 - High-priority files (UC1 also overlaps with UC3 here) should arrive
   at least as fast as normal, ideally faster on EDFS.
 
-KPI: median EDFS time-to-first-delivery at `sat_count ≥ 8` is **≤ 50% of
-TUS** at the same `sat_count` and the same `S`.
+KPI: **`time_to_first_GS_delivery`** — EDFS/TUS ratio **< 0.50** at
+`sat_count ≥ 8` (EDFS delivers in at most half the TUS time at the same
+`sat_count` and `S`). Defined on the **median** over repeated runs per cell;
+single-run cells are point estimates (run ≥ 3 repeats before declaring
+met/not-met).
 
 ## Parameters
 
 | Parameter                 | Values                   | Notes                                                                                                                    |
 |---------------------------|--------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | `engine`                  | `tus`, `edfs`            | TUS is the baseline.                                                                                                     |
-| `S` (file size)           | `128M`, `1G`, `5G`       | Spans the regimes "needs several passes", "large transfer", "very large transfer".                                       |
+| `S` (file size)           | `128M`, `256M`           | Two regimes — a baseline file and a larger multi-pass transfer. Encoded in the run-id as `s128m` / `s256m` (= 134217728 / 268435456 bytes). |
 | `priority`                | `low`, `default`, `high` | Set via the producer agent's `FILE_PRIORITY` env, written to `.priority` so `fs_engine_wrapper` attaches it to the file. |
 | `sat_count`               | 1, 2, 8, 21, 100, 200    | Walker-like sweep; "1" is a degenerate single-satellite control. 100/200 add synthetic OneWeb-like relays on top of the 60 real roster sats. |
 | `RF` (replication factor) | 1, 3, 5 — **EDFS only**  | TUS has no replication concept; for TUS runs `RF` is omitted.                                                            |
 | `gs_count`                | fixed at 7 (ESTRACK)     | Constant across the sweep to keep the headline result a one-dimensional EDFS-vs-TUS comparison.                          |
-| `max_duration`            | `2h`                     | Far longer than any plausible EDFS delivery; cuts off pathological TUS runs.                                             |
+| `max_duration`            | `10h`                    | Far longer than any plausible EDFS delivery; cuts off pathological TUS runs.                                             |
 
 **TUS parameter coverage.** TUS has no notion of file priority or
 replication factor — `priority` and `RF` are ignored by the engine.
@@ -152,8 +155,8 @@ same `(S, sat_count)`.
 Each combination produces one overlay directory plus one
 `Experiment.spec.runId`:
 
-- EDFS: `uc1-edfs-S<size>-P<priority>-N<sat_count>-RF<rf>`
-- TUS:  `uc1-tus-S<size>-N<sat_count>`
+- EDFS: `uc1-edfs-s<size>-p<priority>-n<NN>-rf<rf>` (e.g. `uc1-edfs-s128m-pdefault-n08-rf3`)
+- TUS:  `uc1-tus-s<size>-n<NN>` (e.g. `uc1-tus-s128m-n08`)
 
 ## Additional metrics
 

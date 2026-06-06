@@ -3,11 +3,11 @@
 ## Running
 
 ```shell
-# Full sweep on the prod cluster:
-./run.sh --tier all --kubeconfig /path/to/Decentralized-Storage_config.yaml
+# Full sweep:
+./run.sh --tier all --kubeconfig /path/to/kubeconfig
 
 # Dry-run (renders YAML to _runs/ without applying):
-./run.sh --tier all --kubeconfig /path/to/Decentralized-Storage_config.yaml --dry-run
+./run.sh --tier all --kubeconfig /path/to/kubeconfig --dry-run
 ```
 
 The driver iterates every matrix entry in `tiers.yaml`, applies the
@@ -52,7 +52,7 @@ The RAAN is tuned (98°) only to **lengthen** the time-to-first-contact: at the
 original RAAN=0 the producer met a GS after ~11 min, so only `T_destroy=5m`
 preceded contact; at RAAN=98° the window is ~54 min, so `T_destroy ∈ {5m,15m,45m}`
 are all genuine pre-contact destructions and TUS is 0% by construction at every
-`dt`. (See `tools/make-producer-layouts.py` and `notes/uc4-success-surface-proposal.md`.)
+`dt`.
 The producer replaces the first satellite in every Layout; the remaining OneWeb
 satellites are the relays.
 
