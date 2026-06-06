@@ -406,23 +406,6 @@ def col_val(k, field):
 
 # ---------------- per-run charts / files ----------------
 
-def chart_delivery(k, outpng):
-    gs = k["gs_targets"]
-    if not gs:
-        return False
-    items = sorted(gs.items(), key=lambda x: x[1])
-    labels = [t for (_, t), _ in items]
-    vals = [v for _, v in items]
-    plt.figure(figsize=(9, max(4, len(labels) * 0.3)))
-    plt.barh(labels, vals, color=KIND_GS)  # ground stations — KIND_GS everywhere
-    plt.xlabel("delivery time (s)")
-    plt.title(f"{k['run_id']} — per-GS delivery")
-    plt.tight_layout()
-    plt.savefig(outpng, dpi=110)
-    plt.close()
-    return True
-
-
 def chart_bar(pairs, ylabel, title, outpng, top=12, colors=None):
     # When per-bar colours are given they are zipped with the pairs and sorted
     # together, so a bar keeps its colour regardless of the value sort.
@@ -514,24 +497,41 @@ def copy_resources(env, run_id, bundle, resdir):
 
 
 def gnuplot_delivery(k, gdir):
-    gs = sorted(k["gs_targets"].items(), key=lambda x: x[1])
-    if not gs:
+    # Earliest delivery time per TARGET node (min across sources), every kind:
+    # ground stations (KIND_GS), relay satellites (KIND_SAT) and the producer
+    # (KIND_PROD) — each bar coloured by node kind via `lc rgb variable`.
+    producers = set(k.get("producers") or [])
+    per_target = {}
+    for (_s, t), v in k["per_target"].items():
+        if t and (t not in per_target or v < per_target[t]):
+            per_target[t] = v
+    if not per_target:
         return
+    items = sorted(per_target.items(), key=lambda x: x[1])
+    CAP = 60
+    truncated = len(items) > CAP
+    items = items[:CAP]
+    col = {"gs": KIND_GS, "sat": KIND_SAT, "prod": KIND_PROD}
     with open(os.path.join(gdir, "delivery.dat"), "w") as f:
-        f.write("# target delivery_s\n")
-        for (s, t), v in gs:
-            f.write(f"{t} {v:.1f}\n")
+        f.write("# target delivery_s colour_int\n")
+        for t, v in items:
+            c = int(col[kind_tag(t, producers)].lstrip("#"), 16)
+            f.write(f"{t} {v:.1f} {c}\n")
+    title = f"{k['run_id']} — per-target delivery (GS + relay sats)"
+    if truncated:
+        title += f", earliest {CAP}"
     with open(os.path.join(gdir, "delivery.gnuplot"), "w") as f:
         f.write(
             f"set terminal pngcairo size 1000,460 background rgb '{PANEL}'\n"
             "set output 'delivery.png'\n"
-            "set style data histograms\nset style fill solid 0.8\n"
-            f"set border lc rgb '{GRID}'\n"
+            "set style fill solid 0.8\nset boxwidth 0.7 relative\n"
+            f"set border lc rgb '{GRID}'\nset grid ytics lc rgb '{GRID}'\n"
+            "set yrange [0:*]\n"
             f"set ylabel 'delivery time (s)' textcolor rgb '{FG}'\n"
             f"set xtics rotate by -45 textcolor rgb '{FG}'\n"
             f"set ytics textcolor rgb '{FG}'\n"
-            f"set title '{k['run_id']} — per-GS delivery' textcolor rgb '{FG}'\n"
-            f"plot 'delivery.dat' using 2:xtic(1) lc rgb '{KIND_GS}' notitle\n")
+            f"set title '{title}' textcolor rgb '{FG}'\n"
+            "plot 'delivery.dat' using 0:2:3:xtic(1) with boxes lc rgb variable notitle\n")
 
 
 def render_gnuplot(gdir):
@@ -932,7 +932,8 @@ def variant_page(env, k, bundle, vdir, uc_id):
     gdir = os.path.join(vdir, "gnuplot"); os.makedirs(gdir, exist_ok=True)
 
     producers = set(k.get("producers") or [])
-    chart_delivery(k, os.path.join(cdir, "delivery.png"))
+    # Delivery bars are rendered only by gnuplot (gnuplot/delivery.png) — it carries
+    # every node kind colour-coded; the per-target interactive chart covers the rest.
     # Network TX by node (top 20), kind-coloured to match the interactive U3 chart
     # (same aggregation — aggregate_net — and same palette).
     _txn = aggregate_net(bundle, "yass_network_tx_bytes_total")
@@ -1074,6 +1075,14 @@ def process_uc(env, ucdir, outroot):
     # the UC index page (kept as hidden deliverable artifacts).
     engine_compare(uc_id, rows, ucout, cfg)
 
+    # The automatic EDFS-vs-TUS comparison is no longer shown on the HTML page;
+    # write it to a plain-text deliverable (comparison.txt) instead.
+    if conclusions:
+        lines = [re.sub(r"<[^>]+>", "", c) for c in conclusions]
+        with open(os.path.join(ucout, "comparison.txt"), "w") as f:
+            f.write(f"{uc_id.upper()} — automatic comparison (EDFS vs TUS)\n\n")
+            f.write("\n".join(lines) + "\n")
+
     # optional authored conclusions (UC level); rendered only if the file exists
     conclusions_md = ""
     cpath = os.path.join(ucdir, "CONCLUSIONS.md")
@@ -1089,7 +1098,7 @@ def process_uc(env, ucdir, outroot):
     var_headers = ["variant"] + [h for h, _ in cfg["cols"]] + ["state"]
 
     uc = dict(id=uc_id, title=title or uc_id.upper(), description_html=desc_html,
-              abstract=abstract, charts=charts, conclusions=conclusions,
+              abstract=abstract, charts=charts,
               conclusions_md=conclusions_md,
               variants=variants, var_headers=var_headers)
     html = env.get_template("uc_index.html").render(

@@ -228,6 +228,9 @@ const G = {{ v.graph|safe }};
       edgesDS.clear(); edgesDS.add(edges);
     }
     tEl.oninput=rebuild; sel.onchange=rebuild; if(winEl) winEl.onchange=rebuild;
+    // At 1× the full timeline plays over PLAY_SECONDS_AT_1X wall-clock seconds; the
+    // speed selector multiplies that. (Was ~7s at 1× — too fast to follow.)
+    const TICK_MS=100, PLAY_SECONDS_AT_1X=40;
     let timer=null;
     playBtn.onclick=function(){
       if(timer){clearInterval(timer);timer=null;this.textContent='▶ play';return;}
@@ -235,11 +238,11 @@ const G = {{ v.graph|safe }};
       if(parseFloat(tEl.value)>=tmax) tEl.value=0;
       timer=setInterval(()=>{
         const spd=parseFloat(spEl&&spEl.value)||1;
-        const step=((tmax||1)/60)*spd||0.5;
+        const step=(tmax||1)*(TICK_MS/1000)/PLAY_SECONDS_AT_1X*spd;
         let v=parseFloat(tEl.value)+step;
         if(v>=tmax){v=tmax;clearInterval(timer);timer=null;playBtn.textContent='▶ play';}
         tEl.value=v; rebuild();
-      },120);
+      },TICK_MS);
     };
     rebuild();
   }

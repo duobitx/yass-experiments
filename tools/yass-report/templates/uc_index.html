@@ -4,16 +4,6 @@
 
 <div class="doc">{{ uc.description_html|safe }}</div>
 
-{% if uc.conclusions_md %}
-<h2>Conclusions</h2>
-<div class="doc">{{ uc.conclusions_md|safe }}</div>
-{% endif %}
-
-{% if uc.conclusions %}
-<h2>Automatic comparison (EDFS vs TUS)</h2>
-<ul>{% for c in uc.conclusions %}<li>{{ c|safe }}</li>{% endfor %}</ul>
-{% endif %}
-
 <h2>Variants ({{ uc.variants|length }})</h2>
 <table class="variants">
 <tr>{% for h in uc.var_headers %}<th>{{ h }}</th>{% endfor %}</tr>
@@ -25,4 +15,9 @@
 </tr>
 {% endfor %}
 </table>
+
+{% if uc.conclusions_md %}
+<h2>Conclusions</h2>
+<div class="doc">{{ uc.conclusions_md|safe }}</div>
+{% endif %}
 {% endblock %}
