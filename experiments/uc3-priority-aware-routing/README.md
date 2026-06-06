@@ -61,6 +61,18 @@ first_GS(low)` at every `sat_count`.
 | `simulationStartTime` | fixed across the three priority runs of one sat_count | Cancels orbital luck. Use the same pinned epoch as UC1 (`2026-05-16T23:59:00.000Z`) unless a sat_count needs a different one. |
 | `max_duration`        | `4h`                                                  | Generous: large file × low priority × no faults could still take a while.                                                                                    |
 
+## Assumptions
+
+- **The inter-ground-station network is broadband and disturbance-free.** Every
+  pair of ground stations is treated as permanently linked, independent of
+  orbital line-of-sight: the link is fixed at 10 Gbit/s with zero packet loss,
+  and only its propagation delay scales with the great-circle distance between
+  the two stations. Satellite links, by contrast, exist only while the two nodes
+  are in line-of-sight and their bandwidth degrades with distance. The only event
+  that can disturb a ground-station-to-ground-station link is a hardware failure
+  injected as a `HardwareEvent` (e.g. `NetworkFailure` or
+  `NetworkBandwidthReduced`) on one of the two stations.
+
 ## Additional metrics
 
 Beyond the headline `yass_file_delivery_seconds` (with the `priority` label

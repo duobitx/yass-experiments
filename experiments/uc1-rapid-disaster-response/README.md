@@ -158,6 +158,18 @@ Each combination produces one overlay directory plus one
 - EDFS: `uc1-edfs-s<size>-p<priority>-n<NN>-rf<rf>` (e.g. `uc1-edfs-s128m-pdefault-n08-rf3`)
 - TUS:  `uc1-tus-s<size>-n<NN>` (e.g. `uc1-tus-s128m-n08`)
 
+## Assumptions
+
+- **The inter-ground-station network is broadband and disturbance-free.** Every
+  pair of ground stations is treated as permanently linked, independent of
+  orbital line-of-sight: the link is fixed at 10 Gbit/s with zero packet loss,
+  and only its propagation delay scales with the great-circle distance between
+  the two stations. Satellite links, by contrast, exist only while the two nodes
+  are in line-of-sight and their bandwidth degrades with distance. The only event
+  that can disturb a ground-station-to-ground-station link is a hardware failure
+  injected as a `HardwareEvent` (e.g. `NetworkFailure` or
+  `NetworkBandwidthReduced`) on one of the two stations.
+
 ## Additional metrics
 
 Beyond the headline `yass_file_delivery_seconds_bucket` histogram (filtered

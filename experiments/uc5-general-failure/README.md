@@ -100,6 +100,18 @@ KPI:
 | `fault_intensity`    | mean interval `5m`, jitter `50%`, duration `30-60s` | Same recipe as UC2, encoded directly in each behaviour's `hardwareEvents.schedule` with a per-run `seed`.                                                                                                  |
 | `max_duration`       | `8h`                                                | Long-duration stress test by design.                                                                                                                                                                       |
 
+## Assumptions
+
+- **The inter-ground-station network is broadband and disturbance-free.** Every
+  pair of ground stations is treated as permanently linked, independent of
+  orbital line-of-sight: the link is fixed at 10 Gbit/s with zero packet loss,
+  and only its propagation delay scales with the great-circle distance between
+  the two stations. Satellite links, by contrast, exist only while the two nodes
+  are in line-of-sight and their bandwidth degrades with distance. The only event
+  that can disturb a ground-station-to-ground-station link is a hardware failure
+  injected as a `HardwareEvent` (e.g. `NetworkFailure` or
+  `NetworkBandwidthReduced`) on one of the two stations.
+
 ## Additional metrics
 
 Beyond `yass_file_delivery_seconds`:

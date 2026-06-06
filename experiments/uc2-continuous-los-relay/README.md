@@ -98,6 +98,18 @@ held to the same per-run schedule), pin `priority=default` and omit
 `RF`. Each TUS run is compared against the full `(priority, RF)`
 matrix of EDFS runs at the same `sat_count` and the same fault seed.
 
+## Assumptions
+
+- **The inter-ground-station network is broadband and disturbance-free.** Every
+  pair of ground stations is treated as permanently linked, independent of
+  orbital line-of-sight: the link is fixed at 10 Gbit/s with zero packet loss,
+  and only its propagation delay scales with the great-circle distance between
+  the two stations. Satellite links, by contrast, exist only while the two nodes
+  are in line-of-sight and their bandwidth degrades with distance. The only event
+  that can disturb a ground-station-to-ground-station link is a hardware failure
+  injected as a `HardwareEvent` (e.g. `NetworkFailure` or
+  `NetworkBandwidthReduced`) on one of the two stations.
+
 ## Additional metrics
 
 Beyond `yass_file_delivery_seconds` histogram (filtered to "any-GS
