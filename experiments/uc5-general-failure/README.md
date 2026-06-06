@@ -10,11 +10,11 @@ cd experiments/_common_
 python3 regenerate-uc-layouts.py --target-dir ../uc5-general-failure/_layouts --name-prefix uc5
 ```
 
-Run the full tiered sweep on the production cluster:
+Run the full tiered sweep (8 runs, all `sat_count ≤ 21`):
 
 ```shell
 cd experiments/uc5-general-failure
-./run.sh --tier all --kubeconfig /path/to/kubeconfig.yaml
+./run.sh --tier all --kubeconfig /path/to/kubeconfig
 ```
 
 Run a single tier without applying (dry-run):
@@ -89,8 +89,8 @@ KPI:
 | Parameter            | Values                                              | Notes                                                                                                                                                                                                      |
 |----------------------|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `engine`             | `edfs` only                                         | TUS would simply lose files under faults; out of scope.                                                                                                                                                    |
-| `sat_count`          | 1, 2, 8, 21, 100, 200                               | `sat_count=1` degenerates to "one producer, no relays" — a sanity-only data point.                                                                                                                         |
-| `producer_fraction`  | fixed at 20%                                        | `producers = max(1, floor(0.2 * sat_count))`. For `sat_count=1` and `sat_count=2` the floor takes us to 1; for `sat_count=8` it's 1 (floor(1.6)=1); for `sat_count=21` it's 4; for `sat_count=100` it's 20; for `sat_count=200` it's 40. |
+| `sat_count`          | 1, 2, 8, 21                                         | Capped at 21 so every run fits a small (single-node-class) test cluster; the large-constellation points (100 / 200) are out of scope for this sized-down sweep. `sat_count=1` degenerates to "one producer, no relays" — a sanity-only data point. |
+| `producer_fraction`  | fixed at 20%                                        | `producers = max(1, floor(0.2 * sat_count))`. For `sat_count=1`/`2` the floor gives 1; for `sat_count=8` it's 1 (floor(1.6)=1); for `sat_count=21` it's 4. |
 | `files_per_producer` | 5                                                   | Bounded, so we can compute completion rate cleanly.                                                                                                                                                        |
 | `image_interval`     | `2m`                                                | Spreads file births in time so the network has work to do throughout the run.                                                                                                                              |
 | `file_size`          | `32M`                                               | Small enough that several files can be in flight simultaneously without strangling the bandwidth model.                                                                                                    |

@@ -7,24 +7,21 @@
 # NetworkFailure / DiskFull / DiskFailure, intervalMean 5m, jitter 50%).
 # Max duration: 8h (long-duration stress test).
 #
-# Tier 1: headline RF=3 curve across sat_counts.
-# Tier 2: RF sensitivity at n08 and n21 mid-points.
-# Tier 3: optional deep-dive at n100 — run only after Tier 1+2 are analysed.
+# Sizing: capped at sat_count <= 21 so every UC5 run fits a small z-cluster
+# (z-cluster sat-budget is 42; n100/n200 need prod and are intentionally
+# excluded here). Result: 8 runs, all z-cluster-runnable.
+#
+# Tier 1: headline curve across sat_counts (RF=3 for the n>=8 mid-points).
+# Tier 2: RF sensitivity at the n08 and n21 mid-points.
 
 tier_1:
-  - { engine: edfs, sat_count: 1,   rf: 1 }
-  - { engine: edfs, sat_count: 2,   rf: 1 }
-  - { engine: edfs, sat_count: 8,   rf: 3 }
-  - { engine: edfs, sat_count: 21,  rf: 3 }
-  - { engine: edfs, sat_count: 100, rf: 3 }
-  - { engine: edfs, sat_count: 200, rf: 3 }
+  - { engine: edfs, sat_count: 1,  rf: 1 }
+  - { engine: edfs, sat_count: 2,  rf: 1 }
+  - { engine: edfs, sat_count: 8,  rf: 3 }
+  - { engine: edfs, sat_count: 21, rf: 3 }
 
 tier_2:
   - { engine: edfs, sat_count: 8,  rf: 1 }
   - { engine: edfs, sat_count: 8,  rf: 5 }
   - { engine: edfs, sat_count: 21, rf: 1 }
   - { engine: edfs, sat_count: 21, rf: 5 }
-
-tier_3:
-  - { engine: edfs, sat_count: 100, rf: 1 }
-  - { engine: edfs, sat_count: 100, rf: 5 }
