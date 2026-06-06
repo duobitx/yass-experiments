@@ -113,10 +113,12 @@ kind: HardwareDefinition
 metadata:
   name: ground-station-hwdef
 spec:
-  # Sized 2026-05-29 to fit UC1-5 sweeps on cf — GS gets more headroom
-  # than a satellite because it serves multiple SATs in parallel and is
-  # the only side of every delivery (so it's the hot path).
-  cpu: "2"
+  # GS gets more headroom than a satellite because it serves multiple SATs in
+  # parallel and is the only side of every delivery (so it's the hot path).
+  # Lowered 2026-06-06 from "2" to "1500m" so the GS pod's 3 EDFS containers
+  # (500m each after the operator's /3 split = 1500m) fit on small 4-CPU
+  # z-cluster worker nodes (~1900m free/node) instead of landing Unschedulable.
+  cpu: "1500m"
   memory: "4Gi"
   batteryCapacityWh: 1000
   batteryChargeW: 1000
