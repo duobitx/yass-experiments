@@ -16,11 +16,38 @@
 </table>
 
 <h2>Charts (interactive)</h2>
+<p class="cap">Node colours are consistent across every chart and the graph:
+  <span style="color:#f58518">■ ground station</span> ·
+  <span style="color:#4c78a8">■ relay satellite</span> ·
+  <span style="color:#54a24b">■ producer</span>.</p>
 <div class="charts">
-  <div class="chart"><h3>Per-target delivery time (blue = ground station)</h3>
-    <div class="canvas-box" style="height:{{ v.deliv_h }}px"><canvas id="cDeliv"></canvas></div></div>
-  <div class="chart"><h3>Network by node (MiB)</h3>
-    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cNet"></canvas></div></div>
+  <div class="chart"><h3>Per-target delivery time</h3>
+    <div class="canvas-box" style="height:{{ v.deliv_h }}px"><canvas id="cDeliv"></canvas></div>
+    <div class="cap">Seconds from file creation until each target node held the complete file. Bars coloured by node kind; the delivery KPI is the earliest ground-station bar.</div></div>
+  <div class="chart"><h3>U1 · Cumulative network TX / RX over time (MiB)</h3>
+    <div class="canvas-box" style="height:340px"><canvas id="cNetTs"></canvas></div>
+    <div class="cap">Cumulative TX (solid) and RX (dashed) summed across all nodes, vs seconds from experiment start.</div></div>
+  <div class="chart"><h3>U2 · CPU and memory over time</h3>
+    <div class="canvas-box" style="height:340px"><canvas id="cResTs"></canvas></div>
+    <div class="cap">Aggregate CPU (millicores, left axis) and memory (MiB, right axis) across all containers, vs seconds from experiment start.</div></div>
+  <div class="chart"><h3>U3 · Network TX by node (top 20)</h3>
+    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cNet"></canvas></div>
+    <div class="cap">Total bytes transmitted per node over the run, coloured by node kind.</div></div>
+  <div class="chart"><h3>Network RX by node (top 20)</h3>
+    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cNetRx"></canvas></div>
+    <div class="cap">Total bytes received per node over the run; same node order and colours as the TX chart.</div></div>
+  <div class="chart"><h3>U4 · Peak CPU per node (top 20)</h3>
+    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cCpuNode"></canvas></div>
+    <div class="cap">Peak CPU (millicores) reached by each fsNode during the run, coloured by node kind.</div></div>
+  <div class="chart"><h3>U5 · Peak memory per node (top 20)</h3>
+    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cMemNode"></canvas></div>
+    <div class="cap">Peak memory (MiB) reached by each fsNode during the run, coloured by node kind.</div></div>
+  <div class="chart"><h3>Volume used over time (MiB, global)</h3>
+    <div class="canvas-box" style="height:340px"><canvas id="cVolTs"></canvas></div>
+    <div class="cap">Total disk used across all node volumes (sum), vs seconds from experiment start.</div></div>
+  <div class="chart"><h3>Volume used by node (MiB, peak)</h3>
+    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cVolNode"></canvas></div>
+    <div class="cap">Peak disk used by each individual node's volume during the run (top 20), coloured by node kind.</div></div>
 </div>
 
 {% if v.has_graph %}
@@ -29,23 +56,47 @@
   <div class="graph-controls">
     <label>file <select id="gFile"></select></label>
     <button id="gPlay" class="badge">▶ play</button>
+    <label>speed <select id="gSpeed">
+      <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+      <option value="1" selected>1×</option><option value="2">2×</option>
+      <option value="4">4×</option><option value="8">8×</option></select></label>
     <input id="gTime" type="range" min="0" step="0.1">
     <span id="gTimeLbl" class="muted"></span>
   </div>
   <div id="gNet" class="graph-box"></div>
-  <div class="cap">■ ground station · ● satellite · ◆ producer. Edge <code>from → to</code> = bytes transferred up to the selected time (hover for details). <span id="gSrc" class="muted"></span></div>
+  <div class="cap"><span style="color:#f58518">■ ground station</span> · <span style="color:#4c78a8">● relay satellite</span> · <span style="color:#54a24b">● producer</span> (same colours as the charts). <b>Spread tree</b>: one edge <code>from → to</code> per node = where it <b>first</b> acquired the file by the selected time (width = total bytes it pulled from that source). Redundant bitswap re-shares are not shown here — see the transfer-rate graph below. Grouped per file; 0-byte control messages omitted; times bucketed to ~2&nbsp;s for cross-node clock skew. Timeline spans the whole experiment (0&nbsp;= simulation start). <span id="gSrc" class="muted"></span></div>
+</div>
+
+<h2>File transfer graph (rate)</h2>
+<div class="chart">
+  <div class="graph-controls">
+    <label>file <select id="tFile"></select></label>
+    <button id="tPlay" class="badge">▶ play</button>
+    <label>speed <select id="tSpeed">
+      <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+      <option value="1" selected>1×</option><option value="2">2×</option>
+      <option value="4">4×</option><option value="8">8×</option></select></label>
+    <label>window <select id="tWin">
+      <option value="5">5 s</option><option value="10" selected>10 s</option>
+      <option value="20">20 s</option><option value="60">60 s</option></select></label>
+    <input id="tTime" type="range" min="0" step="0.1">
+    <span id="tTimeLbl" class="muted"></span>
+  </div>
+  <div id="tNet" class="graph-box"></div>
+  <div class="cap">Same nodes; edge <code>from → to</code> = bytes transferred <b>within the trailing window</b> ending at the selected time (instantaneous flow). Play to watch where traffic moves moment-to-moment. Timeline spans the whole experiment (0&nbsp;= simulation start).</div>
 </div>
 {% endif %}
 
 {% if v.deliveries %}
 <h2>File deliveries</h2>
 <table class="deliveries">
-<tr><th>file</th><th>received by</th><th>delivery (s from creation)</th><th>#fsNodes with file</th></tr>
+<tr><th>file</th><th>received by</th><th>delivery (s from creation)</th><th>time from start</th><th>#fsNodes with file</th></tr>
 {% for d in v.deliveries %}
 <tr>
   <td>{{ d.file }}</td>
-  <td>{{ d.fsNode }}{% if d.is_gs %} <span class="badge ok">GS</span>{% endif %}</td>
-  <td>{{ d.delivery_s }}</td>
+  <td>{{ d.fsNode }}{% if d.is_producer %} <span class="badge">producer</span>{% elif d.is_gs %} <span class="badge ok">GS</span>{% endif %}</td>
+  <td>{% if d.is_producer %}t0{% else %}t0 + {{ d.delivery_s }}s{% endif %}</td>
+  <td>{{ d.sim_time }}{% if d.is_producer %} <span class="muted">← t0</span>{% endif %}</td>
   <td>{{ d.holders }}</td>
 </tr>
 {% endfor %}
@@ -71,18 +122,48 @@
 
 <script>
 const D = {{ v.data|safe }};
-const grid = '#2a2f3a', txt = '#cfd6e4';
+const grid = '#2a2f3a', txt = '#cfd6e4', P = D.pal;
 Chart.defaults.color = txt; Chart.defaults.borderColor = grid;
+const kc = k => (P && P[k]) || '#888';   // node-kind colour (gs / sat / prod) — same everywhere
+const nodeBars = (id, labels, vals, kinds, label, horiz) => {
+  if(!labels || !labels.length) return;
+  new Chart(id,{type:'bar',data:{labels:labels,datasets:[{label:label,data:vals,
+      backgroundColor:(kinds||labels.map(()=>'sat')).map(kc)}]},
+    options:{indexAxis:horiz?'y':'x',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}}}});
+};
 const dk = Object.keys(D.delivery);
-new Chart(cDeliv,{type:'bar',data:{labels:dk,
-  datasets:[{label:'delivery (s)',data:dk.map(k=>D.delivery[k].s),
-    backgroundColor:dk.map(k=>D.delivery[k].gs?'#4c78a8':'#888')}]},
+// Per-target delivery — one bar per target, coloured by node kind (gs/sat/prod)
+new Chart(cDeliv,{type:'bar',data:{labels:dk,datasets:[{label:'delivery (s)',
+    data:dk.map(k=>D.delivery[k].s),backgroundColor:dk.map(k=>kc(D.delivery[k].kind))}]},
   options:{indexAxis:'{{ v.deliv_axis }}',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
     scales:{ {{ v.deliv_valaxis }}:{title:{display:true,text:'seconds'}} }}});
-new Chart(cNet,{type:'bar',data:{labels:D.net.nodes,
-  datasets:[{label:'TX MiB',data:D.net.tx,backgroundColor:'#54a24b'},
-            {label:'RX MiB',data:D.net.rx,backgroundColor:'#e45756'}]},
-  options:{indexAxis:'{{ v.net_axis }}',responsive:true,maintainAspectRatio:false}});
+// U1 — cumulative TX (solid) / RX (dashed)
+if(D.net_ts&&D.net_ts.t&&D.net_ts.t.length)new Chart(cNetTs,{type:'line',data:{labels:D.net_ts.t,
+  datasets:[{label:'TX MiB',data:D.net_ts.tx,borderColor:P.tx,pointRadius:0,tension:.2},
+            {label:'RX MiB',data:D.net_ts.rx,borderColor:P.rx,borderDash:[6,3],pointRadius:0,tension:.2}]},
+  options:{responsive:true,maintainAspectRatio:false,scales:{x:{title:{display:true,text:'s from start'}},y:{title:{display:true,text:'MiB (cumulative)'}}}}});
+// U2 — CPU (left axis) + memory (right axis) over time
+if(D.res_ts&&D.res_ts.t&&D.res_ts.t.length)new Chart(cResTs,{type:'line',data:{labels:D.res_ts.t,
+  datasets:[{label:'CPU millicores',data:D.res_ts.cpu,borderColor:P.cpu,pointRadius:0,tension:.2,yAxisID:'y'},
+            {label:'memory MiB',data:D.res_ts.mem,borderColor:P.mem,pointRadius:0,tension:.2,yAxisID:'y1'}]},
+  options:{responsive:true,maintainAspectRatio:false,scales:{
+    x:{title:{display:true,text:'s from start'}},
+    y:{position:'left',title:{display:true,text:'CPU (millicores)'}},
+    y1:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'memory (MiB)'}}}}});
+// U3 — TX by node, kind-coloured; RX by node mirrors it
+const netHoriz = '{{ v.net_axis }}' === 'y';
+nodeBars('cNet', D.net.nodes, D.net.tx, D.net.kind, 'TX MiB', netHoriz);
+nodeBars('cNetRx', D.net.nodes, D.net.rx, D.net.kind, 'RX MiB', netHoriz);
+// U4 / U5 — peak CPU + memory per node, kind-coloured
+if(D.cpu_by_node)nodeBars('cCpuNode', D.cpu_by_node.nodes, D.cpu_by_node.vals, D.cpu_by_node.kind, 'peak CPU (millicores)', D.cpu_by_node.nodes.length>8);
+if(D.mem_by_node)nodeBars('cMemNode', D.mem_by_node.nodes, D.mem_by_node.vals, D.mem_by_node.kind, 'peak memory (MiB)', D.mem_by_node.nodes.length>8);
+// volume — global over time + peak per node (kind-coloured)
+if(D.vol_ts&&D.vol_ts.t&&D.vol_ts.t.length)new Chart(cVolTs,{type:'line',data:{labels:D.vol_ts.t,
+  datasets:[{label:'volume used MiB',data:D.vol_ts.used,borderColor:P.vol,pointRadius:0,tension:.2,fill:true,backgroundColor:'rgba(157,117,93,.15)'}]},
+  options:{responsive:true,maintainAspectRatio:false,scales:{x:{title:{display:true,text:'s from start'}},y:{title:{display:true,text:'MiB'}}}}});
+if(D.vol_by_node)nodeBars('cVolNode', D.vol_by_node.nodes, D.vol_by_node.used, D.vol_by_node.kind, 'peak volume (MiB)', D.vol_by_node.nodes.length>8);
 </script>
 
 {% if v.has_graph %}
@@ -90,61 +171,100 @@ new Chart(cNet,{type:'bar',data:{labels:D.net.nodes,
 const G = {{ v.graph|safe }};
 (function(){
   if(!G || !G.events.length) return;
-  const palette=['#4c78a8','#54a24b','#e45756','#f1a340','#9467bd','#17becf','#8c564b','#e377c2'];
+  // Per-file edge colours — deliberately distinct from the node-kind palette
+  // (orange/blue/green) and the metric palette, so a file's edges are never
+  // confused with a node kind.
+  const palette=['#9467bd','#e377c2','#17becf','#bcbd22','#7f7f7f','#c5b0d5','#9edae5','#dbdb8d'];
   const fcol={}; G.files.forEach((f,i)=>fcol[f]=palette[i%palette.length]);
-  const sel=document.getElementById('gFile');
-  const all=document.createElement('option'); all.value='__all__'; all.text='all files ('+G.files.length+')'; sel.add(all);
-  G.files.forEach(f=>{const o=document.createElement('option');o.value=f;o.text=f;sel.add(o);});
-  const tEl=document.getElementById('gTime'), lbl=document.getElementById('gTimeLbl');
-  tEl.max=G.tmax||0; tEl.value=G.tmax||0;
-  document.getElementById('gSrc').textContent='source: '+G.source;
-
   const fmt=b=>b>=1048576?(b/1048576).toFixed(1)+' MiB':b>=1024?(b/1024).toFixed(0)+' KiB':b+' B';
-  const nodesDS=new vis.DataSet(G.nodes.map(n=>({
-    id:n.id, label:n.id,
-    shape:n.producer?'diamond':(n.kind==='gs'?'square':'dot'),
-    color:n.kind==='gs'?{background:'#1f4d2e',border:'#6db3ff'}:{background:'#2a2f3a',border:'#888'},
-    borderWidth:n.producer?3:1, font:{color:'#cfd6e4'}
-  })));
-  const edgesDS=new vis.DataSet();
-  const net=new vis.Network(document.getElementById('gNet'),{nodes:nodesDS,edges:edgesDS},{
-    edges:{arrows:'to',smooth:{type:'dynamic'}}, interaction:{hover:true},
-    physics:{stabilization:{iterations:150}}});
-
-  function rebuild(){
-    const t=parseFloat(tEl.value), file=sel.value;
-    lbl.textContent='t ≤ '+t.toFixed(1)+' s / '+(G.tmax||0).toFixed(1)+' s';
-    const agg={};
-    for(const e of G.events){
-      if(e.t>t) continue;
-      if(file!=='__all__' && e.file!==file) continue;
-      const key=e.from+'\u0001'+e.to+'\u0001'+e.file;
-      agg[key]=(agg[key]||0)+e.bytes;
+  const tmax=G.tmax||0;
+  // One factory builds both graphs. With a window control (o.win) edges show bytes
+  // in the trailing window (rate); otherwise cumulative bytes up to t (propagation).
+  function makeGraph(o){
+    const sel=document.getElementById(o.sel), tEl=document.getElementById(o.time),
+          lbl=document.getElementById(o.lbl), playBtn=document.getElementById(o.play),
+          spEl=document.getElementById(o.speed), winEl=o.win?document.getElementById(o.win):null;
+    const DATA = o.data || G.events;
+    const all=document.createElement('option'); all.value='__all__';
+    all.text='all files ('+G.files.length+')'; sel.add(all);
+    G.files.forEach(f=>{const op=document.createElement('option');op.value=f;op.text=f;sel.add(op);});
+    tEl.max=tmax; tEl.value=tmax;
+    if(o.src){const s=document.getElementById(o.src); if(s) s.textContent='source: '+G.source;}
+    const nodesDS=new vis.DataSet(G.nodes.map(n=>{
+      const nd={ id:n.id, label:n.id,
+        shape:n.kind==='gs'?'square':'dot',  // producer keeps its node-type shape
+        color:n.producer?{background:'#21331a',border:D.pal.prod}
+              :(n.kind==='gs'?{background:'#3a2a14',border:D.pal.gs}:{background:'#1d2633',border:D.pal.sat}),
+        borderWidth:n.producer?3:1, font:{color:'#cfd6e4'}};
+      if(o.pos && o.pos[n.id]){ nd.x=o.pos[n.id].x; nd.y=o.pos[n.id].y; }  // shared layout
+      return nd;}));
+    const edgesDS=new vis.DataSet();
+    // With a shared precomputed layout, physics is off from the start so both graphs
+    // place every fsNode at the same coordinates; otherwise stabilize then freeze.
+    const net=new vis.Network(document.getElementById(o.net),{nodes:nodesDS,edges:edgesDS},{
+      edges:{arrows:'to',smooth:{type:'dynamic'}}, interaction:{hover:true},
+      physics: o.pos ? false : {stabilization:{iterations:200}}});
+    if(!o.pos) net.once('stabilizationIterationsDone',()=>net.setOptions({physics:false}));
+    function rebuild(){
+      const t=parseFloat(tEl.value), file=sel.value;
+      const win=winEl?parseFloat(winEl.value):null;
+      lbl.textContent=(win!=null?('window '+win+'s · t≤'):'t≤')+t.toFixed(1)+' / '+tmax.toFixed(1)+' s';
+      const agg={};
+      for(const e of DATA){
+        if(e.t>t) continue;
+        if(win!=null && e.t<=t-win) continue;
+        if(file!=='__all__' && e.file!==file) continue;
+        const af=G.acq&&G.acq[e.file]; if(af){const a=af[e.from]; if(a==null||a>e.t) continue;}  // sender must already hold the file
+        const key=e.from+'\x01'+e.to+'\x01'+e.file;
+        agg[key]=(agg[key]||0)+e.bytes;
+      }
+      const edges=[];
+      for(const key in agg){
+        const p=key.split('\x01'), b=agg[key];
+        edges.push({id:key,from:p[0],to:p[1],color:{color:fcol[p[2]]||'#888'},
+          width:Math.max(1,Math.log10(b+1)),title:p[2]+': '+fmt(b),
+          label:file==='__all__'?'':fmt(b),font:{color:'#cfd6e4',size:11,strokeWidth:0}});
+      }
+      edgesDS.clear(); edgesDS.add(edges);
     }
-    const edges=[];
-    for(const key in agg){
-      const p=key.split('\u0001'), b=agg[key];
-      edges.push({id:key,from:p[0],to:p[1],color:{color:fcol[p[2]]||'#888'},
-        width:Math.max(1,Math.log10(b+1)),title:p[2]+': '+fmt(b),
-        label:file==='__all__'?'':fmt(b),font:{color:'#cfd6e4',size:11,strokeWidth:0}});
-    }
-    edgesDS.clear(); edgesDS.add(edges);
+    tEl.oninput=rebuild; sel.onchange=rebuild; if(winEl) winEl.onchange=rebuild;
+    let timer=null;
+    playBtn.onclick=function(){
+      if(timer){clearInterval(timer);timer=null;this.textContent='▶ play';return;}
+      this.textContent='⏸ pause';
+      if(parseFloat(tEl.value)>=tmax) tEl.value=0;
+      timer=setInterval(()=>{
+        const spd=parseFloat(spEl&&spEl.value)||1;
+        const step=((tmax||1)/60)*spd||0.5;
+        let v=parseFloat(tEl.value)+step;
+        if(v>=tmax){v=tmax;clearInterval(timer);timer=null;playBtn.textContent='▶ play';}
+        tEl.value=v; rebuild();
+      },120);
+    };
+    rebuild();
   }
-  tEl.oninput=rebuild; sel.onchange=rebuild;
-
-  let timer=null;
-  document.getElementById('gPlay').onclick=function(){
-    if(timer){clearInterval(timer);timer=null;this.textContent='▶ play';return;}
-    this.textContent='⏸ pause';
-    if(parseFloat(tEl.value)>=(G.tmax||0)) tEl.value=0;
-    const step=(G.tmax||1)/60||0.5;
-    timer=setInterval(()=>{
-      let v=parseFloat(tEl.value)+step;
-      if(v>=(G.tmax||0)){v=G.tmax||0;clearInterval(timer);timer=null;document.getElementById('gPlay').textContent='▶ play';}
-      tEl.value=v; rebuild();
-    },120);
-  };
-  rebuild(); // default view = final state (t = tmax)
+  // Compute ONE layout from the full mesh (all nodes + all distinct edges) and reuse
+  // it for both graphs, so the same fsNode sits at the same spot in each.
+  function computeLayout(cb){
+    const seen={}, le=[];
+    for(const e of G.events){const k=e.from+'>'+e.to; if(!seen[k]){seen[k]=1; le.push({from:e.from,to:e.to});}}
+    const box=document.createElement('div');
+    box.style.cssText='position:absolute;left:-9999px;top:-9999px;width:900px;height:650px';
+    document.body.appendChild(box);
+    const tmp=new vis.Network(box,
+      {nodes:new vis.DataSet(G.nodes.map(n=>({id:n.id}))), edges:new vis.DataSet(le)},
+      {physics:{stabilization:{iterations:300}}});
+    let done=false;
+    const finish=()=>{ if(done) return; done=true;
+      let pos=null; try{ pos=tmp.getPositions(); }catch(e){}
+      tmp.destroy(); box.remove(); cb(pos); };
+    tmp.once('stabilizationIterationsDone',finish);
+    setTimeout(finish,5000);  // fallback if stabilization is slow or never fires
+  }
+  computeLayout(function(pos){
+    makeGraph({net:'gNet',sel:'gFile',time:'gTime',lbl:'gTimeLbl',play:'gPlay',speed:'gSpeed',src:'gSrc',data:G.tree,pos:pos});
+    makeGraph({net:'tNet',sel:'tFile',time:'tTime',lbl:'tTimeLbl',play:'tPlay',speed:'tSpeed',win:'tWin',data:G.events,pos:pos});
+  });
 })();
 </script>
 {% endif %}
