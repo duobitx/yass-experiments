@@ -35,15 +35,25 @@ satisfy that, UC4 uses a purpose-built satellite **`producer`**
 - polar (inclination 90°) circular orbit at ~1200 km (mean motion 13.16);
 - mean anomaly 270° so its sub-satellite point is exactly over the **South
   pole** at the TLE epoch;
+- **RAAN 98°**, chosen so the ascending pass climbs a GS-empty longitude band
+  and the producer stays out of LOS with every GS for **~54 min** (≈ half an
+  orbit, until it reaches the North polar region where Kiruna finally sees it);
 - the TLE epoch equals `simulationStartTime` (`2026-05-16T23:59:00.000Z`), so
   the propagation delta is zero and the producer is over the South pole at t=0.
 
 The South pole is chosen deliberately: the southernmost ESTRACK station,
 Malargüe (−35.8°), is 54° of central angle from the pole — well beyond the
-~28° line-of-sight horizon at this altitude (the North pole would be visible
-from Kiruna at 68° N). So **all seven ESTRACK stations are out of LOS at t=0**,
-and the precondition holds without tuning a start epoch per `sat_count`. The
-producer replaces the first satellite in every Layout; the remaining OneWeb
+line-of-sight horizon (~24° central angle at this altitude for the simulator's
+10° minimum elevation; the North pole would be visible from Kiruna at 68° N).
+So **all seven ESTRACK stations are out of LOS at t=0** for any RAAN, and the
+precondition holds without tuning a start epoch per `sat_count`.
+
+The RAAN is tuned (98°) only to **lengthen** the time-to-first-contact: at the
+original RAAN=0 the producer met a GS after ~11 min, so only `T_destroy=5m`
+preceded contact; at RAAN=98° the window is ~54 min, so `T_destroy ∈ {5m,15m,45m}`
+are all genuine pre-contact destructions and TUS is 0% by construction at every
+`dt`. (See `tools/make-producer-layouts.py` and `notes/uc4-success-surface-proposal.md`.)
+The producer replaces the first satellite in every Layout; the remaining OneWeb
 satellites are the relays.
 
 ## Abstract
@@ -96,7 +106,15 @@ read from the delivery metrics — independently of the producer's destruction.
 
 Demonstrate that **EDFS survives the loss of the file's original
 producer** for an image with no remaining copies, and quantify the
-trade-off:
+trade-off. The headline deliverable is a **delivery-success surface**
+`success(n_sat, dt)` per engine, where the two swept variables are:
+
+- `n_sat` — number of satellites in the layout (`sat_count`);
+- `dt` — time between the photo being taken (≈ t=0) and the producer's
+  total destruction (`T_destroy`, the `Destroy` event's `startOffset`).
+
+`success` is the fraction (over repeats) of runs in which the image reached at
+least one GS. EDFS is expected to dominate TUS across the whole grid:
 
 - Binary outcome: did the file reach a GS? (`delivered ∈ {true, false}`)
 - Conditional metric: when it does reach a GS, what was
@@ -115,21 +133,21 @@ KPI:
 |-----------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
 | `engine`              | `tus`, `edfs`                                                 | TUS run is the negative-control baseline.                                                                                  |
 | `sat_count`           | 1, 2, 8, 21, 100, 200                                        | At `sat_count = 1` even EDFS must fail — no peers to replicate to. That is itself a useful data point.                     |
-| `T_destroy`           | `5m`, `15m`, `45m`                                            | Seconds (well, minutes) between "photo taken" and "Destroy fires". Smaller `T_destroy` means tighter race for replication. |
-| `S` (file size)       | `32M`                                                         | Single regime; we focus the sweep on sat_count × T_destroy.                                                                |
-| `priority`            | fixed at `high`                                               | UC4 is the canonical high-priority scenario.                                                                               |
-| `RF` (EDFS only)      | fixed at 3                                                    | A single RF keeps the headline result interpretable.                                                                       |
+| `T_destroy` (= `dt`)  | `5m`, `15m`, `45m`                                            | Minutes between "photo taken" (t≈0) and "Destroy fires" — the **dt** KPI axis. All three precede the producer's first GS contact (~54m, see orbit note), so all are genuine pre-contact destructions. Smaller `dt` = tighter race for replication. |
+| `S` (file size)       | `32M`                                                         | Single regime; the sweep is `priority × dt × sat_count`.                                                                   |
+| `priority` (EDFS)     | `high`, `default`, `low`                                      | **Swept (EDFS only).** Sets EDFS replication width: `high`→ceil(0.9·peers), `default`→ceil(0.1·peers), `low`→local-only. `low` should fail like TUS (file never leaves the producer). TUS ignores priority (one TUS run per `dt × sat_count`). |
+| `RF` (EDFS only)      | fixed at 3                                                    | A single RF keeps the priority/`dt` effects interpretable.                                                                 |
 | `gs_count`            | fixed at 7 (ESTRACK)                                          |                                                                                                                            |
 | `simulationStartTime` | fixed `2026-05-16T23:59:00.000Z` (= synthetic producer's TLE epoch) | Same for all sat_counts: the `producer` orbit is designed so its sub-point is over the South pole, out of LOS with every ESTRACK GS, at this epoch. See "Producer over the pole". |
-| `max_duration`        | `4h`                                                          | TUS will run out of budget; EDFS should deliver in well under that.                                                        |
+| `max_duration`        | EDFS `4h`; TUS `T_destroy + 10m`                             | EDFS needs a long window for a relay peer to fly into LOS with a GS. TUS cannot recover once the producer is destroyed (no inter-sat relay), so its run is stopped **10 minutes after the Destroy event** — no point burning the full EDFS budget. Set per engine in `run.sh` (`EDFS_MAX_DURATION`, `TUS_GRACE_SECONDS`). |
 
-**TUS parameter coverage.** `priority` (fixed at `high`) and `RF` are
+**TUS parameter coverage.** `priority` (an EDFS-only axis) and `RF` are
 both ignored by TUS. The TUS sweep therefore reduces to `(sat_count,
-T_destroy)`; `RF` is omitted from the TUS run-id entirely. This is by
-design — UC4 measures binary "does the file survive the producer's
-loss?", and on TUS that answer is "no" for every parameter combination,
-so a single run per `(sat_count, T_destroy)` suffices as the negative
-baseline.
+T_destroy)`; `priority` and `RF` are omitted from the TUS run-id entirely.
+This is by design — UC4 measures binary "does the file survive the
+producer's loss?", and on TUS that answer is "no" for every parameter
+combination, so a single run per `(sat_count, T_destroy)` suffices as the
+negative baseline.
 
 ## Additional metrics
 

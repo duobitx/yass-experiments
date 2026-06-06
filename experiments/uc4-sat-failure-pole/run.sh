@@ -4,8 +4,8 @@
 # state, export artefacts, delete the namespace.
 #
 # Run-id format:
-#   EDFS: uc4-edfs-td<T_destroy>-n<NN>-rf3
-#   TUS:  uc4-tus-td<T_destroy>-n<NN>
+#   EDFS: uc4-edfs-p<priority>-td<T_destroy>-n<NN>-rf3
+#   TUS:  uc4-tus-td<T_destroy>-n<NN>   (TUS ignores priority + rf)
 #
 # Producer is the synthetic satellite `producer` (see tools/make-producer-
 # layouts.py): a polar orbit phased so its sub-point is over the SOUTH pole at
@@ -76,11 +76,19 @@ edfs_bootstrap_peer_key="CAESQNU9ILPST19ucrp2ZzY4BN1+LnoLK5XnH86F8m2Ce3R7m7n8DOz
 # It is the only node that produces a file; all other SATs are pure relays.
 PRODUCER=producer
 
-# UC4 fixed parameters.
-FILE_PRIORITY=high
+# UC4 fixed parameters. (priority is now an EDFS sweep variable — see tiers.yaml.)
 FILE_SIZE=32M
-MAX_DURATION=4h
 RF=3
+# Fallback priority for tier rows that omit it (TUS rows — TUS ignores priority).
+DEFAULT_PRIORITY=high
+# Engine-specific run budget (maxDuration). EDFS needs a long window: a peer that
+# received a replica before the producer was destroyed may take a long time to
+# fly into LOS with a GS. TUS has no inter-satellite relay, so once the sole
+# copy's producer is destroyed the file is unrecoverable — there is no point
+# running the full EDFS budget. We stop the TUS run TUS_GRACE after the Destroy
+# event: maxDuration_TUS = T_destroy + TUS_GRACE.
+EDFS_MAX_DURATION=4h
+TUS_GRACE_SECONDS=600   # 10 minutes after the disaster (Destroy) event
 
 tiers_to_run=()
 if [[ $TIER == all ]]; then
@@ -148,6 +156,20 @@ for e in data.get(sys.argv[2], []):
 PY
 }
 
+# add_duration <go-duration> <seconds> -> Go-duration string.
+# Derives the TUS maxDuration as T_destroy + TUS_GRACE. Parses h/m/s components.
+add_duration() {
+  awk -v d="$1" -v add="$2" 'BEGIN{
+    n=""
+    for(i=1;i<=length(d);i++){c=substr(d,i,1)
+      if(c ~ /[0-9]/){n=n c}
+      else if(c=="h"){s+=n*3600;n=""} else if(c=="m"){s+=n*60;n=""} else if(c=="s"){s+=n;n=""}
+    }
+    s+=add; h=int(s/3600); s-=h*3600; m=int(s/60); s-=m*60
+    out=(h?h"h":"")(m?m"m":"")(s?s"s":""); print (out==""?"0s":out)
+  }'
+}
+
 mkdir -p "$HERE/_runs"
 
 for tier in "${tiers_to_run[@]}"; do
@@ -156,13 +178,16 @@ for tier in "${tiers_to_run[@]}"; do
 
     # Strip trailing whitespace / empty fields from optional TUS columns.
     t_destroy=${t_destroy:-15m}
+    priority=${priority:-$DEFAULT_PRIORITY}
 
-    # Run-id: uc4-edfs-td<T>-n<NN>-rf3 or uc4-tus-td<T>-n<NN>.
+    # Run-id: uc4-edfs-p<prio>-td<T>-n<NN>-rf3 or uc4-tus-td<T>-n<NN>.
     # t_destroy value is already a Go-duration string (5m / 15m / 45m).
+    # priority is an EDFS-only axis (high/default/low); TUS ignores it and omits
+    # both the p<prio> and rf tokens (TUS reduces to (sat_count, t_destroy)).
     td_label=${t_destroy//m/m}   # keep as-is; already lowercase
     nn=$(printf '%02d' "$sat_count")
     if [[ $engine == edfs ]]; then
-      run_id="uc4-edfs-td${td_label}-n${nn}-rf${RF}"
+      run_id="uc4-edfs-p${priority,,}-td${td_label}-n${nn}-rf${RF}"
     else
       run_id="uc4-tus-td${td_label}-n${nn}"
     fi
@@ -182,6 +207,8 @@ for tier in "${tiers_to_run[@]}"; do
           value: "*"
 YAML
 )
+        # TUS cannot recover after the producer is destroyed: stop 10m past Destroy.
+        max_duration=$(add_duration "$t_destroy" "$TUS_GRACE_SECONDS")
         ;;
       edfs)
         engine_containers=$(cat <<-YAML
@@ -239,6 +266,7 @@ YAML
           value: ${edfs_bootstrap_peer_key}
 YAML
 )
+        max_duration=$EDFS_MAX_DURATION
         ;;
     esac
 
@@ -248,8 +276,8 @@ YAML
     mkdir -p "$out"
 
     export RUN_ID=$run_id NAMESPACE=$ns
-    export FILE_SIZE=$file_size FILE_PRIORITY=$FILE_PRIORITY
-    export MAX_DURATION PRODUCER LAYOUT_REF=$layout_ref
+    export FILE_SIZE=$file_size FILE_PRIORITY=$priority
+    export MAX_DURATION=$max_duration PRODUCER LAYOUT_REF=$layout_ref
     export T_DESTROY=$t_destroy
     export ENGINE_CONTAINERS=$engine_containers
     export EXTRA_BEHAVIOURS=$extra

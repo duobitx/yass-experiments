@@ -1,60 +1,82 @@
-# UC4 tiered sweep matrix. Driven by ./run.sh --tier <N>.
+# UC4 tiered sweep matrix. Driven by ./run.sh --tier <N|all>.
 #
-# Tier 1: headline — binary delivery (EDFS vs TUS) vs sat_count,
-#   at the mid T_destroy (15m). All other params fixed.
-# Tier 2: T_destroy sensitivity at sat_count=8 — tighter (5m) and
-#   looser (45m) race window, across both engines.
-# Tier 3: full sat_count × T_destroy cross product — only after
-#   Tier 1+2 confirm there is a meaningful interaction to study.
+# UC4 measures delivery success as a function of TWO swept variables:
+#   n_sat     — satellites in the layout (1, 2, 8, 21, 100);
+#   t_destroy — time between photo (t≈0) and the producer's Destroy event
+#               (the "dt" axis): 5m, 15m, 45m.
+# A third EDFS-only axis is the file priority (high / default / low), which sets
+# the EDFS replication width (high → ceil(0.9·peers), default → ceil(0.1·peers),
+# low → local-only). Priority is expected to strongly shape the survival surface:
+# a low-priority file is never replicated off the producer, so EDFS should lose it
+# just like TUS.
 #
-# file_size: 32M, priority: high, rf: 3 (EDFS) — fixed across all tiers.
-# TUS entries omit rf and priority (TUS ignores both).
+# The producer (RAAN=98°) stays out of LOS with every GS for ~54 min (see
+# tools/make-producer-layouts.py), so ALL three t_destroy values are genuine
+# pre-contact destructions and TUS is 0% by construction across the whole grid.
 #
-# CAVEAT: simulationStartTime is a placeholder (see _template/03_experiment.yaml.tmpl).
-# The "producer over a pole, out of LOS at t=0" precondition is unvalidated.
+# Engine budget (maxDuration): EDFS 4h; TUS = t_destroy + 10m (TUS cannot recover
+# after the producer dies — no inter-sat relay). Set in run.sh.
+#
+# file_size 32M, priority high, rf 3 (EDFS) unless noted. TUS omits priority + rf.
+#
+# Reduced grid (42 variants): the full priority × t_destroy × sat_count cube is
+# trimmed to keep prod cost bounded — EDFS-high and TUS span the full sat_count
+# range {1,2,8,21,100} (n200 dropped as too heavy); the default/low priority
+# surfaces are sampled only at the relay-bearing mid sizes {8,21}, where the
+# replication-width effect is visible. Tiers split by priority:
+#   tier_1: headline — EDFS high-priority surface + TUS negative-control surface.
+#   tier_2: EDFS default-priority surface (mid sizes).
+#   tier_3: EDFS low-priority surface (mid sizes; local-only — expected to fail).
 
 tier_1:
-  # Headline: sat_count sweep at T_destroy=15m (mid-range race window).
-  - { engine: edfs, sat_count: 1,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 2,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 100, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: edfs, sat_count: 200, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
-  - { engine: tus,  sat_count: 1,   file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 2,   file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 8,   file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 21,  file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 100, file_size: 32M, t_destroy: 15m }
-  - { engine: tus,  sat_count: 200, file_size: 32M, t_destroy: 15m }
-
-tier_2:
-  # T_destroy sensitivity at sat_count=8: tight race (5m) and relaxed (45m).
-  - { engine: edfs, sat_count: 8, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
-  - { engine: edfs, sat_count: 8, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
-  - { engine: tus,  sat_count: 8, file_size: 32M, t_destroy: 5m }
-  - { engine: tus,  sat_count: 8, file_size: 32M, t_destroy: 45m }
-
-tier_3:
-  # Full sat_count × T_destroy cross product — run only after Tier 1+2
-  # results confirm there is a non-trivial sat_count × T_destroy interaction.
+  # EDFS high priority — full (sat_count × t_destroy) surface, light sizes first.
   - { engine: edfs, sat_count: 1,   file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 1,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
   - { engine: edfs, sat_count: 1,   file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
   - { engine: edfs, sat_count: 2,   file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 2,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
   - { engine: edfs, sat_count: 2,   file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
   - { engine: edfs, sat_count: 21,  file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
   - { engine: edfs, sat_count: 21,  file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
   - { engine: edfs, sat_count: 100, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: high, rf: 3, t_destroy: 15m }
   - { engine: edfs, sat_count: 100, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
-  - { engine: edfs, sat_count: 200, file_size: 32M, priority: high, rf: 3, t_destroy: 5m }
-  - { engine: edfs, sat_count: 200, file_size: 32M, priority: high, rf: 3, t_destroy: 45m }
+  # TUS negative control — (sat_count × t_destroy), no priority / rf.
   - { engine: tus,  sat_count: 1,   file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 1,   file_size: 32M, t_destroy: 15m }
   - { engine: tus,  sat_count: 1,   file_size: 32M, t_destroy: 45m }
   - { engine: tus,  sat_count: 2,   file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 2,   file_size: 32M, t_destroy: 15m }
   - { engine: tus,  sat_count: 2,   file_size: 32M, t_destroy: 45m }
+  - { engine: tus,  sat_count: 8,   file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 8,   file_size: 32M, t_destroy: 15m }
+  - { engine: tus,  sat_count: 8,   file_size: 32M, t_destroy: 45m }
   - { engine: tus,  sat_count: 21,  file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 21,  file_size: 32M, t_destroy: 15m }
   - { engine: tus,  sat_count: 21,  file_size: 32M, t_destroy: 45m }
   - { engine: tus,  sat_count: 100, file_size: 32M, t_destroy: 5m }
+  - { engine: tus,  sat_count: 100, file_size: 32M, t_destroy: 15m }
   - { engine: tus,  sat_count: 100, file_size: 32M, t_destroy: 45m }
-  - { engine: tus,  sat_count: 200, file_size: 32M, t_destroy: 5m }
-  - { engine: tus,  sat_count: 200, file_size: 32M, t_destroy: 45m }
+
+tier_2:
+  # EDFS default priority — mid sizes only (relay-bearing) × t_destroy.
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: default, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: default, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: default, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: default, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: default, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: default, rf: 3, t_destroy: 45m }
+
+tier_3:
+  # EDFS low priority — local-only (no replication off the producer): expected to
+  # fail like TUS. Mid sizes only × t_destroy.
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: low, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: low, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: low, rf: 3, t_destroy: 45m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: low, rf: 3, t_destroy: 5m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: low, rf: 3, t_destroy: 15m }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: low, rf: 3, t_destroy: 45m }
