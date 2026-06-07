@@ -51,6 +51,16 @@ if [[ -z "$run_id" ]]; then
 fi
 engine=$(kubectl -n "$ns" get pod -l yass-experiment="$exp" -o jsonpath='{.items[0].metadata.labels.yass-engine}' 2>/dev/null || echo unknown)
 
+# Tightly bound the Prometheus window to THIS attempt. A retried run_id shares its
+# labels with earlier attempts, so a plain 24h look-back pulls their telemetry into the
+# bundle (conflating runs, stretching report time-axes). Start at the Experiment CR's
+# creationTimestamp minus a small lead; fall back to the 24h window if it is unavailable.
+created=$(kubectl -n "$ns" get experiment "$exp" -o jsonpath='{.metadata.creationTimestamp}' 2>/dev/null || true)
+prom_from=""
+if [[ -n "$created" ]]; then
+  prom_from=$(date -u -d "$created - 5 minutes" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || true)
+fi
+
 if [[ -z "$out" ]]; then
   out=$(mktemp -d -t yass-export-XXXXXX)
 fi
@@ -88,6 +98,7 @@ rm -f "$csv_tar"
   --run-id "$run_id" \
   --engine "$engine" \
   --window 24h \
+  ${prom_from:+--from "$prom_from"} \
   --out "$bundle/metrics-csv"
 
 # 4. Save the live CRs this run depends on, for full re-runnability:
