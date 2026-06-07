@@ -1088,26 +1088,34 @@ def engine_compare(uc_id, rows, ucdir, cfg):
 
 def uc_description(readme_path):
     """Return (title, description_html, abstract_text) from a UC README,
-    dropping operational sections."""
+    dropping operational sections. Heading detection ignores lines inside
+    fenced code blocks, so shell comments are not mistaken for the title."""
     title, abstract = "", ""
     if not os.path.exists(readme_path):
         return title, "", ""
     lines = open(readme_path).read().splitlines()
-    kept, skip, in_abstract = [], False, False
+    kept, skip, in_abstract, in_code = [], False, False, False
     for line in lines:
-        h1 = re.match(r"^#\s+(.+)", line)
-        if h1:
-            title = h1.group(1).strip()
+        if re.match(r"^\s*```", line):
+            in_code = not in_code
+            if not skip:
+                kept.append(line)
             continue
-        h2 = re.match(r"^##\s+(.+)", line)
-        if h2:
-            t = h2.group(1).lower()
-            skip = any(d in t for d in DOC_DENY)
-            in_abstract = "abstract" in t
-            if skip:
+        if not in_code:
+            h1 = re.match(r"^#\s+(.+)", line)
+            if h1:
+                if not title:
+                    title = h1.group(1).strip()
                 continue
-        elif in_abstract and not abstract and line.strip() and not line.startswith("#"):
-            abstract = re.sub(r"[*_`]", "", line.strip())
+            h2 = re.match(r"^##\s+(.+)", line)
+            if h2:
+                t = h2.group(1).lower()
+                skip = any(d in t for d in DOC_DENY)
+                in_abstract = "abstract" in t
+                if skip:
+                    continue
+            elif in_abstract and not abstract and line.strip() and not line.startswith("#"):
+                abstract = re.sub(r"[*_`]", "", line.strip())
         if not skip:
             kept.append(line)
     html = markdown.markdown("\n".join(kept), extensions=["tables", "fenced_code"])
