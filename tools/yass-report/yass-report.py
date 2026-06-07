@@ -376,7 +376,7 @@ def write_events_parquet(csv_path, out_path, window=None):
 
 def build_dedup_parquet(bundle, pqdir):
     """De-duplicate + filter a bundle's raw CSVs into deduped parquet under
-    pqdir/metrics-csv and pqdir/events-csv (RX metric dropped). This is the canonical
+    pqdir/metrics and pqdir/events (RX metric dropped). This is the canonical
     cleaned dataset the report and the raw-parquet.tar deliverable are both built from.
     Returns True if anything was written."""
     wrote = False
@@ -384,7 +384,7 @@ def build_dedup_parquet(bundle, pqdir):
     # export don't conflate runs or stretch the time axis.
     w = experiment_window(bundle)
     window = (w[0], w[1]) if w else None
-    md = os.path.join(pqdir, "metrics-csv")
+    md = os.path.join(pqdir, "metrics")
     os.makedirs(md, exist_ok=True)
     for csvf in sorted(glob.glob(os.path.join(bundle, "metrics-csv", "*.csv"))):
         name = os.path.splitext(os.path.basename(csvf))[0]
@@ -395,7 +395,7 @@ def build_dedup_parquet(bundle, pqdir):
                 wrote = True
         except Exception as e:
             print(f"  [warn] parquet(metric) skipped {name}: {e}")
-    ed = os.path.join(pqdir, "events-csv")
+    ed = os.path.join(pqdir, "events")
     os.makedirs(ed, exist_ok=True)
     for csvf in sorted(glob.glob(os.path.join(bundle, "events-csv", "*.csv"))):
         name = os.path.splitext(os.path.basename(csvf))[0]
@@ -754,7 +754,7 @@ def aggregate_net(pqdir, name):
 # ---------------- file-propagation graph ----------------
 
 def read_events(path):
-    """events-csv/<kind>.parquet -> list of column-keyed dict rows (deduped)."""
+    """events/<kind>.parquet -> list of column-keyed dict rows (deduped)."""
     if not os.path.exists(path):
         return []
     return papq.read_table(path).to_pylist()
@@ -1116,14 +1116,14 @@ def uc_description(readme_path):
 # ---------------- per-variant page ----------------
 
 def variant_page(env, k, bundle, pqdir, vdir, uc_id):
-    """Render one variant. Telemetry is read from the deduped parquet (pqdir/metrics-csv,
-    pqdir/events-csv); manifests/resources come from the original bundle."""
+    """Render one variant. Telemetry is read from the deduped parquet (pqdir/metrics,
+    pqdir/events); manifests/resources come from the original bundle."""
     os.makedirs(vdir, exist_ok=True)
     cfg = UC_CFG.get(uc_id, UC_CFG["uc1"])
     cdir = os.path.join(vdir, "charts"); os.makedirs(cdir, exist_ok=True)
     gdir = os.path.join(vdir, "gnuplot"); os.makedirs(gdir, exist_ok=True)
-    pqm = os.path.join(pqdir, "metrics-csv")
-    pqe = os.path.join(pqdir, "events-csv")
+    pqm = os.path.join(pqdir, "metrics")
+    pqe = os.path.join(pqdir, "events")
 
     producers = set(k.get("producers") or [])
     # Delivery bars are rendered only by gnuplot (gnuplot/delivery.png) — it carries
@@ -1141,7 +1141,7 @@ def variant_page(env, k, bundle, pqdir, vdir, uc_id):
     has_parquet = False
     if glob.glob(os.path.join(pqm, "*.parquet")) or glob.glob(os.path.join(pqe, "*.parquet")):
         with tarfile.open(os.path.join(vdir, "raw-parquet.tar"), "w") as t:
-            for sub in ("metrics-csv", "events-csv"):
+            for sub in ("metrics", "events"):
                 d = os.path.join(pqdir, sub)
                 if os.path.isdir(d):
                     t.add(d, arcname=sub)
@@ -1274,8 +1274,8 @@ def process_uc(env, ucdir, outroot):
             # Stage 2: compute KPIs and render the report FROM that parquet.
             pqdir = os.path.join(tmp, "_parquet")
             build_dedup_parquet(inner, pqdir)
-            pqm = os.path.join(pqdir, "metrics-csv")
-            pqe = os.path.join(pqdir, "events-csv")
+            pqm = os.path.join(pqdir, "metrics")
+            pqe = os.path.join(pqdir, "events")
             k = compute(pqm, pqe, inner, rid)
             rows.append(k)
             variant_page(env, k, inner, pqdir, os.path.join(ucout, rid), uc_id)
