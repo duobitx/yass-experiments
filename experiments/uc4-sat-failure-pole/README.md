@@ -161,6 +161,10 @@ negative baseline.
   injected as a `HardwareEvent` (e.g. `NetworkFailure` or
   `NetworkBandwidthReduced`) on one of the two stations.
 
+## Expectations
+- For TUS engine we expect all UC4 test will timed-out.
+- For EDFS engine we expect UC4 tests with low number of satellites to time-out.
+
 ## Additional metrics
 
 Beyond `yass_file_delivery_seconds`:
