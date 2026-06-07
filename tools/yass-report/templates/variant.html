@@ -67,7 +67,7 @@
     <span id="gTimeLbl" class="muted"></span>
   </div>
   <div id="gNet" class="graph-box"></div>
-  <div class="cap"><span style="color:#f58518">■ ground station</span> · <span style="color:#4c78a8">● relay satellite</span> · <span style="color:#54a24b">● producer</span> (same colours as the charts). <b>Spread tree</b>: one edge <code>from → to</code> per node = where it <b>first</b> acquired the file by the selected time (width = bytes <b>traced</b> from that source). Grouped per file; 0-byte control messages omitted; times bucketed to ~2&nbsp;s for cross-node clock skew. Timeline spans the whole experiment (0&nbsp;= simulation start). <b>Note:</b> edge bytes come from <code>block_recv</code>, which traces only the instrumented bitswap path — blocks pulled via kubo's standard bitswap or replicated through ipfs-cluster are <b>not</b> logged. So a label can read well below the file size (e.g. ~48&nbsp;MiB for a 128&nbsp;MiB file) even though the whole object arrived: it is a provenance <b>lower bound</b>, not a byte ledger. Delivery completeness is the <b>File deliveries</b> table below (file_delivered), not these totals. <span id="gSrc" class="muted"></span></div>
+  <div class="cap"><span style="color:#f58518">■ ground station</span> · <span style="color:#4c78a8">● relay satellite</span> · <span style="color:#54a24b">● producer</span> (same colours as the charts). <b>Spread tree</b>: one edge <code>from → to</code> per node = where it <b>first</b> acquired the file by the selected time. Grouped per file; 0-byte control messages omitted; times bucketed to ~2&nbsp;s for cross-node clock skew. Timeline spans the whole experiment (0&nbsp;= simulation start). <b>Note:</b> hover an edge for the bytes <code>block_recv</code> traced along it — only the instrumented bitswap path is logged; blocks pulled via kubo's standard bitswap or replicated through ipfs-cluster are <b>not</b>. So the hover total can read well below the file size even though the whole object arrived: it is a provenance <b>lower bound</b>, not a byte ledger. Delivery completeness is the <b>File deliveries</b> table below (file_delivered), not these totals. <span id="gSrc" class="muted"></span></div>
 </div>
 
 <h2>File transfer graph (rate)</h2>
@@ -227,16 +227,17 @@ const G = {{ v.graph|safe }};
       const edges=[];
       for(const key in agg){
         const p=key.split('\x01'), b=agg[key];
-        let col, title, lab;
+        let col, title, lab, w;
         if(win!=null){                       // rate graph: colour + label by bandwidth
           const bps=b/win;
           col=rateColor(bps); title=p[2]+': '+fmtRate(bps)+' ('+fmt(b)+' / '+win+'s)';
           lab=file==='__all__'?'':fmtRate(bps);
-        }else{                                // propagation tree: colour by file
-          col=fcol[p[2]]||'#888'; title=p[2]+': '+fmt(b); lab=file==='__all__'?'':fmt(b);
+          w=Math.max(1,Math.log10(b+1));
+        }else{                                // propagation tree: colour by file, uniform edges, no label
+          col=fcol[p[2]]||'#888'; title=p[2]+': '+fmt(b); lab=''; w=2;
         }
         edges.push({id:key,from:p[0],to:p[1],color:{color:col},
-          width:Math.max(1,Math.log10(b+1)),title:title,
+          width:w,title:title,
           label:lab,font:{color:'#cfd6e4',size:11,strokeWidth:0}});
       }
       edgesDS.clear(); edgesDS.add(edges);
