@@ -7,6 +7,16 @@
   {% if v.state == 'Success' %}<span class="badge ok">{{ v.state }}</span>{% else %}<span class="badge bad">{{ v.state }}</span>{% endif %}
 </h1>
 
+{% if v.params %}
+<h2>Parameters</h2>
+<table class="kpi">
+<tr><th>parameter</th><th>value</th><th>unit</th><th>description</th></tr>
+{% for r in v.params %}
+<tr><th>{{ r.key }}</th><td>{{ r.value }}</td><td>{{ r.unit }}</td><td>{{ r.desc }}</td></tr>
+{% endfor %}
+</table>
+{% endif %}
+
 <h2>KPIs</h2>
 <table class="kpi">
 <tr><th>KPI</th><th>value</th><th>unit</th><th>description</th></tr>
@@ -24,30 +34,21 @@
   <div class="chart"><h3>Per-target delivery time</h3>
     <div class="canvas-box" style="height:{{ v.deliv_h }}px"><canvas id="cDeliv"></canvas></div>
     <div class="cap">Seconds from file creation until each target node held the complete file. Bars coloured by node kind; the delivery KPI is the earliest ground-station bar.</div></div>
-  <div class="chart"><h3>U1 · Cumulative network TX / RX over time (MiB)</h3>
+  <div class="chart"><h3>Network TX over time (MiB)</h3>
     <div class="canvas-box" style="height:340px"><canvas id="cNetTs"></canvas></div>
-    <div class="cap">Cumulative TX (solid) and RX (dashed) summed across all nodes, vs seconds from experiment start.</div></div>
-  <div class="chart"><h3>U2 · CPU and memory over time</h3>
+    <div class="cap">Cumulative TX summed across all nodes, vs seconds from experiment start.</div></div>
+  <div class="chart"><h3>CPU and memory over time</h3>
     <div class="canvas-box" style="height:340px"><canvas id="cResTs"></canvas></div>
     <div class="cap">Aggregate CPU (millicores, left axis) and memory (MiB, right axis) across all containers, vs seconds from experiment start.</div></div>
-  <div class="chart"><h3>U3 · Network TX by node (top 20)</h3>
+  <div class="chart"><h3>Network TX by node (top 20)</h3>
     <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cNet"></canvas></div>
     <div class="cap">Total bytes transmitted per node over the run, coloured by node kind.</div></div>
-  <div class="chart"><h3>Network RX by node (top 20)</h3>
-    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cNetRx"></canvas></div>
-    <div class="cap">Total bytes received per node over the run; same node order and colours as the TX chart.</div></div>
-  <div class="chart"><h3>U4 · Peak CPU per node (top 20)</h3>
+  <div class="chart"><h3>Peak CPU per node (top 20)</h3>
     <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cCpuNode"></canvas></div>
     <div class="cap">Peak CPU (millicores) reached by each fsNode during the run, coloured by node kind.</div></div>
-  <div class="chart"><h3>U5 · Peak memory per node (top 20)</h3>
+  <div class="chart"><h3>Peak memory per node (top 20)</h3>
     <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cMemNode"></canvas></div>
     <div class="cap">Peak memory (MiB) reached by each fsNode during the run, coloured by node kind.</div></div>
-  <div class="chart"><h3>Volume used over time (MiB, global)</h3>
-    <div class="canvas-box" style="height:340px"><canvas id="cVolTs"></canvas></div>
-    <div class="cap">Total disk used across all node volumes (sum), vs seconds from experiment start.</div></div>
-  <div class="chart"><h3>Volume used by node (MiB, peak)</h3>
-    <div class="canvas-box" style="height:{{ v.net_h }}px"><canvas id="cVolNode"></canvas></div>
-    <div class="cap">Peak disk used by each individual node's volume during the run (top 20), coloured by node kind.</div></div>
 </div>
 
 {% if v.has_graph %}
@@ -59,12 +60,14 @@
     <label>speed <select id="gSpeed">
       <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
       <option value="1" selected>1×</option><option value="2">2×</option>
-      <option value="4">4×</option><option value="8">8×</option></select></label>
+      <option value="4">4×</option><option value="8">8×</option>
+      <option value="16">16×</option><option value="32">32×</option>
+      <option value="64">64×</option></select></label>
     <input id="gTime" type="range" min="0" step="0.1">
     <span id="gTimeLbl" class="muted"></span>
   </div>
   <div id="gNet" class="graph-box"></div>
-  <div class="cap"><span style="color:#f58518">■ ground station</span> · <span style="color:#4c78a8">● relay satellite</span> · <span style="color:#54a24b">● producer</span> (same colours as the charts). <b>Spread tree</b>: one edge <code>from → to</code> per node = where it <b>first</b> acquired the file by the selected time (width = total bytes it pulled from that source). Redundant bitswap re-shares are not shown here — see the transfer-rate graph below. Grouped per file; 0-byte control messages omitted; times bucketed to ~2&nbsp;s for cross-node clock skew. Timeline spans the whole experiment (0&nbsp;= simulation start). <span id="gSrc" class="muted"></span></div>
+  <div class="cap"><span style="color:#f58518">■ ground station</span> · <span style="color:#4c78a8">● relay satellite</span> · <span style="color:#54a24b">● producer</span> (same colours as the charts). <b>Spread tree</b>: one edge <code>from → to</code> per node = where it <b>first</b> acquired the file by the selected time (width = bytes <b>traced</b> from that source). Grouped per file; 0-byte control messages omitted; times bucketed to ~2&nbsp;s for cross-node clock skew. Timeline spans the whole experiment (0&nbsp;= simulation start). <b>Note:</b> edge bytes come from <code>block_recv</code>, which traces only the instrumented bitswap path — blocks pulled via kubo's standard bitswap or replicated through ipfs-cluster are <b>not</b> logged. So a label can read well below the file size (e.g. ~48&nbsp;MiB for a 128&nbsp;MiB file) even though the whole object arrived: it is a provenance <b>lower bound</b>, not a byte ledger. Delivery completeness is the <b>File deliveries</b> table below (file_delivered), not these totals. <span id="gSrc" class="muted"></span></div>
 </div>
 
 <h2>File transfer graph (rate)</h2>
@@ -75,7 +78,9 @@
     <label>speed <select id="tSpeed">
       <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
       <option value="1" selected>1×</option><option value="2">2×</option>
-      <option value="4">4×</option><option value="8">8×</option></select></label>
+      <option value="4">4×</option><option value="8">8×</option>
+      <option value="16">16×</option><option value="32">32×</option>
+      <option value="64">64×</option></select></label>
     <label>window <select id="tWin">
       <option value="5">5 s</option><option value="10" selected>10 s</option>
       <option value="20">20 s</option><option value="60">60 s</option></select></label>
@@ -116,8 +121,7 @@
 <ul class="files">
   {% if v.has_resources %}<li><a href="resources/index.html">Kubernetes resources</a> — manifests to reproduce this run (hardwaredefinitions, layout, experimentdefinition, experiment)</li>{% endif %}
   <li><a href="metrics.json">metrics.json</a> — KPIs as JSON</li>
-  {% if v.has_xlsx %}<li><a href="raw.xlsx.gz">raw.xlsx.gz</a> — raw metrics &amp; events (one sheet per CSV, gzipped)</li>{% endif %}
-  {% if v.has_csv %}<li><a href="raw-csv.tar.gz">raw-csv.tar.gz</a> — raw Prometheus/Loki CSVs (gzipped tar)</li>{% endif %}
+  {% if v.has_parquet %}<li><a href="raw-parquet.tar">raw-parquet.tar</a> — raw metrics &amp; events as typed, zstd-compressed Parquet (one file per series; read with pandas/polars/DuckDB)</li>{% endif %}
 </ul>
 
 <script>
@@ -127,10 +131,15 @@ Chart.defaults.color = txt; Chart.defaults.borderColor = grid;
 const kc = k => (P && P[k]) || '#888';   // node-kind colour (gs / sat / prod) — same everywhere
 const nodeBars = (id, labels, vals, kinds, label, horiz) => {
   if(!labels || !labels.length) return;
+  // value axis is x when bars are horizontal, y otherwise — title it with the
+  // unit-bearing label (e.g. "TX MiB", "peak CPU (millicores)") so every bar
+  // chart shows its unit even though the legend is hidden.
+  const valAxis = horiz ? 'x' : 'y';
   new Chart(id,{type:'bar',data:{labels:labels,datasets:[{label:label,data:vals,
       backgroundColor:(kinds||labels.map(()=>'sat')).map(kc)}]},
     options:{indexAxis:horiz?'y':'x',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false}}}});
+      plugins:{legend:{display:false}},
+      scales:{[valAxis]:{title:{display:true,text:label}}}}});
 };
 const dk = Object.keys(D.delivery);
 // Per-target delivery — one bar per target, coloured by node kind (gs/sat/prod)
@@ -139,10 +148,9 @@ new Chart(cDeliv,{type:'bar',data:{labels:dk,datasets:[{label:'delivery (s)',
   options:{indexAxis:'{{ v.deliv_axis }}',responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false}},
     scales:{ {{ v.deliv_valaxis }}:{title:{display:true,text:'seconds'}} }}});
-// U1 — cumulative TX (solid) / RX (dashed)
+// U1 — cumulative TX over time
 if(D.net_ts&&D.net_ts.t&&D.net_ts.t.length)new Chart(cNetTs,{type:'line',data:{labels:D.net_ts.t,
-  datasets:[{label:'TX MiB',data:D.net_ts.tx,borderColor:P.tx,pointRadius:0,tension:.2},
-            {label:'RX MiB',data:D.net_ts.rx,borderColor:P.rx,borderDash:[6,3],pointRadius:0,tension:.2}]},
+  datasets:[{label:'TX MiB',data:D.net_ts.tx,borderColor:P.tx,pointRadius:0,tension:.2}]},
   options:{responsive:true,maintainAspectRatio:false,scales:{x:{title:{display:true,text:'s from start'}},y:{title:{display:true,text:'MiB (cumulative)'}}}}});
 // U2 — CPU (left axis) + memory (right axis) over time
 if(D.res_ts&&D.res_ts.t&&D.res_ts.t.length)new Chart(cResTs,{type:'line',data:{labels:D.res_ts.t,
@@ -152,18 +160,12 @@ if(D.res_ts&&D.res_ts.t&&D.res_ts.t.length)new Chart(cResTs,{type:'line',data:{l
     x:{title:{display:true,text:'s from start'}},
     y:{position:'left',title:{display:true,text:'CPU (millicores)'}},
     y1:{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'memory (MiB)'}}}}});
-// U3 — TX by node, kind-coloured; RX by node mirrors it
+// U3 — TX by node, kind-coloured
 const netHoriz = '{{ v.net_axis }}' === 'y';
 nodeBars('cNet', D.net.nodes, D.net.tx, D.net.kind, 'TX MiB', netHoriz);
-nodeBars('cNetRx', D.net.nodes, D.net.rx, D.net.kind, 'RX MiB', netHoriz);
 // U4 / U5 — peak CPU + memory per node, kind-coloured
 if(D.cpu_by_node)nodeBars('cCpuNode', D.cpu_by_node.nodes, D.cpu_by_node.vals, D.cpu_by_node.kind, 'peak CPU (millicores)', D.cpu_by_node.nodes.length>8);
 if(D.mem_by_node)nodeBars('cMemNode', D.mem_by_node.nodes, D.mem_by_node.vals, D.mem_by_node.kind, 'peak memory (MiB)', D.mem_by_node.nodes.length>8);
-// volume — global over time + peak per node (kind-coloured)
-if(D.vol_ts&&D.vol_ts.t&&D.vol_ts.t.length)new Chart(cVolTs,{type:'line',data:{labels:D.vol_ts.t,
-  datasets:[{label:'volume used MiB',data:D.vol_ts.used,borderColor:P.vol,pointRadius:0,tension:.2,fill:true,backgroundColor:'rgba(157,117,93,.15)'}]},
-  options:{responsive:true,maintainAspectRatio:false,scales:{x:{title:{display:true,text:'s from start'}},y:{title:{display:true,text:'MiB'}}}}});
-if(D.vol_by_node)nodeBars('cVolNode', D.vol_by_node.nodes, D.vol_by_node.used, D.vol_by_node.kind, 'peak volume (MiB)', D.vol_by_node.nodes.length>8);
 </script>
 
 {% if v.has_graph %}
@@ -228,9 +230,9 @@ const G = {{ v.graph|safe }};
       edgesDS.clear(); edgesDS.add(edges);
     }
     tEl.oninput=rebuild; sel.onchange=rebuild; if(winEl) winEl.onchange=rebuild;
-    // At 1× the full timeline plays over PLAY_SECONDS_AT_1X wall-clock seconds; the
-    // speed selector multiplies that. (Was ~7s at 1× — too fast to follow.)
-    const TICK_MS=100, PLAY_SECONDS_AT_1X=40;
+    // 1× is real-time: one simulated second per wall-clock second. The speed
+    // selector multiplies that (e.g. 8× advances 8 simulated seconds per second).
+    const TICK_MS=100;
     let timer=null;
     playBtn.onclick=function(){
       if(timer){clearInterval(timer);timer=null;this.textContent='▶ play';return;}
@@ -238,7 +240,7 @@ const G = {{ v.graph|safe }};
       if(parseFloat(tEl.value)>=tmax) tEl.value=0;
       timer=setInterval(()=>{
         const spd=parseFloat(spEl&&spEl.value)||1;
-        const step=(tmax||1)*(TICK_MS/1000)/PLAY_SECONDS_AT_1X*spd;
+        const step=(TICK_MS/1000)*spd;
         let v=parseFloat(tEl.value)+step;
         if(v>=tmax){v=tmax;clearInterval(timer);timer=null;playBtn.textContent='▶ play';}
         tEl.value=v; rebuild();
