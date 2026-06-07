@@ -13,7 +13,8 @@ each, and writes a static site under <out> (default `<experiments_dir>/../result
     results/ucN/index.html          — UC description (from README) + variants table
     results/ucN/<variant>/index.html — per-run KPIs + charts + raw files
 
-The output dir is wiped on each run. Charts are Chart.js (interactive,
+Generated files are overwritten in place (the output dir is NOT wiped), so files added
+by hand under a ucX/ directory (e.g. whole-UC conclusions) survive a regeneration. Charts are Chart.js (interactive,
 stacked full-width) plus matplotlib/gnuplot PNGs. Raw data is shipped per variant
 as typed Parquet (raw-parquet.tar) and is NOT meant for publishing.
 """
@@ -178,42 +179,44 @@ def _is_ts(h):
 
 
 # A retried run_id accumulates several attempts' telemetry in one 24h export; event
-# bursts more than this far apart belong to different attempts.
-ATTEMPT_GAP_S = 300
+# A backward jump in experimentTime larger than this marks a new attempt: each attempt
+# restarts the simulation clock from simulationStartTime, so experimentTime resets.
+SIM_RESET_S = 300
 
 
 def experiment_window(bundle):
     """Wall-clock window of the FINAL attempt. The export window (24h, looking back) can
-    capture several retry attempts under one run_id — their telemetry would otherwise
-    stretch the time axis over hours and conflate runs. We keep only the last contiguous
-    block of event activity (a gap > ATTEMPT_GAP_S splits attempts), which is the run
-    whose terminal state was exported. Returns (start, end) datetimes (with a small
-    margin), or None when there are no timestamped events to anchor on."""
-    times = []
+    capture several retry attempts under one run_id, which would conflate runs and stretch
+    the time axis over hours. Every attempt restarts the simulation clock, so sorting
+    events by wallTime, experimentTime jumps BACKWARD at each attempt's start; the final
+    attempt begins after the last such reset. The window length is then bounded to the
+    experiment's own (simulation) duration so the post-run heartbeat tail (online_state/
+    power keep firing until the namespace is reaped) doesn't stretch the axis. Returns
+    (clip_start, clip_end, anchor) — anchor is the wall time of sim t0, used so metric
+    charts (wall-stamped) share the simulation-clock x-axis with the graphs — or None
+    when no event carries a wallTime."""
+    evs = []  # (wallTime, experimentTime)
     for csvf in glob.glob(os.path.join(bundle, "events-csv", "*.csv")):
         try:
             with open(csvf) as f:
                 for r in csv.DictReader(f):
-                    w = parse_ts(r.get("wallTime") or "")
+                    w, e = parse_ts(r.get("wallTime") or ""), parse_ts(r.get("experimentTime") or "")
                     if w:
-                        times.append(w)
+                        evs.append((w, e))
         except OSError:
             continue
-    if not times:
+    if not evs:
         return None
-    times.sort()
-    cluster_start = times[-1]
-    for i in range(len(times) - 1, 0, -1):
-        if (times[i] - times[i - 1]).total_seconds() > ATTEMPT_GAP_S:
-            break
-        cluster_start = times[i - 1]
-    # Bound the window length to the experiment's own (simulation) duration: after a run
-    # ends, world-controllers keep emitting online_state/power heartbeats (< gap apart)
-    # until the namespace is reaped, which would otherwise stretch the axis far past the
-    # actual run. Fall back to the last event when the CR has no usable sim span.
+    evs.sort()  # by wallTime
+    start_idx = 0
+    for i in range(1, len(evs)):
+        a, b = evs[i - 1][1], evs[i][1]
+        if a and b and (b - a).total_seconds() < -SIM_RESET_S:
+            start_idx = i  # simulation clock reset → start of a later attempt
+    cluster_start = evs[start_idx][0]  # wall time at which the sim clock started = sim t0
     dur = _sim_duration_s(bundle)
-    end = cluster_start + timedelta(seconds=dur + 300) if dur else times[-1] + timedelta(seconds=300)
-    return cluster_start - timedelta(seconds=180), end
+    end = cluster_start + timedelta(seconds=dur + 300) if dur else evs[-1][0] + timedelta(seconds=300)
+    return cluster_start - timedelta(seconds=180), end, cluster_start
 
 
 def _sim_duration_s(bundle):
@@ -228,19 +231,27 @@ def _sim_duration_s(bundle):
     return None
 
 
+def _is_monotonic_metric(name):
+    # Cumulative families (counters + histogram parts) only ever rise.
+    return name.endswith(("_total", "_count", "_sum", "_bucket"))
+
+
 def dedup_metric_wide(csv_path, window=None):
-    """Read a prom-snapshot wide CSV and collapse exporter-duplicate series. Timestamp
-    columns outside `window` (the final-attempt wall window) are dropped so earlier retry
-    attempts don't stretch the axis. Rows are grouped by identity labels (label columns
-    minus DROP_LABELS); within each group we KEEP THE MOST-COMPLETE EXPORTER INSTANCE —
-    the row whose series has the largest final value (counters only rise, so that is the
-    instance that ran longest / caught the most). Per-timestamp MAX is wrong here: the
-    most-complete exporter pod can die before the run ends, so at the final timestamps
-    only a newer, smaller pod is present and a per-timestamp merge would undercount the
-    headline total. Returns (id_label_names, ts_headers, rows) with rows = [(labels,
-    vals)] (None for gaps), or None if empty/missing."""
+    """Read a prom-snapshot wide CSV and collapse exporter-duplicate series into one
+    series per identity (label columns minus DROP_LABELS). Timestamp columns outside
+    `window` (the final-attempt wall window) are dropped so earlier retry attempts don't
+    stretch the axis.
+
+    No single exporter pod covers the whole run (pods churn), so at each timestamp we
+    take the MAX across instances — the union of their coverage. For cumulative metrics
+    (counters/histograms) we then apply a running max + forward-fill: the value is
+    non-decreasing and a high-water instance that dies is not undercut by a newer pod
+    that is still re-accumulating, so the series stays complete and the final equals the
+    true total. Non-cumulative gauges (cpu/mem/battery/…) keep the plain per-timestamp
+    max. Returns (id_label_names, ts_headers, rows) or None if empty/missing."""
     if not os.path.exists(csv_path):
         return None
+    monotonic = _is_monotonic_metric(os.path.splitext(os.path.basename(csv_path))[0])
     with open(csv_path) as f:
         rd = csv.reader(f)
         hdr = next(rd, None)
@@ -257,14 +268,18 @@ def dedup_metric_wide(csv_path, window=None):
         else:
             keep_ts = list(range(len(all_ts)))
         ts_headers = [all_ts[j] for j in keep_ts]
-        best = {}  # id-key -> (final_value, labels, vals)
+        n = len(keep_ts)
+        groups = {}  # id-key -> (labels, vals[per-timestamp max across instances])
         for row in rd:
             if not row:
                 continue
             labels = {hdr[i]: row[i] for i in keep_idx if i < len(row)}
-            key = tuple(labels.get(n, "") for n in lab_names)
-            vals = [None] * len(keep_ts)
-            final = float("-inf")
+            key = tuple(labels.get(x, "") for x in lab_names)
+            g = groups.get(key)
+            if g is None:
+                g = (labels, [None] * n)
+                groups[key] = g
+            vals = g[1]
             for jj, j in enumerate(keep_ts):
                 cell = row[vs + j] if vs + j < len(row) else ""
                 if cell == "":
@@ -273,12 +288,19 @@ def dedup_metric_wide(csv_path, window=None):
                     x = float(cell)
                 except ValueError:
                     continue
-                vals[jj] = x
-                final = x  # last non-empty sample
-            cur = best.get(key)
-            if cur is None or final > cur[0]:
-                best[key] = (final, labels, vals)
-    rows = [(b[1], b[2]) for b in best.values()]
+                if vals[jj] is None or x > vals[jj]:
+                    vals[jj] = x
+    rows = [(g[0], g[1]) for g in groups.values()]
+    if monotonic and rows:
+        last = max((j for _, vals in rows for j in range(n) if vals[j] is not None), default=-1)
+        for _, vals in rows:
+            run = None
+            for j in range(n):
+                if vals[j] is not None:
+                    run = vals[j] if run is None or vals[j] > run else run
+                    vals[j] = run
+                elif run is not None and j <= last:
+                    vals[j] = run  # forward-fill gaps until the global last sample
     return lab_names, ts_headers, rows
 
 
@@ -360,7 +382,8 @@ def build_dedup_parquet(bundle, pqdir):
     wrote = False
     # Clip everything to the final attempt's wall window so retries captured by the 24h
     # export don't conflate runs or stretch the time axis.
-    window = experiment_window(bundle)
+    w = experiment_window(bundle)
+    window = (w[0], w[1]) if w else None
     md = os.path.join(pqdir, "metrics-csv")
     os.makedirs(md, exist_ok=True)
     for csvf in sorted(glob.glob(os.path.join(bundle, "metrics-csv", "*.csv"))):
@@ -930,9 +953,13 @@ def build_deliveries(pqe, bundle):
                          "is_producer": False, "sim_time": simfmt(et)})
     return rows
 
-def metric_series(pqdir, metric, scale=1.0):
+def metric_series(pqdir, metric, scale=1.0, anchor=None):
     """Per-timestamp sum across all (de-duplicated) series of a time-series metric, read
-    from the deduped parquet. Returns (rel_seconds[], total[]) with total / `scale`."""
+    from the deduped parquet. Returns (rel_seconds[], total[]) with total / `scale`.
+    When `anchor` (the wall time of sim t0) is given, rel is measured from it — since the
+    simulation runs at ~real time this equals the simulation-clock seconds used by the
+    propagation/transfer graphs, so the axes line up. Otherwise rel is from the first
+    sample."""
     p = os.path.join(pqdir, metric + ".parquet")
     if not os.path.exists(p):
         return [], []
@@ -942,7 +969,7 @@ def metric_series(pqdir, metric, scale=1.0):
         return [], []
     d = t.to_pydict()
     parsed = [parse_ts(c) for c in ts_cols]
-    t0 = next((x for x in parsed if x), None)
+    t0 = anchor or next((x for x in parsed if x), None)
     rel = [round((x - t0).total_seconds()) if (x and t0) else 0 for x in parsed]
     totals = [round(sum(v for v in d[c] if v is not None) / scale, 2) for c in ts_cols]
     return rel, totals
@@ -1139,12 +1166,16 @@ def variant_page(env, k, bundle, pqdir, vdir, uc_id):
             "net": {"nodes": nodes,
                     "tx": [round(tx.get(n, 0) / MiB, 1) for n in nodes],
                     "kind": [kind_tag(n, producers) for n in nodes]}}
+    # Anchor metric (wall-stamped) time-series at sim t0 so their x-axis matches the
+    # simulation-clock graphs below.
+    w = experiment_window(bundle)
+    anchor = w[2] if w else None
     # U1 — cumulative network TX (MiB) over time
-    ntx_t, ntx = metric_series(pqm, "yass_network_tx_bytes_total", MiB)
+    ntx_t, ntx = metric_series(pqm, "yass_network_tx_bytes_total", MiB, anchor)
     data["net_ts"] = {"t": ntx_t, "tx": ntx}
     # U2 — aggregate CPU (millicores) + memory (MiB) over time
-    cpu_t, cpu_v = metric_series(pqm, "yass_container_cpu_millicores")
-    mem_t, mem_v = metric_series(pqm, "yass_container_memory_bytes", MiB)
+    cpu_t, cpu_v = metric_series(pqm, "yass_container_cpu_millicores", 1.0, anchor)
+    mem_t, mem_v = metric_series(pqm, "yass_container_memory_bytes", MiB, anchor)
     data["res_ts"] = {"t": cpu_t or mem_t, "cpu": cpu_v, "mem": mem_v}
     # U4 / U5 — peak CPU + memory per fsNode (top 20), kind-tagged. Per the spec,
     # the node value is each container's peak (max over time) SUMMED across that
@@ -1301,9 +1332,10 @@ def main():
 
     exp = os.path.abspath(a.experiments_dir)
     out = os.path.abspath(a.out or os.path.join(exp, "..", "results"))
-    if os.path.isdir(out):
-        shutil.rmtree(out)
-    os.makedirs(out)
+    # Do NOT wipe the output: generated files are overwritten in place, so any files
+    # added by hand under a ucX/ directory (e.g. whole-UC conclusions) are preserved
+    # across regenerations.
+    os.makedirs(out, exist_ok=True)
     os.makedirs(os.path.join(out, "assets"), exist_ok=True)
     shutil.copy(os.path.join(TPL, "site.css"), os.path.join(out, "assets", "site.css"))
 

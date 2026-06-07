@@ -88,7 +88,7 @@
     <span id="tTimeLbl" class="muted"></span>
   </div>
   <div id="tNet" class="graph-box"></div>
-  <div class="cap">Same nodes; edge <code>from → to</code> = bytes transferred <b>within the trailing window</b> ending at the selected time (instantaneous flow). Play to watch where traffic moves moment-to-moment. Timeline spans the whole experiment (0&nbsp;= simulation start).</div>
+  <div class="cap">Same nodes; edge <code>from → to</code> = bytes transferred <b>within the trailing window</b> ending at the selected time (instantaneous flow). <b>Edge colour = bandwidth</b> (bits/s, blue = low → red = high); label shows the rate. Play to watch where traffic moves moment-to-moment. Timeline is the simulation clock (0&nbsp;= simulation start), shared with the charts above.</div>
 </div>
 {% endif %}
 
@@ -179,6 +179,10 @@ const G = {{ v.graph|safe }};
   const palette=['#9467bd','#e377c2','#17becf','#bcbd22','#7f7f7f','#c5b0d5','#9edae5','#dbdb8d'];
   const fcol={}; G.files.forEach((f,i)=>fcol[f]=palette[i%palette.length]);
   const fmt=b=>b>=1048576?(b/1048576).toFixed(1)+' MiB':b>=1024?(b/1024).toFixed(0)+' KiB':b+' B';
+  // Rate-graph edge colour = bandwidth (bytes/s, log-scaled blue→red over the model's
+  // ~100 kbit/s … 10 Gbit/s range); label/tooltip show bits/s.
+  const fmtRate=bps=>bps*8>=1e6?(bps*8/1e6).toFixed(1)+' Mbit/s':(bps*8/1e3).toFixed(0)+' kbit/s';
+  const rateColor=bps=>{const n=Math.max(0,Math.min(1,(Math.log10(bps+1)-4)/5.5));return 'hsl('+Math.round(240*(1-n))+',75%,55%)';};
   const tmax=G.tmax||0;
   // One factory builds both graphs. With a window control (o.win) edges show bytes
   // in the trailing window (rate); otherwise cumulative bytes up to t (propagation).
@@ -223,9 +227,17 @@ const G = {{ v.graph|safe }};
       const edges=[];
       for(const key in agg){
         const p=key.split('\x01'), b=agg[key];
-        edges.push({id:key,from:p[0],to:p[1],color:{color:fcol[p[2]]||'#888'},
-          width:Math.max(1,Math.log10(b+1)),title:p[2]+': '+fmt(b),
-          label:file==='__all__'?'':fmt(b),font:{color:'#cfd6e4',size:11,strokeWidth:0}});
+        let col, title, lab;
+        if(win!=null){                       // rate graph: colour + label by bandwidth
+          const bps=b/win;
+          col=rateColor(bps); title=p[2]+': '+fmtRate(bps)+' ('+fmt(b)+' / '+win+'s)';
+          lab=file==='__all__'?'':fmtRate(bps);
+        }else{                                // propagation tree: colour by file
+          col=fcol[p[2]]||'#888'; title=p[2]+': '+fmt(b); lab=file==='__all__'?'':fmt(b);
+        }
+        edges.push({id:key,from:p[0],to:p[1],color:{color:col},
+          width:Math.max(1,Math.log10(b+1)),title:title,
+          label:lab,font:{color:'#cfd6e4',size:11,strokeWidth:0}});
       }
       edgesDS.clear(); edgesDS.add(edges);
     }
