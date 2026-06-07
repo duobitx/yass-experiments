@@ -123,8 +123,14 @@ func main() {
 	fmt.Printf("done — output in %s\n", dir)
 }
 
-// buildSelector wraps a metric name with the standard experiment-run
-// label filters.
+// buildSelector wraps a metric name with the standard experiment-run label
+// filters, then de-duplicates exporter copies. Several metrics-bridge / mqtt2prom
+// pods (and peer-IP churn during a long run) re-emit the SAME logical series under
+// different instance/pod/peer labels, so a raw snapshot holds N near-identical
+// copies. `max without (instance, pod, peer)` keeps every identity label (fsNode,
+// peer_node, container, le, source/target_fsNode, ...) and folds only those volatile
+// ones, taking the max (counters -> the most-complete exporter instance). The
+// experiment/run_id filter already prevents any cross-experiment mixing.
 func buildSelector(metric, experiment, engine, runID string) string {
 	parts := []string{fmt.Sprintf(`experiment="%s"`, experiment)}
 	if engine != "" {
@@ -133,7 +139,7 @@ func buildSelector(metric, experiment, engine, runID string) string {
 	if runID != "" {
 		parts = append(parts, fmt.Sprintf(`run_id="%s"`, runID))
 	}
-	return fmt.Sprintf("%s{%s}", metric, strings.Join(parts, ","))
+	return fmt.Sprintf("max without (instance, pod, peer) (%s{%s})", metric, strings.Join(parts, ","))
 }
 
 // writeSeriesCSV writes one Prometheus QueryRange result as a CSV
