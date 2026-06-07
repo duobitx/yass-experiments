@@ -47,6 +47,8 @@ var defaultMetrics = []string{
 	"yass_hardware_event_active",
 	"yass_hardware_event_dropped_total",
 	"yass_los_active",
+	"yass_edfs_pin_intent_count",
+	"yass_edfs_replica_count",
 }
 
 func main() {
