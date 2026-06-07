@@ -177,16 +177,68 @@ def _is_ts(h):
     return bool(re.match(r"\d{4}-\d\d-\d\dT", h))
 
 
-def dedup_metric_wide(csv_path):
-    """Read a prom-snapshot wide CSV and collapse exporter-duplicate series. Rows are
-    grouped by identity labels (label columns minus DROP_LABELS); within each group we
-    KEEP THE MOST-COMPLETE EXPORTER INSTANCE — the row whose series has the largest
-    final value (counters only rise, so that is the instance that ran longest / caught
-    the most). Per-timestamp MAX is wrong here: the most-complete exporter pod can die
-    before the run ends, so at the final timestamps only a newer, smaller pod is present
-    and a per-timestamp merge would undercount the headline total. Returns
-    (id_label_names, ts_headers, rows) with rows = [(labels, vals)] (None for gaps), or
-    None if empty/missing."""
+# A retried run_id accumulates several attempts' telemetry in one 24h export; event
+# bursts more than this far apart belong to different attempts.
+ATTEMPT_GAP_S = 300
+
+
+def experiment_window(bundle):
+    """Wall-clock window of the FINAL attempt. The export window (24h, looking back) can
+    capture several retry attempts under one run_id — their telemetry would otherwise
+    stretch the time axis over hours and conflate runs. We keep only the last contiguous
+    block of event activity (a gap > ATTEMPT_GAP_S splits attempts), which is the run
+    whose terminal state was exported. Returns (start, end) datetimes (with a small
+    margin), or None when there are no timestamped events to anchor on."""
+    times = []
+    for csvf in glob.glob(os.path.join(bundle, "events-csv", "*.csv")):
+        try:
+            with open(csvf) as f:
+                for r in csv.DictReader(f):
+                    w = parse_ts(r.get("wallTime") or "")
+                    if w:
+                        times.append(w)
+        except OSError:
+            continue
+    if not times:
+        return None
+    times.sort()
+    cluster_start = times[-1]
+    for i in range(len(times) - 1, 0, -1):
+        if (times[i] - times[i - 1]).total_seconds() > ATTEMPT_GAP_S:
+            break
+        cluster_start = times[i - 1]
+    # Bound the window length to the experiment's own (simulation) duration: after a run
+    # ends, world-controllers keep emitting online_state/power heartbeats (< gap apart)
+    # until the namespace is reaped, which would otherwise stretch the axis far past the
+    # actual run. Fall back to the last event when the CR has no usable sim span.
+    dur = _sim_duration_s(bundle)
+    end = cluster_start + timedelta(seconds=dur + 300) if dur else times[-1] + timedelta(seconds=300)
+    return cluster_start - timedelta(seconds=180), end
+
+
+def _sim_duration_s(bundle):
+    """Experiment duration on the simulation clock (simulationStartTime → experimentTime)
+    from the bundle's Experiment CR, or None when unavailable."""
+    exp = (load_yaml(os.path.join(bundle, "manifests", "experiment.yaml"))
+           or load_yaml(os.path.join(bundle, "experiment.yaml")) or {})
+    sim0 = parse_ts((exp.get("spec") or {}).get("simulationStartTime"))
+    sim1 = parse_ts((exp.get("status") or {}).get("experimentTime"))
+    if sim0 and sim1 and sim1 > sim0:
+        return (sim1 - sim0).total_seconds()
+    return None
+
+
+def dedup_metric_wide(csv_path, window=None):
+    """Read a prom-snapshot wide CSV and collapse exporter-duplicate series. Timestamp
+    columns outside `window` (the final-attempt wall window) are dropped so earlier retry
+    attempts don't stretch the axis. Rows are grouped by identity labels (label columns
+    minus DROP_LABELS); within each group we KEEP THE MOST-COMPLETE EXPORTER INSTANCE —
+    the row whose series has the largest final value (counters only rise, so that is the
+    instance that ran longest / caught the most). Per-timestamp MAX is wrong here: the
+    most-complete exporter pod can die before the run ends, so at the final timestamps
+    only a newer, smaller pod is present and a per-timestamp merge would undercount the
+    headline total. Returns (id_label_names, ts_headers, rows) with rows = [(labels,
+    vals)] (None for gaps), or None if empty/missing."""
     if not os.path.exists(csv_path):
         return None
     with open(csv_path) as f:
@@ -197,16 +249,23 @@ def dedup_metric_wide(csv_path):
         vs = next((i for i, h in enumerate(hdr) if _is_ts(h)), len(hdr))
         keep_idx = [i for i in range(vs) if hdr[i] not in DROP_LABELS]
         lab_names = [hdr[i] for i in keep_idx]
-        ts_headers = hdr[vs:]
+        all_ts = hdr[vs:]
+        if window is not None:
+            ws, we = window
+            keep_ts = [j for j, h in enumerate(all_ts)
+                       if (parse_ts(h) or ws) >= ws and (parse_ts(h) or we) <= we]
+        else:
+            keep_ts = list(range(len(all_ts)))
+        ts_headers = [all_ts[j] for j in keep_ts]
         best = {}  # id-key -> (final_value, labels, vals)
         for row in rd:
             if not row:
                 continue
             labels = {hdr[i]: row[i] for i in keep_idx if i < len(row)}
             key = tuple(labels.get(n, "") for n in lab_names)
-            vals = [None] * len(ts_headers)
+            vals = [None] * len(keep_ts)
             final = float("-inf")
-            for j in range(len(ts_headers)):
+            for jj, j in enumerate(keep_ts):
                 cell = row[vs + j] if vs + j < len(row) else ""
                 if cell == "":
                     continue
@@ -214,7 +273,7 @@ def dedup_metric_wide(csv_path):
                     x = float(cell)
                 except ValueError:
                     continue
-                vals[j] = x
+                vals[jj] = x
                 final = x  # last non-empty sample
             cur = best.get(key)
             if cur is None or final > cur[0]:
@@ -223,10 +282,10 @@ def dedup_metric_wide(csv_path):
     return lab_names, ts_headers, rows
 
 
-def write_metric_parquet(csv_path, out_path):
+def write_metric_parquet(csv_path, out_path, window=None):
     """De-duplicate a metric CSV and write it as a wide parquet (string label columns +
     ISO-timestamp float columns). Returns True if written."""
-    res = dedup_metric_wide(csv_path)
+    res = dedup_metric_wide(csv_path, window)
     if not res:
         return False
     lab_names, ts_headers, rows = res
@@ -241,17 +300,22 @@ def write_metric_parquet(csv_path, out_path):
     return True
 
 
-def dedup_events(csv_path):
-    """Read an events CSV and drop exporter-duplicate rows. file_delivered: the same
+def dedup_events(csv_path, window=None):
+    """Read an events CSV and drop exporter-duplicate rows. Rows whose wallTime falls
+    outside `window` (earlier retry attempts) are dropped first. file_delivered: the same
     logical delivery is re-emitted by each metrics-bridge pod with slightly different
-    deliverySeconds — collapse by (name,source,target), keep earliest. Other kinds:
-    drop rows identical except for the volatile wallTime. Returns (fieldnames, rows)."""
+    deliverySeconds — collapse by (name,source,target), keep earliest. Other kinds: drop
+    rows identical except for the volatile wallTime. Returns (fieldnames, rows)."""
     if not os.path.exists(csv_path):
         return None
     with open(csv_path) as f:
         rd = csv.DictReader(f)
         rows = list(rd)
         fns = list(rd.fieldnames or [])
+    if window is not None:
+        ws, we = window
+        rows = [r for r in rows
+                if (lambda t: t is None or (ws <= t <= we))(parse_ts(r.get("wallTime") or ""))]
     base = os.path.basename(csv_path)
     if base == "file_delivered.csv":
         best = {}
@@ -274,9 +338,9 @@ def dedup_events(csv_path):
     return fns, rows
 
 
-def write_events_parquet(csv_path, out_path):
+def write_events_parquet(csv_path, out_path, window=None):
     """De-duplicate an events CSV and write it as parquet (all columns as strings)."""
-    res = dedup_events(csv_path)
+    res = dedup_events(csv_path, window)
     if not res:
         return False
     fns, rows = res
@@ -294,6 +358,9 @@ def build_dedup_parquet(bundle, pqdir):
     cleaned dataset the report and the raw-parquet.tar deliverable are both built from.
     Returns True if anything was written."""
     wrote = False
+    # Clip everything to the final attempt's wall window so retries captured by the 24h
+    # export don't conflate runs or stretch the time axis.
+    window = experiment_window(bundle)
     md = os.path.join(pqdir, "metrics-csv")
     os.makedirs(md, exist_ok=True)
     for csvf in sorted(glob.glob(os.path.join(bundle, "metrics-csv", "*.csv"))):
@@ -301,7 +368,7 @@ def build_dedup_parquet(bundle, pqdir):
         if name in DROP_METRICS:
             continue
         try:
-            if write_metric_parquet(csvf, os.path.join(md, name + ".parquet")):
+            if write_metric_parquet(csvf, os.path.join(md, name + ".parquet"), window):
                 wrote = True
         except Exception as e:
             print(f"  [warn] parquet(metric) skipped {name}: {e}")
@@ -310,7 +377,7 @@ def build_dedup_parquet(bundle, pqdir):
     for csvf in sorted(glob.glob(os.path.join(bundle, "events-csv", "*.csv"))):
         name = os.path.splitext(os.path.basename(csvf))[0]
         try:
-            if write_events_parquet(csvf, os.path.join(ed, name + ".parquet")):
+            if write_events_parquet(csvf, os.path.join(ed, name + ".parquet"), window):
                 wrote = True
         except Exception as e:
             print(f"  [warn] parquet(event) skipped {name}: {e}")
