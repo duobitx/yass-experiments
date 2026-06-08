@@ -51,9 +51,10 @@ if [[ -z "$run_id" ]]; then
 fi
 engine=$(kubectl -n "$ns" get pod -l yass-experiment="$exp" -o jsonpath='{.items[0].metadata.labels.yass-engine}' 2>/dev/null || echo unknown)
 
-# Tightly bound the Prometheus window to THIS attempt. A retried run_id shares its
-# labels with earlier attempts, so a plain 24h look-back pulls their telemetry into the
-# bundle (conflating runs, stretching report time-axes). Start at the Experiment CR's
+# Tightly bound the events + Prometheus window to THIS attempt. A retried run_id shares
+# its labels with earlier attempts, so a plain 24h look-back pulls their telemetry into the
+# bundle (conflating runs, stretching report time-axes) and, for big rosters (n100/n200),
+# makes the Loki events query exceed its deadline. Start at the Experiment CR's
 # creationTimestamp minus a small lead; fall back to the 24h window if it is unavailable.
 created=$(kubectl -n "$ns" get experiment "$exp" -o jsonpath='{.metadata.creationTimestamp}' 2>/dev/null || true)
 prom_from=""
@@ -76,6 +77,7 @@ echo "bundle: $bundle"
   --experiment "$exp" \
   --run-id "$run_id" \
   --engine "$engine" \
+  ${prom_from:+--start "$prom_from"} \
   --out "$bundle/events.ods" \
   --format ods
 
@@ -86,6 +88,7 @@ csv_tar="$bundle/events.tar.gz"
   --experiment "$exp" \
   --run-id "$run_id" \
   --engine "$engine" \
+  ${prom_from:+--start "$prom_from"} \
   --out "$csv_tar" \
   --format csv
 tar -xzf "$csv_tar" -C "$bundle/events-csv/"

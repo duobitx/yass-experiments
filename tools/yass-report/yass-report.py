@@ -25,8 +25,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# Dark palette matching the interactive (Chart.js) charts so PNGs blend in.
-PANEL, GRID, FG = "#171a21", "#2a2f3a", "#cfd6e4"
+# Navy palette matching the interactive (Chart.js) charts + the EDFS site so PNGs blend in.
+PANEL, GRID, FG = "#0a1628", "#22304a", "#cdd7ea"
 C_BLUE, C_GREY, C_GREEN, C_RED = "#4c78a8", "#888888", "#54a24b", "#e45756"
 
 # Canonical palette — the SAME concept gets the SAME colour on EVERY chart (PNG,
@@ -168,10 +168,12 @@ DROP_LABELS = ("__name__", "instance", "pod", "peer", "job",
                "exported_namespace", "namespace", "layout")
 # Metrics excluded from the export and the report:
 #  - yass_network_rx_bytes_total: world-controller ingress accounting reads 0 on receivers.
-#  - yass_volume_used_bytes / _capacity_bytes: report the host worker's filesystem df
-#    (not the fsNode's own data), so they carry no experiment signal.
+#  - yass_volume_capacity_bytes: the host worker's filesystem df capacity, not the fsNode's
+#    own quota, so it carries no experiment signal.
+# yass_volume_used_bytes is kept: it is now a du of each fsNode data dir (per `volume` label:
+# agent-tmp / engine-tmp / transfer), so it reflects real per-node disk use.
 DROP_METRICS = ("yass_network_rx_bytes_total",
-                "yass_volume_used_bytes", "yass_volume_capacity_bytes")
+                "yass_volume_capacity_bytes")
 
 
 def _is_ts(h):
@@ -1199,10 +1201,6 @@ def variant_page(env, k, bundle, pqdir, vdir, uc_id):
                 "kind": [kind_tag(n, producers) for n in top]}
     data["cpu_by_node"] = _peak_by_node("yass_container_cpu_millicores", 1.0)
     data["mem_by_node"] = _peak_by_node("yass_container_memory_bytes", MiB)
-    # NOTE: volume metrics (yass_volume_used_bytes / _capacity_bytes) are dropped entirely
-    # (DROP_METRICS) — they report the host worker's filesystem df, not the fsNode's own
-    # data, so they carry no experiment signal. Restore once the world-controller does
-    # du of each data dir instead of df of the host.
 
     graph = build_propagation(pqe, k.get("sim_start"), k.get("duration_s"))
     deliveries = build_deliveries(pqe, bundle)

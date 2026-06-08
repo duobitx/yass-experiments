@@ -4,15 +4,55 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{ title }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ root }}assets/site.css">
 {% block head %}{% endblock %}
 </head>
-<body><div class="wrap">
+<body>
+<nav class="site-nav">
+  <div class="nav-inner">
+    <a href="{{ root }}index.html" class="nav-logo" aria-label="EDFS — YASS results home">
+      <span class="logo-accent">EDFS</span>
+      <span class="logo-badge">ESA Φ-lab</span>
+      <span class="nav-sub">YASS results</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="{{ root }}index.html">Use Cases</a></li>
+      <li><a href="https://edfs4eo.cloudferro.com/" target="_blank" rel="noopener">Project</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="wrap">
 <div class="crumbs">
   <a href="{{ root }}index.html">YASS results</a>
   {% for c in crumbs %} / {% if c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% else %}{{ c.text }}{% endif %}{% endfor %}
 </div>
 {% block content %}{% endblock %}
-<footer>YASS — Yet Another Satellite Simulator · EDFS vs TUS · generated report</footer>
-</div></body>
+</div>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo"><span class="logo-accent">EDFS</span> <span class="logo-badge">ESA Φ-lab</span></div>
+      <p>Disruptive Technologies for Decentralized Storage and Provenance of EO Data — Theme 2.
+         YASS (Yet Another Satellite Simulator): EDFS vs TUS across use cases UC1–UC5.</p>
+    </div>
+    <div>
+      <div class="footer-heading">Contract Info</div>
+      <div class="footer-meta">
+        <span>ESA Contract No:</span>
+        <span class="footer-contract-no">4000148100/25/I-NS</span>
+        <span class="footer-meta-label">Prime Contractor:</span>
+        <span><a href="https://cloudferro.com/" target="_blank" rel="noopener">CloudFerro S.A.</a> (PL)</span>
+        <span class="footer-meta-label">Sub-Contractor:</span>
+        <span>DuoBit Sp. z o.o. (PL)</span>
+        <span class="footer-meta-label">Funded By:</span>
+        <span><a href="https://philab.esa.int/" target="_blank" rel="noopener">ESA Φ-lab</a> (European Space Agency)</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom"><span class="logo-accent">EDFS</span> · YASS — Yet Another Satellite Simulator · generated report</div>
+</footer>
+</body>
 </html>

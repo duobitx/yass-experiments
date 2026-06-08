@@ -67,7 +67,7 @@
     <span id="gTimeLbl" class="muted"></span>
   </div>
   <div id="gNet" class="graph-box"></div>
-  <div class="cap"><span style="color:#f58518">■ ground station</span> · <span style="color:#4c78a8">● relay satellite</span> · <span style="color:#54a24b">● producer</span> (same colours as the charts). <b>Spread tree</b>: one edge <code>from → to</code> per node = where it <b>first</b> acquired the file by the selected time. Grouped per file; 0-byte control messages omitted; times bucketed to ~2&nbsp;s for cross-node clock skew. Timeline spans the whole experiment (0&nbsp;= simulation start). <b>Note:</b> hover an edge for the bytes <code>block_recv</code> traced along it — only the instrumented bitswap path is logged; blocks pulled via kubo's standard bitswap or replicated through ipfs-cluster are <b>not</b>. So the hover total can read well below the file size even though the whole object arrived: it is a provenance <b>lower bound</b>, not a byte ledger. Delivery completeness is the <b>File deliveries</b> table below (file_delivered), not these totals. <span id="gSrc" class="muted"></span></div>
+  <div class="cap"><span style="color:#f58518">■ ground station</span> · <span style="color:#4c78a8">● relay satellite</span> · <span style="color:#54a24b">● producer</span> (same colours as the charts). <b>Spread tree</b>: one edge <code>from → to</code> per node = where it <b>first</b> acquired the file by the selected time. Grouped per file; 0-byte control messages omitted; times bucketed to ~2&nbsp;s for cross-node clock skew. Timeline spans the whole experiment (0&nbsp;= simulation start). Delivery completeness is the <b>File deliveries</b> table below. <span id="gSrc" class="muted"></span></div>
 </div>
 
 <h2>File transfer graph (rate)</h2>
@@ -126,7 +126,7 @@
 
 <script>
 const D = {{ v.data|safe }};
-const grid = '#2a2f3a', txt = '#cfd6e4', P = D.pal;
+const grid = 'rgba(168,184,208,.14)', txt = '#cdd7ea', P = D.pal;
 Chart.defaults.color = txt; Chart.defaults.borderColor = grid;
 const kc = k => (P && P[k]) || '#888';   // node-kind colour (gs / sat / prod) — same everywhere
 const nodeBars = (id, labels, vals, kinds, label, horiz) => {
@@ -233,8 +233,11 @@ const G = {{ v.graph|safe }};
           col=rateColor(bps); title=p[2]+': '+fmtRate(bps)+' ('+fmt(b)+' / '+win+'s)';
           lab=file==='__all__'?'':fmtRate(bps);
           w=Math.max(1,Math.log10(b+1));
-        }else{                                // propagation tree: colour by file, uniform edges, no label
-          col=fcol[p[2]]||'#888'; title=p[2]+': '+fmt(b); lab=''; w=2;
+        }else{                                // propagation/spread tree: colour by file only
+          // No edge label or tooltip: the only per-edge number we have is the
+          // block_recv-traced bytes of this single hop, which under-counts the real
+          // transfer and misleads — so show nothing rather than a wrong figure.
+          col=fcol[p[2]]||'#888'; lab=''; w=2;   // title left undefined -> no tooltip
         }
         edges.push({id:key,from:p[0],to:p[1],color:{color:col},
           width:w,title:title,
