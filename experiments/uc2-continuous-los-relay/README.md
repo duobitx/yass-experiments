@@ -36,6 +36,10 @@ how long it takes for **every** produced file to reach at least one ground
 station, and which fraction never makes it inside the time budget. Compares
 EDFS against TUS.
 
+## Success Condition
+The run ends successfully once a single ground station holds at least 95% of files. 
+
+
 ## Detailed description
 
 At `t=0` every satellite agent writes one file of fixed size and exits — so

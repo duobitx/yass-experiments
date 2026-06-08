@@ -66,6 +66,10 @@ the image still reaches the ground via peer satellites. Run on both
 engines: EDFS is expected to deliver via inter-satellite links; TUS is
 expected to lose the file entirely.
 
+## Success Condition
+The run ends successfully if the image reaches any ground station despite the
+producer being destroyed. 
+
 ## Detailed description
 
 The producer satellite is placed on an orbit whose initial position at

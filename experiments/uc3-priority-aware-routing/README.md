@@ -14,6 +14,10 @@ back-off under congestion), so a high-priority file should arrive
 This use case targets only **EDFS** — TUS has no notion of file priority on
 the wire, so the comparison is internal to EDFS, not engine-vs-engine.
 
+## Success Condition
+Same mechanism as UC1: the run ends successfully the moment the first file reaches
+any ground station.
+
 ## Detailed description
 
 A single producer satellite writes one large file. The producer's agent

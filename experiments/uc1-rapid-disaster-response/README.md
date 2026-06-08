@@ -98,6 +98,10 @@ station, under varying constellation sizes, file sizes, priorities and (for
 EDFS) replication factors. Compares the distributed file system **EDFS**
 against the legacy store-and-forward baseline **TUS**.
 
+## Success Condition
+The run ends **successfully the moment the file reaches any ground station.**
+
+
 ## Detailed description
 
 One designated satellite acts as the producer: on activation its agent writes

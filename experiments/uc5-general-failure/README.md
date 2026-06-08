@@ -42,6 +42,10 @@ UC5 sits between UC2 (every sat produces one file, faults active) and UC4
 of EDFS's eventual consistency under sustained but non-catastrophic
 degradation.
 
+## Success Condition
+The run ends successfully once a single ground station holds every image
+produced in the run.
+
 ## Detailed description
 
 Out of the `sat_count` satellites in the constellation, exactly **20%**
