@@ -65,7 +65,7 @@ export KUBECONFIG=$KCFG
 # spain-shot/edfs setup (bootstrap peer is estrack-new-norcia, which
 # every UC1 Layout includes).
 tus_img=ghcr.io/duobitx/yass-tus-fs-engine:latest
-edfs_engine_img=ghcr.io/duobitx/yass-edfs-engine
+edfs_engine_img=ghcr.io/duobitx/yass-edfs-engine:f2abbf4a
 edfs_node_img=ghcr.io/duobitx/yass-edfs-engine-node
 edfs_proxy_img=ghcr.io/duobitx/yass-edfs-engine-proxy
 edfs_cluster_secret=50896c846aed59faeec45d1779e6b9ca6fac89d135d988b52c2f366f1b7f373d
@@ -95,16 +95,17 @@ if [[ $DRY_RUN -eq 0 ]]; then
   echo "applied $(ls "$HERE/_layouts"/n*.yaml | wc -l) Layouts"
 fi
 
-# A producing run (END_ON_ANY) terminates as soon as the first GS gets
-# the file. Every other behaviour is a receiver: agent ghcr.io/
-# duobitx/yass-agent-receive-only with END_ON_ANY=true.
+# A producing run terminates as soon as the first GS has the file: every GS runs
+# yass-agent-receive-only with SUCCESS_AFTER_FILES=1 + SUCCESS_BROADCAST=true, so
+# the first GS to receive ends the whole experiment (first-GA metric). Every
+# non-producer satellite is a pure relay and runs yass-agent-noop.
 make_extra_behaviours() {
   local layout_file=$1
   # One Behaviour per non-producer fsNode, branching on node type:
-  #   ground stations gate on first delivery (END_ON_ANY → first-GA metric);
-  #   relay satellites report success immediately and keep relaying — they never
-  #   receive the file, and their no-LOS `tc` filter cuts the END_ON_ANY signal,
-  #   so gating them on receipt would hang the experiment forever.
+  #   ground stations gate on first delivery (SUCCESS_AFTER_FILES=1 +
+  #   SUCCESS_BROADCAST=true → ends the experiment → first-GA metric);
+  #   relay satellites do nothing of their own (yass-agent-noop): they only
+  #   forward blocks at the engine level and report success on start.
   awk -v producer="$PRODUCER" '
     /^  - fsNode:/ {
       if (fsnode != "" && fsnode != producer) print fsnode "\t" type
@@ -120,17 +121,16 @@ make_extra_behaviours() {
           cat <<-YAML
     - fsNode: $fsn
       agent:
-        image: ghcr.io/duobitx/yass-agent-receive-only
+        image: ghcr.io/duobitx/yass-agent-receive-only:f91350a0
         envsMap:
-          END_ON_ANY: "true"
+          SUCCESS_AFTER_FILES: "1"
+          SUCCESS_BROADCAST: "true"
 YAML
         else
           cat <<-YAML
     - fsNode: $fsn
       agent:
-        image: ghcr.io/duobitx/yass-agent-receive-only
-        envsMap:
-          REPORT_SUCCESS_ON_START: "true"
+        image: ghcr.io/duobitx/yass-agent-noop
 YAML
         fi
       done
@@ -199,6 +199,8 @@ YAML
           value: "/ip4/127.0.0.1/tcp/9094"
         - name: EDFS_CONNECTION_RETRIES
           value: "3"
+        - name: EDFS_REPLICATION_PROTOCOL
+          value: "true"
         - name: EDFS_REPLICATION_FACTOR
           value: "${rf}"
     - name: edfs-engine-node

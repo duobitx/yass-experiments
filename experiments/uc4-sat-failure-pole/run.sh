@@ -63,7 +63,7 @@ export KUBECONFIG=$KCFG
 
 # Engine images — same as UC1 (all UCs share the same image set).
 tus_img=ghcr.io/duobitx/yass-tus-fs-engine:latest
-edfs_engine_img=ghcr.io/duobitx/yass-edfs-engine
+edfs_engine_img=${EDFS_ENGINE_IMG:-ghcr.io/duobitx/yass-edfs-engine}
 edfs_node_img=ghcr.io/duobitx/yass-edfs-engine-node
 edfs_proxy_img=ghcr.io/duobitx/yass-edfs-engine-proxy
 edfs_cluster_secret=50896c846aed59faeec45d1779e6b9ca6fac89d135d988b52c2f366f1b7f373d
@@ -76,9 +76,12 @@ edfs_bootstrap_peer_key="CAESQNU9ILPST19ucrp2ZzY4BN1+LnoLK5XnH86F8m2Ce3R7m7n8DOz
 # It is the only node that produces a file; all other SATs are pure relays.
 PRODUCER=producer
 
-# UC4 fixed parameters. (priority is now an EDFS sweep variable — see tiers.yaml.)
+# UC4 fixed parameters. (priority and rf are EDFS sweep variables — see tiers.yaml.)
 FILE_SIZE=32M
-RF=3
+# Fallback rf for tier rows that omit it. rf is the baseline rfMax; the engine is
+# run with EDFS_REPLICATION_FACTOR_PRIORITY_STEP=0 so a high-priority file's
+# effective rfMax == rf (the run-id's rf<rf> equals the replica count).
+DEFAULT_RF=3
 # Fallback priority for tier rows that omit it (TUS rows — TUS ignores priority).
 DEFAULT_PRIORITY=high
 # Engine-specific run budget (maxDuration). EDFS needs a long window: a peer that
@@ -87,7 +90,7 @@ DEFAULT_PRIORITY=high
 # copy's producer is destroyed the file is unrecoverable — there is no point
 # running the full EDFS budget. We stop the TUS run TUS_GRACE after the Destroy
 # event: maxDuration_TUS = T_destroy + TUS_GRACE.
-EDFS_MAX_DURATION=4h
+EDFS_MAX_DURATION=${EDFS_MAX_DURATION:-4h}
 TUS_GRACE_SECONDS=600   # 10 minutes after the disaster (Destroy) event
 
 tiers_to_run=()
@@ -105,11 +108,11 @@ if [[ $DRY_RUN -eq 0 ]]; then
   echo "applied $(ls "$HERE/_layouts"/n*.yaml | wc -l) Layouts"
 fi
 
-# Build receive-only behaviours for every non-producer fsNode, branching on node
-# type: ground stations gate on first delivery (END_ON_ANY → reached-a-GA metric);
-# relay satellites report success immediately and keep relaying (they never
-# receive the file, and their no-LOS `tc` filter cuts the END_ON_ANY signal, so
-# gating them on receipt would hang the experiment forever).
+# Build behaviours for every non-producer fsNode, branching on node type: ground
+# stations run yass-agent-receive-only with SUCCESS_AFTER_FILES=1 +
+# SUCCESS_BROADCAST=true (the first GS to receive ends the run → reached-a-GA
+# metric); relay satellites run yass-agent-noop (they only forward blocks at the
+# engine level and report success on start).
 make_extra_behaviours() {
   local layout_file=$1
   awk -v producer="$PRODUCER" '
@@ -127,17 +130,16 @@ make_extra_behaviours() {
           cat <<-YAML
     - fsNode: $fsn
       agent:
-        image: ghcr.io/duobitx/yass-agent-receive-only
+        image: ghcr.io/duobitx/yass-agent-receive-only:f91350a0
         envsMap:
-          END_ON_ANY: "true"
+          SUCCESS_AFTER_FILES: "1"
+          SUCCESS_BROADCAST: "true"
 YAML
         else
           cat <<-YAML
     - fsNode: $fsn
       agent:
-        image: ghcr.io/duobitx/yass-agent-receive-only
-        envsMap:
-          REPORT_SUCCESS_ON_START: "true"
+        image: ghcr.io/duobitx/yass-agent-noop
 YAML
         fi
       done
@@ -179,6 +181,7 @@ for tier in "${tiers_to_run[@]}"; do
     # Strip trailing whitespace / empty fields from optional TUS columns.
     t_destroy=${t_destroy:-15m}
     priority=${priority:-$DEFAULT_PRIORITY}
+    rf=${rf:-$DEFAULT_RF}
 
     # Run-id: uc4-edfs-p<prio>-td<T>-n<NN>-rf3 or uc4-tus-td<T>-n<NN>.
     # t_destroy value is already a Go-duration string (5m / 15m / 45m).
@@ -187,7 +190,7 @@ for tier in "${tiers_to_run[@]}"; do
     td_label=${t_destroy//m/m}   # keep as-is; already lowercase
     nn=$(printf '%02d' "$sat_count")
     if [[ $engine == edfs ]]; then
-      run_id="uc4-edfs-p${priority,,}-td${td_label}-n${nn}-rf${RF}"
+      run_id="uc4-edfs-p${priority,,}-td${td_label}-n${nn}-rf${rf}"
     else
       run_id="uc4-tus-td${td_label}-n${nn}"
     fi
@@ -224,8 +227,12 @@ YAML
           value: "/ip4/127.0.0.1/tcp/9094"
         - name: EDFS_CONNECTION_RETRIES
           value: "3"
+        # rf is the baseline rfMax; STEP=0 so the file's effective rfMax == rf
+        # regardless of priority — the run-id's rf<rf> equals the replica count.
         - name: EDFS_REPLICATION_FACTOR
-          value: "${RF}"
+          value: "${rf}"
+        - name: EDFS_REPLICATION_FACTOR_PRIORITY_STEP
+          value: "0"
     - name: edfs-engine-node
       image: "${edfs_node_img}"
       readinessProbe:

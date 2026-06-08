@@ -5,10 +5,12 @@
 #
 # 20% of sats (min 1) are producers: each writes 5 x 32M files, spaced
 # 2m apart (CHECK_INTERVAL_SECONDS=120, MAX_PHOTOS=5).
-# Every fsNode (producers, relays, GS) carries a recurring non-Destroy
-# fault schedule: rotate NetworkBandwidthReduced / NetworkFailure /
-# DiskFull / DiskFailure; intervalMean 5m, jitter 50%, duration ~30s.
-# GS are receive-only without END_ON_ANY (log all files until run ends).
+# Non-producer sats are relays (yass-agent-noop). Every fsNode (producers,
+# relays, GS) carries a recurring non-Destroy fault schedule: rotate
+# NetworkBandwidthReduced / NetworkFailure / DiskFull / DiskFailure;
+# intervalMean 5m, jitter 50%, duration ~30s.
+# GS are receive-only with SUCCESS_AFTER_FILES=all + SUCCESS_BROADCAST=true: the
+# first GS to hold every produced file ends the run (all-delivered signal).
 
 set -euo pipefail
 
@@ -143,29 +145,31 @@ $(fault_block "$idx" "$name")
 YAML
 }
 
-# Relay behaviour: no agent, only fault schedule.
+# Relay behaviour: yass-agent-noop (reports success on start) + fault schedule.
 relay_behaviour() {
   local idx=$1
   local name=$2
   cat <<-YAML
     - fsNode: ${name}
       agent:
-        image: ghcr.io/duobitx/yass-agent-receive-only
-        envsMap: {}
+        image: ghcr.io/duobitx/yass-agent-noop
 $(fault_block "$idx" "$name")
 YAML
 }
 
-# GS behaviour: receive-only WITHOUT END_ON_ANY (stay alive until run ends).
-# GS fault index starts after all sats (so seeds don't collide).
+# GS behaviour: receive-only; succeeds once it holds every produced file
+# (SUCCESS_AFTER_FILES=all, counted off crud-events) and ends the run
+# (SUCCESS_BROADCAST=true). GS fault index starts after all sats (so seeds don't collide).
 gs_behaviour() {
   local idx=$1
   local name=$2
   cat <<-YAML
     - fsNode: ${name}
       agent:
-        image: ghcr.io/duobitx/yass-agent-receive-only
-        envsMap: {}
+        image: ghcr.io/duobitx/yass-agent-receive-only:f91350a0
+        envsMap:
+          SUCCESS_AFTER_FILES: "all"
+          SUCCESS_BROADCAST: "true"
 $(fault_block "$idx" "$name")
 YAML
 }

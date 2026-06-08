@@ -161,7 +161,7 @@ YAML
         cat <<-YAML
     - fsNode: ${fsn}
       agent:
-        image: ghcr.io/duobitx/yass-agent-receive-only
+        image: ghcr.io/duobitx/yass-agent-receive-only:f91350a0
         envsMap:
           SUCCESS_AFTER_FILES: "${success_after}"
           SUCCESS_BROADCAST: "true"
