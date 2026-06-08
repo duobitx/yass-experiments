@@ -37,8 +37,22 @@ station, and which fraction never makes it inside the time budget. Compares
 EDFS against TUS.
 
 ## Success Condition
-The run ends successfully once a single ground station holds at least 95% of files. 
 
+The run ends **successfully once a single ground station holds at least 95% of
+the produced files.** Every satellite produces exactly one file, so the file
+count `x` equals `sat_count`; the generator sets the ground-station receive-only
+agent to a fixed `SUCCESS_AFTER_FILES = floor(0.95·x) − 1` (clamped to ≥ 1) with
+`SUCCESS_BROADCAST=true`. The first GS to reach that many distinct files
+publishes `experiment/end-request{SUCCESS}`, which the experiment-executor
+confirms against the authoritative `crud-events` stream and records as `Success`.
+
+If `max_duration` (6h) fires first, the run ends `TimedOut` and the fraction of
+files that did arrive is the delivery-success rate — that partial-delivery
+outcome is itself a data point (see Main goal).
+
+> The `− 1` margin pulls the effective threshold below 95% at small `sat_count`
+> (6/8 at `n08`, 1/2 at `n02`) and converges to ~95% as the file count grows
+> (94/100, 189/200).
 
 ## Detailed description
 

@@ -9,8 +9,10 @@
 #     (NetworkBandwidthReduced, NetworkFailure, DiskFull, DiskFailure) with a
 #     per-fsNode seed derived from fnv64(run_id + fsNode name) for
 #     reproducibility.  No Destroy fault type.
-#   - GS agent is yass-agent-receive-only WITHOUT END_ON_ANY — it stays alive
-#     logging every RECEIVED event until the experiment ends.
+#   - GS agent is yass-agent-receive-only with SUCCESS_AFTER_FILES=<n> +
+#     SUCCESS_BROADCAST=true, where n = floor(0.95*file_count) - 1 (clamped to
+#     >=1): the first GS to hold at least 95% of the produced files ends the
+#     whole run (>=95%-delivered signal).
 #
 # See README.md for the experiment description.
 
@@ -69,7 +71,7 @@ export KUBECONFIG=$KCFG
 
 # Engine images — identical to UC1 (same EDFS cluster keys / bootstrap peer).
 tus_img=ghcr.io/duobitx/yass-tus-fs-engine:latest
-edfs_engine_img=ghcr.io/duobitx/yass-edfs-engine
+edfs_engine_img=ghcr.io/duobitx/yass-edfs-engine:f2abbf4a
 edfs_node_img=ghcr.io/duobitx/yass-edfs-engine-node
 edfs_proxy_img=ghcr.io/duobitx/yass-edfs-engine-proxy
 edfs_cluster_secret=50896c846aed59faeec45d1779e6b9ca6fac89d135d988b52c2f366f1b7f373d
@@ -97,14 +99,15 @@ fnv32_seed() {
 # Fault types rotated per fsNode index (matching big-scale gen.py recipe).
 FAULT_TYPES=(NetworkBandwidthReduced NetworkFailure DiskFull DiskFailure)
 
-# make_behaviours <layout_file> <priority> <run_id>
+# make_behaviours <layout_file> <priority> <run_id> <success_after>
 # Emits one Behaviour block per fsNode:
 #   - satellites: periodic-agent producer (MAX_PHOTOS=1) + fault schedule
-#   - ground stations: receive-only (no END_ON_ANY) + fault schedule
+#   - ground stations: receive-only (SUCCESS_AFTER_FILES=<success_after> + SUCCESS_BROADCAST=true) + fault schedule
 make_behaviours() {
   local layout_file=$1
   local priority=$2
   local run_id=$3
+  local success_after=$4
 
   local idx=0
   local fsn="" ntype="" fault seed
@@ -152,11 +155,16 @@ YAML
 YAML
         fi
       else
-        # Ground station: receive-only, no END_ON_ANY, fault schedule still applied.
+        # Ground station: receive-only; succeeds once it holds at least 95% of
+        # the produced files (SUCCESS_AFTER_FILES=<n> fixed count) and ends the
+        # whole run (SUCCESS_BROADCAST=true). Fault schedule still applied.
         cat <<-YAML
     - fsNode: ${fsn}
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          SUCCESS_AFTER_FILES: "${success_after}"
+          SUCCESS_BROADCAST: "true"
       hardwareEvents:
         - name: fault-${fault,,}
           type: ${fault}
@@ -230,7 +238,15 @@ for tier in "${tiers_to_run[@]}"; do
     layout_file=$(printf '%s/_layouts/n%02d.yaml' "$HERE" "$sat_count")
     layout_ref=$(printf 'uc2-n%02d' "$sat_count")
 
-    behaviours=$(make_behaviours "$layout_file" "$priority" "$run_id")
+    # UC2 success = a GS holding at least 95% of the produced files. Every
+    # satellite produces exactly one 32M file, so the file count equals
+    # sat_count; the GS receive-only agent then succeeds after
+    # n = floor(0.95*file_count) - 1 files (clamped to >=1).
+    file_count=$sat_count
+    gs_success_n=$(( 95 * file_count / 100 - 1 ))
+    (( gs_success_n < 1 )) && gs_success_n=1
+
+    behaviours=$(make_behaviours "$layout_file" "$priority" "$run_id" "$gs_success_n")
 
     case $engine in
       tus)
@@ -259,6 +275,8 @@ YAML
           value: "/ip4/127.0.0.1/tcp/9094"
         - name: EDFS_CONNECTION_RETRIES
           value: "3"
+        - name: EDFS_REPLICATION_PROTOCOL
+          value: "true"
         - name: EDFS_REPLICATION_FACTOR
           value: "${rf}"
     - name: edfs-engine-node
