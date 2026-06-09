@@ -129,6 +129,32 @@ spec:
     perkByteTXWh: 0
     perkByteDiskWR: 0
     perkByteDiskRD: 0
+---
+apiVersion: int.esa.yass/v1
+kind: HardwareDefinition
+metadata:
+  name: big-sat
+description: |
+    Satellite profile for big-scale runs that move large (>=100MB) EDFS
+    transfer files. nano-sat (200m/256Mi) is too small: the operator splits
+    cpu/memory across the 3 EDFS containers (/3), so the ipfs-cluster proxy
+    gets ~66m CPU + ~85Mi and either OOMs or is CPU-throttled out of serving
+    /add (connection refused on :9094), so nothing ingests/transfers. big-sat
+    mirrors the ground-station hot-path budget: 1500m/3=500m and 3Gi/3=1Gi per
+    EDFS container, enough to add and replicate large files.
+spec:
+  cpu: "1500m"
+  memory: "3Gi"
+  diskSpace: "50Gi"
+  batteryCapacityWh: 5000
+  batteryChargeW: 800
+  lowPowerThresholdWh: 500
+  energyConsumption:
+    normalPowerBaseW: 500
+    lowPowerBaseW: 300
+    perkByteTXWh: 0.00001
+    perkByteDiskWR: 0.00002
+    perkByteDiskRD: 0.00001
 
 
 

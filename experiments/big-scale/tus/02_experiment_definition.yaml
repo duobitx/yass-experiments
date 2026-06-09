@@ -6,7 +6,7 @@ metadata:
 spec:
   maxDuration: "999999h"
   behaviours:
-    - fsNode: orbcomm-fm06
+    - fsNode: orbcomm-fm112
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -26,7 +26,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: orbcomm-fm19
+    - fsNode: oneweb-0531
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -43,7 +43,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1001
-    - fsNode: orbcomm-fm32
+    - fsNode: oneweb-0336
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -60,7 +60,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1002
-    - fsNode: orbcomm-fm114
+    - fsNode: oneweb-0398
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -77,7 +77,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1003
-    - fsNode: orbcomm-fm112
+    - fsNode: oneweb-0060
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -97,7 +97,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: orbcomm-fm108
+    - fsNode: oneweb-0101
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -114,7 +114,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1005
-    - fsNode: globalstar-m069
+    - fsNode: oneweb-0033
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -131,7 +131,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1006
-    - fsNode: globalstar-m079
+    - fsNode: oneweb-0341
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -148,7 +148,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1007
-    - fsNode: globalstar-m075
+    - fsNode: starlink-1008
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -168,7 +168,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: globalstar-m088
+    - fsNode: iridium-137
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -185,7 +185,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1009
-    - fsNode: globalstar-m089
+    - fsNode: oneweb-0236
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -202,7 +202,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1010
-    - fsNode: globalstar-m082
+    - fsNode: iridium-122
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -219,7 +219,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1011
-    - fsNode: globalstar-m097
+    - fsNode: iridium-138
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -239,7 +239,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: globalstar-m096
+    - fsNode: skysat-c9
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -256,7 +256,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1013
-    - fsNode: starlink-1008
+    - fsNode: flock-4h-14
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -273,7 +273,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1014
-    - fsNode: starlink-3285
+    - fsNode: iridium-118
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -290,7 +290,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1015
-    - fsNode: starlink-4175
+    - fsNode: iridium-108
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -310,7 +310,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: starlink-5546
+    - fsNode: iridium-146
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -327,7 +327,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1017
-    - fsNode: starlink-30264
+    - fsNode: starlink-35001
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -344,7 +344,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1018
-    - fsNode: starlink-31355
+    - fsNode: flock-4be-28
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -361,7 +361,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1019
-    - fsNode: starlink-11147-dtc
+    - fsNode: iridium-113
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -381,7 +381,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: starlink-32789
+    - fsNode: iridium-116
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -398,7 +398,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1021
-    - fsNode: starlink-34020
+    - fsNode: flock-4g-10
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -415,7 +415,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1022
-    - fsNode: starlink-35001
+    - fsNode: flock-4h-32
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -432,7 +432,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1023
-    - fsNode: starlink-35132
+    - fsNode: orbcomm-fm114
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -452,7 +452,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: starlink-36657
+    - fsNode: skysat-c10
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -469,7 +469,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1025
-    - fsNode: iridium-106
+    - fsNode: flock-4h-3
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -486,7 +486,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1026
-    - fsNode: iridium-113
+    - fsNode: flock-4be-30
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -503,7 +503,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1027
-    - fsNode: iridium-133
+    - fsNode: globalstar-m083
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -523,7 +523,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: iridium-135
+    - fsNode: orbcomm-fm32
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -540,7 +540,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1029
-    - fsNode: iridium-144
+    - fsNode: globalstar-m075
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -557,7 +557,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1030
-    - fsNode: iridium-161
+    - fsNode: orbcomm-fm20
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -574,7 +574,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1031
-    - fsNode: iridium-154
+    - fsNode: globalstar-m074
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -594,7 +594,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: iridium-172
+    - fsNode: starlink-5546
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -611,7 +611,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1033
-    - fsNode: oneweb-0012
+    - fsNode: starlink-35132
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -628,7 +628,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1034
-    - fsNode: oneweb-0121
+    - fsNode: globalstar-m066
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -645,7 +645,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1035
-    - fsNode: oneweb-0182
+    - fsNode: orbcomm-fm27
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -665,7 +665,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: oneweb-0279
+    - fsNode: globalstar-m082
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -682,7 +682,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1037
-    - fsNode: oneweb-0360
+    - fsNode: starlink-31355
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -699,7 +699,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1038
-    - fsNode: oneweb-0444
+    - fsNode: globalstar-m087
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -716,7 +716,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1039
-    - fsNode: oneweb-0607
+    - fsNode: orbcomm-fm118
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -736,7 +736,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: oneweb-0666
+    - fsNode: starlink-4175
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -753,7 +753,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1041
-    - fsNode: skysat-a
+    - fsNode: globalstar-m096
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -770,7 +770,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1042
-    - fsNode: flock-4q-36
+    - fsNode: globalstar-m081
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -787,7 +787,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1043
-    - fsNode: flock-4be-7
+    - fsNode: starlink-11147-dtc
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -807,7 +807,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: flock-4be-13
+    - fsNode: starlink-34020
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -824,7 +824,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1045
-    - fsNode: flock-4g-26
+    - fsNode: starlink-30264
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -841,7 +841,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1046
-    - fsNode: flock-4g-1
+    - fsNode: starlink-32789
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -858,7 +858,7 @@ spec:
             durationMean: 30s
             durationJitterPercent: 50
             seed: 1047
-    - fsNode: flock-4h-5
+    - fsNode: starlink-36657
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
@@ -878,7 +878,7 @@ spec:
           params:
             networkBandwidth:
               reductionPercent: 75
-    - fsNode: flock-4h-23
+    - fsNode: starlink-3285
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:

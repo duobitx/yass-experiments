@@ -4,356 +4,356 @@ kind: Layout
 metadata:
   name: big-scale-layout
 spec:
-  - fsNode: orbcomm-fm06
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 25118U 97084G   26151.02351935  .00001503  00000+0  44405-3 0  9996"
-        - "2 25118  45.0126 135.3359 0002277 277.8641 127.0469 14.47513603491905"
-    hardwareSpecRef: nano-sat
-  - fsNode: orbcomm-fm19
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 25415U 98046C   26150.88766934  .00001281  00000+0  45283-3 0  9995"
-        - "2 25415  44.9949 325.7898 0003677 211.2722 302.2850 14.39461941454285"
-    hardwareSpecRef: nano-sat
-  - fsNode: orbcomm-fm32
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 25982U 99065C   26150.70279786  .00000790  00000+0  31079-3 0  9993"
-        - "2 25982  45.0153 255.9994 0005564 312.0063  48.0311 14.37105877384571"
-    hardwareSpecRef: nano-sat
-  - fsNode: orbcomm-fm114
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 41179U 15081A   26151.13065073  .00000701  00000+0  18462-3 0  9998"
-        - "2 41179  47.0048  82.6433 0001453 124.2878 235.8145 14.58835978555267"
-    hardwareSpecRef: nano-sat
   - fsNode: orbcomm-fm112
     nodeType: satellite
     orbit:
       tle:
-        - "1 41184U 15081F   26150.95291740  .00000908  00000+0  22825-3 0  9992"
-        - "2 41184  47.0005 351.7412 0002650 134.8892 225.2209 14.58876077556435"
-    hardwareSpecRef: nano-sat
-  - fsNode: orbcomm-fm108
+        - "1 41184U 15081F   26160.12999248  .00000569  00000+0  15653-3 0  9994"
+        - "2 41184  47.0001 308.3470 0003239 182.2677 177.8194 14.58892085557775"
+    hardwareSpecRef: big-sat
+  - fsNode: oneweb-0531
     nodeType: satellite
     orbit:
       tle:
-        - "1 41187U 15081J   26150.96005891  .00000919  00000+0  23076-3 0  9997"
-        - "2 41187  47.0050 263.6458 0002051 140.1412 219.9625 14.58846254557563"
-    hardwareSpecRef: nano-sat
-  - fsNode: globalstar-m069
+        - "1 54146U 22138AK  26160.35432869  .00000114  00000+0  24942-3 0  9990"
+        - "2 54146  87.9188 275.9964 0002746 110.1151 250.0278 13.20771542178275"
+    hardwareSpecRef: big-sat
+  - fsNode: oneweb-0336
     nodeType: satellite
     orbit:
       tle:
-        - "1 31573U 07020C   26150.89542205 -.00000087  00000+0  52306-4 0  9992"
-        - "2 31573  52.0041 301.0681 0002624 113.0514  53.8554 12.23470627876680"
-    hardwareSpecRef: nano-sat
-  - fsNode: globalstar-m079
+        - "1 49202U 21083S   26160.48854516  .00000046  00000+0  90086-4 0  9993"
+        - "2 49202  87.8947 321.7615 0002248  94.8835 265.2551 13.13470244229907"
+    hardwareSpecRef: big-sat
+  - fsNode: oneweb-0398
     nodeType: satellite
     orbit:
       tle:
-        - "1 37188U 10054A   26151.19461130 -.00000096  00000+0  40967-4 0  9992"
-        - "2 37188  52.0011 160.3979 0000291 330.7280 107.5322 12.62265957720406"
-    hardwareSpecRef: nano-sat
-  - fsNode: globalstar-m075
+        - "1 50478U 21132K   26160.35254618 -.00000160  00000+0 -48811-3 0  9995"
+        - "2 50478  87.8901  22.6173 0001835  93.9893 266.1445 13.11420243214587"
+    hardwareSpecRef: big-sat
+  - fsNode: oneweb-0060
     nodeType: satellite
     orbit:
       tle:
-        - "1 37192U 10054E   26151.17194564 -.00000063  00000+0  22577-3 0  9999"
-        - "2 37192  51.9930 202.0014 0000261 154.0782 241.2316 12.62267306719793"
-    hardwareSpecRef: nano-sat
-  - fsNode: globalstar-m088
+        - "1 45455U 20020AH  26160.31440505  .00000159  00000+0  41154-3 0  9996"
+        - "2 45455  87.8893  22.6335 0001654  49.9975 310.1298 13.11415670301511"
+    hardwareSpecRef: big-sat
+  - fsNode: oneweb-0101
     nodeType: satellite
     orbit:
       tle:
-        - "1 37740U 11033B   26150.94987904 -.00000088  00000+0  88100-4 0  9990"
-        - "2 37740  52.0233 331.4024 0000893 100.4727  63.5715 12.62268383686318"
-    hardwareSpecRef: nano-sat
-  - fsNode: globalstar-m089
+        - "1 48049U 21025H   26160.44961556  .00000239  00000+0  61961-3 0  9999"
+        - "2 48049  87.8947 321.7675 0001707  98.6330 261.4992 13.13470049252481"
+    hardwareSpecRef: big-sat
+  - fsNode: oneweb-0033
     nodeType: satellite
     orbit:
       tle:
-        - "1 37744U 11033F   26151.06047538 -.00000057  00000+0  26097-3 0  9990"
-        - "2 37744  51.9912 201.9515 0000459 111.5874 256.8248 12.62266827688629"
-    hardwareSpecRef: nano-sat
-  - fsNode: globalstar-m082
+        - "1 45142U 20008M   26160.41709796  .00000687  00000+0  19314-2 0  9994"
+        - "2 45142  87.8840  37.8253 0001439  95.0186 265.1106 13.10372117307194"
+    hardwareSpecRef: big-sat
+  - fsNode: oneweb-0341
     nodeType: satellite
     orbit:
       tle:
-        - "1 38042U 11080C   26150.83844670 -.00000079  00000+0  13983-3 0  9994"
-        - "2 38042  52.0098  27.3082 0000476  79.7453 359.2785 12.62269673667403"
-    hardwareSpecRef: nano-sat
-  - fsNode: globalstar-m097
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 39072U 13005A   26150.82131479 -.00000104  00000+0 -27501-5 0  9995"
-        - "2 39072  52.0055 296.1975 0000570 112.9121 247.1806 12.62251281614715"
-    hardwareSpecRef: nano-sat
-  - fsNode: globalstar-m096
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 39075U 13005D   26151.20406219 -.00000074  00000+0  16549-3 0  9991"
-        - "2 39075  52.0073 251.2962 0000384 143.9783 216.1110 12.62265061615241"
-    hardwareSpecRef: nano-sat
+        - "1 49207U 21083X   26160.47674451  .00000053  00000+0  10081-3 0  9999"
+        - "2 49207  87.9162 336.9932 0002094 104.0468 256.0897 13.18685772228973"
+    hardwareSpecRef: big-sat
   - fsNode: starlink-1008
     nodeType: satellite
     orbit:
       tle:
         - "1 44714U 19074B   26151.21337775  .00088051  00000+0  16563-2 0  9995"
         - "2 44714  53.1512 149.8655 0002987  57.7638 302.3659 15.47837323361583"
-    hardwareSpecRef: nano-sat
-  - fsNode: starlink-3285
+    hardwareSpecRef: big-sat
+  - fsNode: iridium-137
     nodeType: satellite
     orbit:
       tle:
-        - "1 50181U 21125AB  26150.67577348 -.00005682  00000+0 -33908-3 0  9995"
-        - "2 50181  53.1957 241.0676 0001421 124.4506 235.6621 15.08848527248987"
-    hardwareSpecRef: nano-sat
-  - fsNode: starlink-4175
+        - "1 43076U 17083G   26160.46434208  .00000035  00000+0  55352-5 0  9997"
+        - "2 43076  86.3962 325.3892 0002033 103.0477 257.0946 14.34217427443063"
+    hardwareSpecRef: big-sat
+  - fsNode: oneweb-0236
     nodeType: satellite
     orbit:
       tle:
-        - "1 53283U 22086AT  26151.20519632 -.00001917  00000+0 -10239-3 0  9999"
-        - "2 53283  53.1964 173.6812 0001188 135.1844 224.9244 15.08831770213657"
-    hardwareSpecRef: nano-sat
-  - fsNode: starlink-5546
+        - "1 48797U 21045AG  26160.18981900  .00000185  00000+0  45786-3 0  9994"
+        - "2 48797  87.9000 260.7998 0002069 103.3067 256.8295 13.15548047243205"
+    hardwareSpecRef: big-sat
+  - fsNode: iridium-122
     nodeType: satellite
     orbit:
       tle:
-        - "1 55632U 23021E   26150.97582005  .00001159  00000+0  10494-3 0  9995"
-        - "2 55632  69.9994 356.9925 0002792 271.7306  88.3533 14.98324295180628"
-    hardwareSpecRef: nano-sat
-  - fsNode: starlink-30264
+        - "1 42957U 17061C   26160.38873498  .00000018  00000+0 -52215-6 0  9997"
+        - "2 42957  86.3973  28.4478 0002220  84.4437 275.7012 14.34217678453665"
+    hardwareSpecRef: big-sat
+  - fsNode: iridium-138
     nodeType: satellite
     orbit:
       tle:
-        - "1 57534U 23115P   26150.92559765  .00001199  00000+0  53084-4 0  9991"
-        - "2 57534  43.0034 104.4702 0001168 273.7778  86.2940 15.27574295157936"
-    hardwareSpecRef: nano-sat
-  - fsNode: starlink-31355
+        - "1 43071U 17083B   26160.50239860  .00000143  00000+0  44108-4 0  9990"
+        - "2 43071  86.3974 324.9234 0002392  88.2931 271.8539 14.34217922443032"
+    hardwareSpecRef: big-sat
+  - fsNode: skysat-c9
     nodeType: satellite
     orbit:
       tle:
-        - "1 58978U 24031P   26150.73733454 -.00003268  00000+0 -98332-4 0  9996"
-        - "2 58978  53.1607 275.6893 0001136  97.7769 262.3361 15.30174879129074"
-    hardwareSpecRef: nano-sat
-  - fsNode: starlink-11147-dtc
+        - "1 42989U 17068C   26160.38418880  .00011925  00000+0  28729-3 0  9997"
+        - "2 42989  97.4413 298.0177 0009038 158.0534 202.1101 15.41368313481557"
+    hardwareSpecRef: big-sat
+  - fsNode: flock-4h-14
     nodeType: satellite
     orbit:
       tle:
-        - "1 60301U 24133A   26151.15736138 -.00000667  00000+0 -65042-6 0  9995"
-        - "2 60301  53.1583  99.9064 0000745  95.5386 264.5717 15.69704991106680"
-    hardwareSpecRef: nano-sat
-  - fsNode: starlink-32789
+        - "1 66717U 25276BD  26159.77738298  .00006496  00000+0  29658-3 0  9990"
+        - "2 66717  97.4203 233.7782 0001085  58.3914 301.7428 15.20934657 28412"
+    hardwareSpecRef: big-sat
+  - fsNode: iridium-118
     nodeType: satellite
     orbit:
       tle:
-        - "1 62529U 25004U   26150.92169182  .00020265  00000+0  74314-3 0  9993"
-        - "2 62529  42.9948 115.5759 0000747 277.2102  82.8665 15.27613746 79030"
-    hardwareSpecRef: nano-sat
-  - fsNode: starlink-34020
+        - "1 42807U 17039E   26160.49947836 -.00000261  00000+0 -10025-3 0  9997"
+        - "2 42807  86.3965 356.8498 0002129  86.8678 273.2761 14.34216931468842"
+    hardwareSpecRef: big-sat
+  - fsNode: iridium-108
     nodeType: satellite
     orbit:
       tle:
-        - "1 63939U 25098P   26151.16668980  .00044985  00000+0  37558-2 0  9992"
-        - "2 63939  70.0023  66.3988 0003144 269.4958 293.4547 14.98309369  5707"
-    hardwareSpecRef: nano-sat
+        - "1 41924U 17003H   26160.22090839  .00000021  00000+0  51992-6 0  9993"
+        - "2 41924  86.3963  60.0912 0002134  86.7873 273.3567 14.34217382493963"
+    hardwareSpecRef: big-sat
+  - fsNode: iridium-146
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 43254U 18030F   26160.35943763  .00000031  00000+0  41362-5 0  9999"
+        - "2 43254  86.3953 293.6906 0002092  95.7827 264.3608 14.34217680429011"
+    hardwareSpecRef: big-sat
   - fsNode: starlink-35001
     nodeType: satellite
     orbit:
       tle:
         - "1 65280U 25184H   26151.10906068  .00008465  00000+0  58986-3 0  9997"
         - "2 65280  97.4215 203.4204 0002734 133.2235 226.9221 15.05660286 43708"
-    hardwareSpecRef: nano-sat
+    hardwareSpecRef: big-sat
+  - fsNode: flock-4be-28
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 60519U 24149BD  26160.48932765  .00018121  00000+0  39048-3 0  9999"
+        - "2 60519  97.3743 246.1403 0003009 324.4058  35.6989 15.44644397101250"
+    hardwareSpecRef: big-sat
+  - fsNode: iridium-113
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 42803U 17039A   26160.49605569  .00000088  00000+0  24457-4 0  9997"
+        - "2 42803  86.3965 325.3947 0002316  89.8560 270.2901 14.34217778470081"
+    hardwareSpecRef: big-sat
+  - fsNode: iridium-116
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 43072U 17083C   26160.47068446  .00000129  00000+0  39040-4 0  9990"
+        - "2 43072  86.3958 325.2284 0001875  94.8830 265.2580 14.34217719443060"
+    hardwareSpecRef: big-sat
+  - fsNode: flock-4g-10
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 62670U 25009BP  26160.18317781  .00009985  00000+0  35546-3 0  9994"
+        - "2 62670  97.3922 241.3780 0004307  23.8095 336.3344 15.29142587135314"
+    hardwareSpecRef: big-sat
+  - fsNode: flock-4h-32
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 66735U 25276BX  26160.45669074  .00005078  00000+0  24117-3 0  9992"
+        - "2 66735  97.4224 234.1355 0005550  50.2001 309.9722 15.19664026 29242"
+    hardwareSpecRef: big-sat
+  - fsNode: orbcomm-fm114
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 41179U 15081A   26160.37647889  .00000419  00000+0  12488-3 0  9993"
+        - "2 41179  47.0059  38.9321 0001986 175.0900 185.0006 14.58849522556612"
+    hardwareSpecRef: big-sat
+  - fsNode: skysat-c10
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 42988U 17068B   26160.33712885  .00008249  00000+0  24919-3 0  9995"
+        - "2 42988  97.4492 297.1095 0001241  90.4009 269.7376 15.34504232481159"
+    hardwareSpecRef: big-sat
+  - fsNode: flock-4h-3
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 66706U 25276AS  26160.49605225  .00005553  00000+0  26200-3 0  9995"
+        - "2 66706  97.4242 234.2793 0004720  46.6091 313.5536 15.19854541 29251"
+    hardwareSpecRef: big-sat
+  - fsNode: flock-4be-30
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 60499U 24149AH  26160.21601751  .00111795  00000+0  16751-2 0  9991"
+        - "2 60499  97.3781 245.4777 0003173 239.9999 120.0940 15.54554647100536"
+    hardwareSpecRef: big-sat
+  - fsNode: globalstar-m083
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 37739U 11033A   26160.40148463 -.00000100  00000+0  19829-4 0  9996"
+        - "2 37739  51.9872  36.2311 0000843  55.6570 120.6525 12.62262946691964"
+    hardwareSpecRef: big-sat
+  - fsNode: orbcomm-fm32
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 25982U 99065C   26160.43511815  .00000473  00000+0  20505-3 0  9996"
+        - "2 25982  45.0140 209.9341 0004997 355.0899   4.9899 14.37121453385970"
+    hardwareSpecRef: big-sat
+  - fsNode: globalstar-m075
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 37192U 10054E   26160.37295808 -.00000091  00000+0  69333-4 0  9997"
+        - "2 37192  51.9919 173.9859 0000034 137.3229 329.2254 12.62267348720955"
+    hardwareSpecRef: big-sat
+  - fsNode: orbcomm-fm20
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 25416U 98046D   26160.02383584  .00000569  00000+0  23281-3 0  9991"
+        - "2 25416  44.9948 290.1968 0001784 222.3856 137.6855 14.38055426455615"
+    hardwareSpecRef: big-sat
+  - fsNode: globalstar-m074
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 37189U 10054B   26160.23478750 -.00000094  00000+0  54346-4 0  9998"
+        - "2 37189  51.9995 132.1436 0000367  45.3710 333.0078 12.62268424722152"
+    hardwareSpecRef: big-sat
+  - fsNode: starlink-5546
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 55632U 23021E   26150.97582005  .00001159  00000+0  10494-3 0  9995"
+        - "2 55632  69.9994 356.9925 0002792 271.7306  88.3533 14.98324295180628"
+    hardwareSpecRef: big-sat
   - fsNode: starlink-35132
     nodeType: satellite
     orbit:
       tle:
         - "1 66461U 25262F   26151.17623375  .00037534  00000+0  13655-2 0  9992"
         - "2 66461  43.0002 190.1600 0001646 258.0783 101.9884 15.27604228 31520"
-    hardwareSpecRef: nano-sat
+    hardwareSpecRef: big-sat
+  - fsNode: globalstar-m066
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 32265U 07048C   26160.21992855 -.00000133  00000+0 -32513-3 0  9998"
+        - "2 32265  51.9592  80.7833 0005349  27.0371 140.0303 12.30388506859246"
+    hardwareSpecRef: big-sat
+  - fsNode: orbcomm-fm27
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 25481U 98053G   26159.85726768  .00000907  00000+0  33612-3 0  9990"
+        - "2 25481  45.0065  14.9171 0000244 122.8540 237.2333 14.39126061449033"
+    hardwareSpecRef: big-sat
+  - fsNode: globalstar-m082
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 38042U 11080C   26160.28259801 -.00000094  00000+0  54641-4 0  9994"
+        - "2 38042  52.0097 358.5617 0000541  87.7473  87.9649 12.62269894668599"
+    hardwareSpecRef: big-sat
+  - fsNode: starlink-31355
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 58978U 24031P   26150.73733454 -.00003268  00000+0 -98332-4 0  9996"
+        - "2 58978  53.1607 275.6893 0001136  97.7769 262.3361 15.30174879129074"
+    hardwareSpecRef: big-sat
+  - fsNode: globalstar-m087
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 52888U 22064A   26160.08571744 -.00000093  00000+0  58463-4 0  9998"
+        - "2 52888  51.9997  87.1163 0000591  19.9401 340.1489 12.62268960190111"
+    hardwareSpecRef: big-sat
+  - fsNode: orbcomm-fm118
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 41183U 15081E   26159.37192238  .00002733  00000+0  61393-3 0  9999"
+        - "2 41183  47.0109  43.4533 0003135 338.0740  22.0011 14.58872980556441"
+    hardwareSpecRef: big-sat
+  - fsNode: starlink-4175
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 53283U 22086AT  26151.20519632 -.00001917  00000+0 -10239-3 0  9999"
+        - "2 53283  53.1964 173.6812 0001188 135.1844 224.9244 15.08831770213657"
+    hardwareSpecRef: big-sat
+  - fsNode: globalstar-m096
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 39075U 13005D   26160.46861007 -.00000094  00000+0  56147-4 0  9990"
+        - "2 39075  52.0059 223.0966 0000171 165.8515 194.2356 12.62265414616416"
+    hardwareSpecRef: big-sat
+  - fsNode: globalstar-m081
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 37743U 11033E   26160.46457310 -.00000096  00000+0  45147-4 0  9997"
+        - "2 37743  51.9940 219.1569 0000217 129.5643 332.5715 12.62264813688965"
+    hardwareSpecRef: big-sat
+  - fsNode: starlink-11147-dtc
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 60301U 24133A   26151.15736138 -.00000667  00000+0 -65042-6 0  9995"
+        - "2 60301  53.1583  99.9064 0000745  95.5386 264.5717 15.69704991106680"
+    hardwareSpecRef: big-sat
+  - fsNode: starlink-34020
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 63939U 25098P   26151.16668980  .00044985  00000+0  37558-2 0  9992"
+        - "2 63939  70.0023  66.3988 0003144 269.4958 293.4547 14.98309369  5707"
+    hardwareSpecRef: big-sat
+  - fsNode: starlink-30264
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 57534U 23115P   26150.92559765  .00001199  00000+0  53084-4 0  9991"
+        - "2 57534  43.0034 104.4702 0001168 273.7778  86.2940 15.27574295157936"
+    hardwareSpecRef: big-sat
+  - fsNode: starlink-32789
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 62529U 25004U   26150.92169182  .00020265  00000+0  74314-3 0  9993"
+        - "2 62529  42.9948 115.5759 0000747 277.2102  82.8665 15.27613746 79030"
+    hardwareSpecRef: big-sat
   - fsNode: starlink-36657
     nodeType: satellite
     orbit:
       tle:
         - "1 67835U 26033Q   26150.40032419  .00021863  00000+0  80136-3 0  9990"
         - "2 67835  43.0001 165.3191 0002140 271.6873  88.3733 15.27591526 17177"
-    hardwareSpecRef: nano-sat
-  - fsNode: iridium-106
+    hardwareSpecRef: big-sat
+  - fsNode: starlink-3285
     nodeType: satellite
     orbit:
       tle:
-        - "1 41917U 17003A   26150.93243272  .00000010  00000+0 -35432-5 0  9992"
-        - "2 41917  86.3956  95.7692 0001913  76.8656 283.2753 14.34217609490731"
-    hardwareSpecRef: nano-sat
-  - fsNode: iridium-113
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 42803U 17039A   26151.00753733  .00000079  00000+0  21181-4 0  9992"
-        - "2 42803  86.3961 329.3629 0002342  90.9870 269.1594 14.34218349468722"
-    hardwareSpecRef: nano-sat
-  - fsNode: iridium-133
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 42955U 17061A   26151.14756522  .00000302  00000+0  10059-3 0  9999"
-        - "2 42955  86.3985  32.3910 0002170  84.0701 276.0742 14.34222030452330"
-    hardwareSpecRef: nano-sat
-  - fsNode: iridium-135
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 43070U 17083A   26150.91874148  .00000088  00000+0  24431-4 0  9992"
-        - "2 43070  86.3956 329.2379 0002170  89.9735 270.1710 14.34218003441675"
-    hardwareSpecRef: nano-sat
-  - fsNode: iridium-144
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 43249U 18030A   26150.92800176  .00000091  00000+0  25530-4 0  9999"
-        - "2 43249  86.3943 297.6187 0002050  91.8808 268.2623 14.34218041427660"
-    hardwareSpecRef: nano-sat
-  - fsNode: iridium-161
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 43478U 18047C   26150.97494731  .00000377  00000+0  10604-3 0  9994"
-        - "2 43478  86.4477  95.6673 0002446  90.3385 269.8096 14.43279434422654"
-    hardwareSpecRef: nano-sat
-  - fsNode: iridium-154
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 43574U 18061F   26151.20808220  .00000099  00000+0  28346-4 0  9990"
-        - "2 43574  86.3972  63.9047 0002061  84.9180 275.2251 14.34216845410971"
-    hardwareSpecRef: nano-sat
-  - fsNode: iridium-172
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 43927U 19002F   26151.08707090  .00000092  00000+0  25634-4 0  9997"
-        - "2 43927  86.3977   0.7217 0002234  88.9044 271.2408 14.34217625386510"
-    hardwareSpecRef: nano-sat
-  - fsNode: oneweb-0012
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 44057U 19010A   26151.15386088  .00000044  00000+0  82363-4 0  9998"
-        - "2 44057  87.9108 232.1669 0002246  89.2596 270.8792 13.16594234349321"
-    hardwareSpecRef: nano-sat
-  - fsNode: oneweb-0121
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 47267U 20100K   26151.06361250 -.00000189  00000+0 -56209-3 0  9991"
-        - "2 47267  87.8954 354.0620 0001954  79.4519 280.6829 13.12443797262391"
-    hardwareSpecRef: nano-sat
-  - fsNode: oneweb-0182
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 48228U 21031U   26150.82730077  .00000023  00000+0  26445-4 0  9998"
-        - "2 48228  87.8947 293.1673 0002072  99.0220 261.1144 13.14501990246153"
-    hardwareSpecRef: nano-sat
-  - fsNode: oneweb-0279
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 48997U 21060AG  26150.64246515 -.00000017  00000+0 -77659-4 0  9990"
-        - "2 48997  87.9107 232.2555 0001867  93.8702 266.2642 13.16593404237316"
-    hardwareSpecRef: nano-sat
-  - fsNode: oneweb-0360
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 49286U 21090H   26150.81906268 -.00000007  00000+0 -49426-4 0  9992"
-        - "2 49286  87.9182 277.9027 0001987 104.5234 255.6120 13.20774126227559"
-    hardwareSpecRef: nano-sat
-  - fsNode: oneweb-0444
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 51638U 22012S   26151.14464458  .00000781  00000+0  22011-2 0  9994"
-        - "2 51638  87.8840  39.6611 0001951  75.5170 284.6174 13.10372289207105"
-    hardwareSpecRef: nano-sat
-  - fsNode: oneweb-0607
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 54671U 22166AF  26150.79168419 -.00000061  00000+0 -17949-3 0  9990"
-        - "2 54671  87.9263 247.4303 0002016  95.1405 264.9959 13.21827413169244"
-    hardwareSpecRef: nano-sat
-  - fsNode: oneweb-0666
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 55826U 23029AG  26150.91164637 -.00000004  00000+0 -41136-4 0  9997"
-        - "2 55826  87.9170 277.9178 0002310 114.8953 245.2420 13.20769315158873"
-    hardwareSpecRef: nano-sat
-  - fsNode: skysat-a
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 39418U 13066C   26151.06122243  .00003899  00000+0  22405-3 0  9990"
-        - "2 39418  97.3826 201.0041 0021799  18.3442 341.8571 15.12870677685899"
-    hardwareSpecRef: nano-sat
-  - fsNode: flock-4q-36
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 58274U 23174U   26151.03904421  .00045887  00000+0  64364-3 0  9998"
-        - "2 58274  97.3862 242.8306 0007162 193.7661 166.3400 15.56592865143164"
-    hardwareSpecRef: nano-sat
-  - fsNode: flock-4be-7
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 60481U 24149P   26151.19373117  .00032816  00000+0  83386-3 0  9996"
-        - "2 60481  97.3764 234.1272 0001670 344.2785  15.8409 15.39565834 99638"
-    hardwareSpecRef: nano-sat
-  - fsNode: flock-4be-13
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 60512U 24149AW  26151.21504228  .00020511  00000+0  49229-3 0  9990"
-        - "2 60512  97.3725 235.4563 0003172 348.1574  11.9598 15.41393995 99754"
-    hardwareSpecRef: nano-sat
-  - fsNode: flock-4g-26
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 62633U 25009AA  26151.11187311  .00015938  00000+0  56702-3 0  9992"
-        - "2 62633  97.4022 233.1843 0003402  31.1653 328.9788 15.29052510 76309"
-    hardwareSpecRef: nano-sat
-  - fsNode: flock-4g-1
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 62666U 25009BK  26151.18572205  .00017440  00000+0  61581-3 0  9996"
-        - "2 62666  97.4029 233.2608 0004663  41.6931 318.4664 15.29273089 76311"
-    hardwareSpecRef: nano-sat
-  - fsNode: flock-4h-5
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 66708U 25276AU  26151.19489250  .00008535  00000+0  39468-3 0  9995"
-        - "2 66708  97.4184 225.1694 0002021  77.8878 282.2584 15.20399017 27851"
-    hardwareSpecRef: nano-sat
-  - fsNode: flock-4h-23
-    nodeType: satellite
-    orbit:
-      tle:
-        - "1 66726U 25276BN  26151.10778197  .00007975  00000+0  37821-3 0  9995"
-        - "2 66726  97.4246 224.9747 0005780  67.5606 292.6241 15.19533002 27820"
-    hardwareSpecRef: nano-sat
+        - "1 50181U 21125AB  26150.67577348 -.00005682  00000+0 -33908-3 0  9995"
+        - "2 50181  53.1957 241.0676 0001421 124.4506 235.6621 15.08848527248987"
+    hardwareSpecRef: big-sat
   - fsNode: estrack-new-norcia
     nodeType: groundStation
     earthPosition:
