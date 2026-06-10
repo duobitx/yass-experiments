@@ -129,6 +129,8 @@ UC_CFG = {
               ("produced", "produced"), ("files→GS", "files_to_gs"),
               ("all?", "all_delivered"), ("lastGS(s)", "last_gs")]),
 }
+# UC2NR (continuous LOS relay, evenly distributed, no randomness) shares UC2's KPIs.
+UC_CFG["uc2nr"] = UC_CFG["uc2"]
 
 # README sections to drop from the published UC description (operational).
 DOC_DENY = ("running", "inputs", "regenerating", "sat selection", "run-id", "run id")
@@ -661,7 +663,7 @@ def col_val(k, field):
 # nothing). For these UCs the status is derived from delivery: the experiment is a
 # success when at least DELIVERY_SUCCESS_PCT of produced files reached a GS.
 DELIVERY_SUCCESS_PCT = 90.0
-DELIVERY_STATUS_UCS = ("uc2", "uc5")
+DELIVERY_STATUS_UCS = ("uc2", "uc2nr", "uc5")
 
 
 def display_status(uc_id, k):
@@ -1181,15 +1183,22 @@ def priority_delivery_chart(uc_id, rows, ucdir, cfg):
 # the UC1 orbital-contact-window ceiling that the delivering runs cluster around.
 UC1_TIMEOUT_FILL_S = 800.0
 
+# The 256 MB sweep is incomplete (a single matched n08 variant in both engines),
+# which would render as one lone, misleading 256M bar. Restrict the UC1 delivery
+# comparison to the fully-swept 128 MB file size.
+UC1_PRIMARY_FILE_SIZE = "128M"
+
 
 def engine_delivery_chart(uc_id, rows, ucdir, cfg):
     """Grouped bars comparing EDFS vs TUS time-to-first-GA for the SAME variants
-    (matched by file size + constellation size; EDFS reduced to default priority,
-    averaged over RF, since TUS has no priority/RF axis). Timed-out / undelivered
-    runs are charted at UC1_TIMEOUT_FILL_S and hatched. UC1 only. Writes a dark
-    variant + a white-background copy into charts/. Returns a chart dict or None."""
+    (matched by constellation size at the primary file size UC1_PRIMARY_FILE_SIZE;
+    EDFS reduced to default priority, averaged over RF, since TUS has no
+    priority/RF axis). Timed-out / undelivered runs are charted at
+    UC1_TIMEOUT_FILL_S and hatched. UC1 only. Writes a dark variant + a
+    white-background copy into charts/. Returns a chart dict or None."""
     if uc_id != "uc1":
         return None
+    rows = [r for r in rows if r["file_size"] == UC1_PRIMARY_FILE_SIZE]
     metric, label = cfg["headline"], cfg["hlabel"]
 
     def dt(r):
@@ -1255,7 +1264,7 @@ def delivery_pct_chart(uc_id, rows, ucdir, cfg):
     (mean over RF) since TUS has no priority/RF axis. A dashed line marks the
     DELIVERY_SUCCESS_PCT success threshold. UC2 only. Writes a dark variant + a
     white-background copy into charts/. Returns a chart dict or None."""
-    if uc_id != "uc2":
+    if uc_id not in ("uc2", "uc2nr"):
         return None
 
     def cell(eng, n, prio=None):
@@ -1648,7 +1657,7 @@ def variant_page(env, k, bundle, pqdir, vdir, uc_id):
 # ---------------- main ----------------
 
 def process_uc(env, ucdir, outroot):
-    uc_id = re.match(r"(uc\d+)", os.path.basename(ucdir)).group(1)
+    uc_id = re.match(r"(uc\d+[a-z]*)", os.path.basename(ucdir)).group(1)
     cfg = UC_CFG.get(uc_id, UC_CFG["uc1"])
     bundles = sorted(glob.glob(os.path.join(ucdir, "_runs", "*.tar.gz")))
     if not bundles:
