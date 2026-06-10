@@ -71,7 +71,7 @@ detailed description, main goal, parameters and additional metrics.
 ### Parameter sweep convention
 
 Every UC parametrises its runs by some subset of `{engine, sat_count,
-file_size, priority, RF, T_destroy, fault_intensity}`. The mapping is
+file_size, priority, RF, T_destroy}`. The mapping is
 written down in each UC's `Parameters` table. Two cross-cutting
 conventions to know:
 

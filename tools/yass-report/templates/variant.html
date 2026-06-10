@@ -4,7 +4,7 @@
 {% block content %}
 <h1><code>{{ v.run_id }}</code>
   <span class="badge">{{ v.engine }}</span>
-  {% if v.state == 'Success' %}<span class="badge ok">{{ v.state }}</span>{% else %}<span class="badge bad">{{ v.state }}</span>{% endif %}
+  {% if v.status_ok %}<span class="badge ok">{{ v.status }}</span>{% else %}<span class="badge bad">{{ v.status }}</span>{% endif %}
 </h1>
 
 {% if v.params %}

@@ -45,6 +45,14 @@ plt.rcParams.update({
     "text.color": FG, "axes.labelcolor": FG, "axes.titlecolor": FG,
     "axes.edgecolor": GRID, "xtick.color": FG, "ytick.color": FG, "grid.color": GRID,
 })
+# Light overrides (plt.rc_context) for white-background chart variants — for use in
+# documents/papers where the dark report theme prints poorly.
+LIGHT_RC = {
+    "figure.facecolor": "white", "axes.facecolor": "white", "savefig.facecolor": "white",
+    "text.color": "#1e293b", "axes.labelcolor": "#1e293b", "axes.titlecolor": "#1e293b",
+    "axes.edgecolor": "#94a3b8", "xtick.color": "#1e293b", "ytick.color": "#1e293b",
+    "grid.color": "#cbd5e1",
+}
 import pyarrow as pa
 import pyarrow.parquet as papq
 import markdown
@@ -645,6 +653,27 @@ def col_val(k, field):
         return "yes" if k["delivered"] else "no"
     return k.get(field)
 
+
+# UC2/UC5 are fault-resilience use cases: they ask whether the fleet still delivers
+# despite large-scale hardware failures, so the CR terminal state is not a useful
+# success signal (a run that waits out its max duration ends TimedOut even when all
+# files were delivered, and an Ongoing-to-Success run can have delivered almost
+# nothing). For these UCs the status is derived from delivery: the experiment is a
+# success when at least DELIVERY_SUCCESS_PCT of produced files reached a GS.
+DELIVERY_SUCCESS_PCT = 90.0
+DELIVERY_STATUS_UCS = ("uc2", "uc5")
+
+
+def display_status(uc_id, k):
+    """(status_text, ok) for the variant table. For the fault-resilience UCs the
+    status is computed from the delivery rate, not the CR terminal state."""
+    if uc_id in DELIVERY_STATUS_UCS:
+        dsr = k.get("delivery_success_rate")
+        if dsr is not None:
+            ok = dsr >= DELIVERY_SUCCESS_PCT
+            return ("Success" if ok else "Failed", ok)
+    return (k["state"], k["state"] == "Success")
+
 # ---------------- per-run charts / files ----------------
 
 def chart_bar(pairs, ylabel, title, outpng, top=12, colors=None):
@@ -755,6 +784,12 @@ def aggregate_net(pqdir, name):
 
 # ---------------- file-propagation graph ----------------
 
+# Per-chunk block CIDs that can't be attributed to a named file. They flood the
+# transfer mesh on big rosters and add no per-file information, so they are omitted
+# from both graphs.
+RELAYED_CHUNKS = "(relayed chunks)"
+
+
 def read_events(path):
     """events/<kind>.parquet -> list of column-keyed dict rows (deduped)."""
     if not os.path.exists(path):
@@ -833,7 +868,7 @@ def build_propagation(pqe, sim_start=None, duration_s=None):
         for fn in named:                   # multi-file: attribute by producer prefix
             if fn.startswith((frm or "") + "_"):
                 return fn
-        return "(relayed chunks)"
+        return RELAYED_CHUNKS
 
     # Drop 0-byte rows: those are bitswap control messages (WANT/HAVE/DONT_HAVE),
     # not data transfers — they create phantom GS<->GS "exchange" edges before any
@@ -842,15 +877,26 @@ def build_propagation(pqe, sim_start=None, duration_s=None):
     # window but the per-node telemetry timestamps can invert by ~1s, which would
     # otherwise show ground stations swapping the file before the producer sent it.
     BUCKET_S = 2.0
-    events, node_ids, files = [], set(), set()
+    # Merge per-block rows into one event per (file, from, to, time-bucket), summing
+    # bytes. The graphs already bucket time to BUCKET_S and the rate graph sums bytes
+    # per edge within a window, so this is lossless at the displayed resolution — but
+    # it collapses the per-chunk bitswap mesh (hundreds of thousands of rows on big
+    # rosters) into a graph small enough to embed. Unattributable per-chunk CIDs
+    # ((relayed chunks)) are dropped entirely.
+    agg, node_ids, files = {}, set(), set()
     for t, f, frm, to, b in raw:
         if b <= 0:
             continue
         fn = file_of(f, frm)
+        if fn == RELAYED_CHUNKS:
+            continue
         rel = round((t - t0).total_seconds() / BUCKET_S) * BUCKET_S if (t and t0) else 0.0
         rel = max(0.0, rel)  # clamp pre-start clock skew to the experiment start
-        events.append({"t": rel, "file": fn, "from": frm, "to": to, "bytes": b})
+        k = (rel, fn, frm, to)
+        agg[k] = agg.get(k, 0.0) + b
         node_ids.update((frm, to)); files.add(fn)
+    events = [{"t": rel, "file": fn, "from": frm, "to": to, "bytes": b}
+              for (rel, fn, frm, to), b in sorted(agg.items())]
 
     nodes = [{"id": n, "kind": _node_kind(n), "producer": n in producers}
              for n in sorted(node_ids)]
@@ -1086,6 +1132,348 @@ def engine_compare(uc_id, rows, ucdir, cfg):
                 "caption": "Resource usage (RAM, CPU, TX): EDFS vs TUS (mean across runs)"})
     return out
 
+
+def priority_delivery_chart(uc_id, rows, ucdir, cfg):
+    """Grouped bars: time-to-first-GA delivery per file priority, grouped by
+    constellation size. Emitted only for EDFS-only UCs that vary priority (UC3),
+    where the priority axis is the point of the use case. Returns a chart dict or
+    None."""
+    if {r["engine"] for r in rows} != {"edfs"}:
+        return None
+    metric, label = cfg["headline"], cfg["hlabel"]
+    prios = [p for p in ("default", "high", "low")
+             if any(r["priority"] == p for r in rows)]
+    if len(prios) < 2:
+        return None
+    sats = sorted({r["sat_count"] for r in rows if r.get(metric) is not None})
+    if not sats:
+        return None
+    cdir = os.path.join(ucdir, "charts"); os.makedirs(cdir, exist_ok=True)
+    x = list(range(len(sats)))
+    w = 0.8 / len(prios)
+    series = [(p, [_mean([r.get(metric) for r in rows
+                          if r["priority"] == p and r["sat_count"] == s]) for s in sats])
+              for p in prios]
+
+    def _draw(path):
+        plt.figure(figsize=(9, 5))
+        for i, (p, vals) in enumerate(series):
+            off = (i - (len(prios) - 1) / 2) * w
+            plt.bar([xi + off for xi in x], [v or 0 for v in vals], w,
+                    label=p, color=PRIO_COLORS.get(p))
+        plt.xticks(x, [f"n{s}" for s in sats]); plt.xlabel("constellation size (satellites)")
+        plt.ylabel(label); plt.title(f"{uc_id.upper()} — {label} by file priority")
+        plt.legend(title="priority"); plt.grid(True, axis="y", alpha=.3); plt.tight_layout()
+        plt.savefig(path, dpi=110); plt.close()
+
+    # dark variant matches the report theme; a white-background variant is also
+    # written to charts/ for use in documents/papers.
+    _draw(os.path.join(cdir, "delivery_by_priority.png"))
+    with plt.rc_context(LIGHT_RC):
+        _draw(os.path.join(cdir, "delivery_by_priority_light.png"))
+    return {"src": "charts/delivery_by_priority.png",
+            "caption": f"{label} by file priority, grouped by constellation size "
+                       "(white-background copy: charts/delivery_by_priority_light.png)"}
+
+
+# Runs that never delivered (timed out) are charted at this delivery time so the
+# EDFS-vs-TUS comparison shows the timeout rather than a missing/zero bar. 800 s is
+# the UC1 orbital-contact-window ceiling that the delivering runs cluster around.
+UC1_TIMEOUT_FILL_S = 800.0
+
+
+def engine_delivery_chart(uc_id, rows, ucdir, cfg):
+    """Grouped bars comparing EDFS vs TUS time-to-first-GA for the SAME variants
+    (matched by file size + constellation size; EDFS reduced to default priority,
+    averaged over RF, since TUS has no priority/RF axis). Timed-out / undelivered
+    runs are charted at UC1_TIMEOUT_FILL_S and hatched. UC1 only. Writes a dark
+    variant + a white-background copy into charts/. Returns a chart dict or None."""
+    if uc_id != "uc1":
+        return None
+    metric, label = cfg["headline"], cfg["hlabel"]
+
+    def dt(r):
+        v = r.get(metric)
+        return float(v) if v is not None else UC1_TIMEOUT_FILL_S
+
+    def cell(eng, key, prio=None):
+        sub = [r for r in rows if r["engine"] == eng and r["file_size"] == key[0]
+               and r["sat_count"] == key[1] and (prio is None or r["priority"] == prio)]
+        if not sub:
+            return None, False
+        return _mean([dt(r) for r in sub]), all(r.get(metric) is None for r in sub)
+
+    keys = sorted({(r["file_size"], r["sat_count"]) for r in rows},
+                  key=lambda k: (str(k[0]), k[1] or 0))
+    data = []
+    for k in keys:
+        ev, eto = cell("edfs", k, "default")
+        tv, tto = cell("tus", k)
+        if ev is not None and tv is not None:   # only variants present in BOTH engines
+            data.append((k, ev, eto, tv, tto))
+    if not data:
+        return None
+
+    cdir = os.path.join(ucdir, "charts"); os.makedirs(cdir, exist_ok=True)
+    x = list(range(len(data)))
+    w = 0.38
+    labels = [f"{k[0]}\nn{k[1]}" for k, *_ in data]
+
+    def _draw(path):
+        plt.figure(figsize=(max(8, len(data) * 1.1), 5))
+        for off, vi, toi, lab, col in ((-w / 2, 1, 2, "EDFS", ENG_COLORS["edfs"]),
+                                       (w / 2, 3, 4, "TUS", ENG_COLORS["tus"])):
+            bars = plt.bar([xi + off for xi in x], [d[vi] for d in data], w,
+                           label=lab, color=col)
+            for b, d in zip(bars, data):
+                if d[toi]:
+                    b.set_hatch("//"); b.set_edgecolor("#e2e8f0")
+        plt.axhline(UC1_TIMEOUT_FILL_S, ls="--", lw=1, color="#94a3b8",
+                    label=f"timeout = {UC1_TIMEOUT_FILL_S:.0f} s")
+        ymax = max(max(d[1], d[3]) for d in data)
+        plt.ylim(0, ymax * 1.22)
+        plt.xticks(x, labels); plt.xlabel("variant (file size · constellation size)")
+        plt.ylabel(label)
+        plt.title(f"{uc_id.upper()} — delivery time: EDFS vs TUS (same variants)")
+        plt.legend(loc="upper center", ncol=3, fontsize=9, framealpha=.9)
+        plt.grid(True, axis="y", alpha=.3); plt.tight_layout()
+        plt.savefig(path, dpi=110); plt.close()
+
+    _draw(os.path.join(cdir, "delivery_compare.png"))
+    with plt.rc_context(LIGHT_RC):
+        _draw(os.path.join(cdir, "delivery_compare_light.png"))
+    return {"src": "charts/delivery_compare.png",
+            "caption": f"{label}: EDFS vs TUS for the same variants (EDFS = default "
+                       f"priority, mean over RF). Timed-out runs charted at "
+                       f"{UC1_TIMEOUT_FILL_S:.0f} s and hatched "
+                       "(white-background copy: charts/delivery_compare_light.png)"}
+
+
+def delivery_pct_chart(uc_id, rows, ucdir, cfg):
+    """Grouped bars comparing EDFS vs TUS delivery success rate (% of produced files
+    that reached a GA) by constellation size. EDFS is reduced to default priority
+    (mean over RF) since TUS has no priority/RF axis. A dashed line marks the
+    DELIVERY_SUCCESS_PCT success threshold. UC2 only. Writes a dark variant + a
+    white-background copy into charts/. Returns a chart dict or None."""
+    if uc_id != "uc2":
+        return None
+
+    def cell(eng, n, prio=None):
+        # Only runs that actually produced files carry a delivery measurement; a
+        # produced=0 run (infra/timeout failure) is no data, so its bar is dropped.
+        sub = [r for r in rows if r["engine"] == eng and r["sat_count"] == n
+               and (prio is None or r["priority"] == prio) and (r.get("produced") or 0) > 0]
+        return _mean([float(r["delivery_success_rate"]) for r in sub
+                      if r.get("delivery_success_rate") is not None]) if sub else None
+
+    data = []
+    for n in sorted({r["sat_count"] for r in rows}):
+        ev, tv = cell("edfs", n, "default"), cell("tus", n)
+        if ev is not None and tv is not None:   # ignore sizes with nothing to compare
+            data.append((n, ev, tv))
+    if not data:
+        return None
+
+    cdir = os.path.join(ucdir, "charts"); os.makedirs(cdir, exist_ok=True)
+    x = list(range(len(data)))
+    w = 0.38
+
+    def _draw(path):
+        plt.figure(figsize=(max(8, len(data) * 1.0), 5))
+        for off, vi, lab, col in ((-w / 2, 1, "EDFS", ENG_COLORS["edfs"]),
+                                  (w / 2, 2, "TUS", ENG_COLORS["tus"])):
+            xs = [xi + off for xi, d in zip(x, data) if d[vi] is not None]
+            ys = [d[vi] for d in data if d[vi] is not None]
+            plt.bar(xs, ys, w, label=lab, color=col)
+            for bx, by in zip(xs, ys):
+                plt.annotate(f"{by:.0f}", (bx, by + 1.5), ha="center", va="bottom", fontsize=7)
+        plt.axhline(DELIVERY_SUCCESS_PCT, ls="--", lw=1, color="#94a3b8",
+                    label=f"success ≥ {DELIVERY_SUCCESS_PCT:.0f}%")
+        plt.ylim(0, 120)
+        plt.xticks(x, [f"n{d[0]}" for d in data])
+        plt.xlabel("constellation size (satellites)")
+        plt.ylabel("files delivered to a GA (%)")
+        plt.title(f"{uc_id.upper()} — delivery success: EDFS vs TUS")
+        plt.legend(loc="upper center", ncol=3, fontsize=9, framealpha=.9)
+        plt.grid(True, axis="y", alpha=.3); plt.tight_layout()
+        plt.savefig(path, dpi=110); plt.close()
+
+    _draw(os.path.join(cdir, "delivery_pct_compare.png"))
+    with plt.rc_context(LIGHT_RC):
+        _draw(os.path.join(cdir, "delivery_pct_compare_light.png"))
+    return {"src": "charts/delivery_pct_compare.png",
+            "caption": "Delivery success (% of produced files reaching a GA): EDFS vs "
+                       "TUS by constellation size (EDFS = default priority, mean over RF). "
+                       "Dashed line = success threshold "
+                       "(white-background copy: charts/delivery_pct_compare_light.png)"}
+
+
+# The (n, dt) cell broken out by priority on the UC4 report page.
+UC4_PRIORITY_CELL = (21, "15m")
+
+
+def uc4_delivery_count_charts(uc_id, rows, ucdir, cfg):
+    """Two EDFS charts for UC4:
+      1. delivery rate per (constellation size, destroy time), HIGH priority only —
+         one comparable run per `n=<N>,dt=<DT>` column;
+      2. delivery rate by file priority for the UC4_PRIORITY_CELL (n, dt) cell, which
+         shows low priority failing where default/high succeed.
+    UC4 only. Each chart dark + a white-background copy into charts/. Returns a list
+    of chart dicts (or None)."""
+    if uc_id != "uc4":
+        return None
+    e = [r for r in rows if r["engine"] == "edfs"]
+    if not e:
+        return None
+    cdir = os.path.join(ucdir, "charts"); os.makedirs(cdir, exist_ok=True)
+
+    def dt_min(s):
+        try:
+            return int(str(s).rstrip("m"))
+        except ValueError:
+            return 0
+
+    def pct(sub):
+        p = len(sub)
+        return (100.0 * sum(1 for r in sub if (r.get("files_to_gs") or 0) >= 1) / p) if p else None
+
+    def save_both(fname, draw):
+        draw(os.path.join(cdir, fname + ".png"))
+        with plt.rc_context(LIGHT_RC):
+            draw(os.path.join(cdir, fname + "_light.png"))
+
+    charts = []
+
+    # 1) per (n, dt), HIGH priority only — every column is one comparable run.
+    hi = [r for r in e if r["priority"] == "high"]
+    cols = []
+    for n, dt in sorted({(r["sat_count"], r.get("t_destroy")) for r in hi if r.get("t_destroy")},
+                        key=lambda k: (k[0], dt_min(k[1]))):
+        v = pct([r for r in hi if r["sat_count"] == n and r.get("t_destroy") == dt])
+        if v is not None:
+            cols.append((f"n={n},dt={dt}", v, dt))
+    if cols:
+        dts = sorted({c[2] for c in cols}, key=dt_min)
+        DTC = dict(zip(dts, ["#4c78a8", "#54a24b", "#f58518", "#b279a2"]))
+        x = list(range(len(cols)))
+
+        def draw1(path):
+            plt.figure(figsize=(max(9, len(cols) * 0.7), 5.0))
+            for dt in dts:
+                gx = [xi for xi, c in zip(x, cols) if c[2] == dt]
+                plt.bar(gx, [cols[xi][1] for xi in gx], 0.78, color=DTC[dt], label=f"dt={dt}")
+            for xi, c in zip(x, cols):
+                plt.annotate(f"{c[1]:.0f}%", (xi, c[1] + 1.5), ha="center", va="bottom", fontsize=7)
+            plt.ylim(0, 118)
+            plt.xticks(x, [c[0] for c in cols], rotation=45, ha="right", fontsize=8)
+            plt.ylabel("files delivered to a GA (%)")
+            plt.title("UC4 — EDFS delivery rate per (constellation size, destroy time) — high priority")
+            plt.legend(loc="upper center", ncol=len(dts), fontsize=9, framealpha=.9)
+            plt.grid(True, axis="y", alpha=.3); plt.tight_layout()
+            plt.savefig(path, dpi=110); plt.close()
+
+        save_both("uc4_delivery_pct", draw1)
+        charts.append({"src": "charts/uc4_delivery_pct.png",
+                       "caption": "EDFS delivery rate (% of produced files reaching a GA), HIGH "
+                                  "priority only — high is the only priority run at every n, so the "
+                                  "columns are directly comparable. Default behaves identically (see "
+                                  "the priority breakdown below); low is the priority that fails. "
+                                  "Coloured by destroy time "
+                                  "(white-background copy: charts/uc4_delivery_pct_light.png)"})
+
+    # 2) priority breakdown for the UC4_PRIORITY_CELL cell.
+    tn, tdt = UC4_PRIORITY_CELL
+    pdata = []
+    for p in ("default", "high", "low"):
+        v = pct([r for r in e if r["priority"] == p
+                 and r["sat_count"] == tn and r.get("t_destroy") == tdt])
+        if v is not None:
+            pdata.append((p, v))
+    if pdata:
+        x = list(range(len(pdata)))
+
+        def draw2(path):
+            plt.figure(figsize=(6, 4.4))
+            plt.bar(x, [d[1] for d in pdata], 0.6, color=[PRIO_COLORS.get(d[0]) for d in pdata])
+            for xi, d in zip(x, pdata):
+                plt.annotate(f"{d[1]:.0f}%", (xi, d[1] + 1.5), ha="center", va="bottom", fontsize=9)
+            plt.ylim(0, 118)
+            plt.xticks(x, [d[0] for d in pdata]); plt.xlabel("file priority")
+            plt.ylabel("files delivered to a GA (%)")
+            plt.title(f"UC4 — EDFS delivery by priority (n={tn}, dt={tdt})")
+            plt.grid(True, axis="y", alpha=.3); plt.tight_layout()
+            plt.savefig(path, dpi=110); plt.close()
+
+        save_both("uc4_priority_breakdown", draw2)
+        charts.append({"src": "charts/uc4_priority_breakdown.png",
+                       "caption": f"EDFS delivery rate by file priority for the n={tn}, dt={tdt} cell — "
+                                  "low priority fails where default/high succeed "
+                                  "(white-background copy: charts/uc4_priority_breakdown_light.png)"})
+
+    return charts or None
+
+
+def uc5_delivery_pct_charts(uc_id, rows, ucdir, cfg):
+    """Two EDFS delivery-rate bar charts for UC5 (general failure, EDFS-only):
+    delivery success (% of produced files reaching a GA) as a function of
+    constellation size, and as a function of replication factor RF. One bar per
+    x-value (mean over the other parameter). UC5 only. Each chart dark + a
+    white-background copy into charts/. Returns a list of chart dicts (or None)."""
+    if uc_id != "uc5":
+        return None
+    e = [r for r in rows if r["engine"] == "edfs"]
+    if not e:
+        return None
+    cdir = os.path.join(ucdir, "charts"); os.makedirs(cdir, exist_ok=True)
+
+    def dpct(r):
+        v = r.get("delivery_success_rate")
+        return float(v) if v is not None else 0.0
+
+    charts = []
+
+    def bar_chart(keyfn, order, labelfn, fname, xlabel, title, caption):
+        data = []
+        for k in order:
+            sub = [r for r in e if keyfn(r) == k]
+            if sub:
+                data.append((k, _mean([dpct(r) for r in sub])))
+        if not data:
+            return
+        x = list(range(len(data)))
+
+        def _draw(path):
+            plt.figure(figsize=(max(6, len(data) * 1.1), 4.4))
+            plt.bar(x, [d[1] for d in data], 0.6, color=ENG_COLORS["edfs"])
+            for xi, d in zip(x, data):
+                plt.annotate(f"{d[1]:.0f}%", (xi, d[1] + 1.5), ha="center", va="bottom", fontsize=9)
+            plt.ylim(0, 118)
+            plt.xticks(x, [labelfn(d[0]) for d in data]); plt.xlabel(xlabel)
+            plt.ylabel("files delivered to a GA (%)")
+            plt.title(title)
+            plt.grid(True, axis="y", alpha=.3); plt.tight_layout()
+            plt.savefig(path, dpi=110); plt.close()
+
+        _draw(os.path.join(cdir, fname + ".png"))
+        with plt.rc_context(LIGHT_RC):
+            _draw(os.path.join(cdir, fname + "_light.png"))
+        charts.append({"src": f"charts/{fname}.png",
+                       "caption": caption + f" (white-background copy: charts/{fname}_light.png)"})
+
+    sats = sorted({r["sat_count"] for r in e})
+    bar_chart(lambda r: r["sat_count"], sats, lambda k: f"n{k}", "uc5_delivery_by_n",
+              "constellation size (satellites)",
+              "UC5 — EDFS delivery success vs constellation size",
+              "Delivery success (% of produced files reaching a GA) by constellation size (EDFS, mean over RF)")
+
+    rfs = sorted({r["rf"] for r in e if r.get("rf") is not None})
+    bar_chart(lambda r: r["rf"], rfs, lambda k: f"RF={k}", "uc5_delivery_by_rf",
+              "replication factor (RF)",
+              "UC5 — EDFS delivery success vs replication factor",
+              "Delivery success (% of produced files reaching a GA) by replication factor (EDFS, mean over constellation size)")
+
+    return charts or None
+
 # ---------------- README → description ----------------
 
 def uc_description(readme_path):
@@ -1232,18 +1620,22 @@ def variant_page(env, k, bundle, pqdir, vdir, uc_id):
               if r["value"] not in ("n/a", "—", "", None)]
     kpi_keys = [key for key in kpi_keys if key not in param_keys]
 
+    # Header badge = the displayed verdict (delivery-derived for UC2/UC5, CR state
+    # otherwise); the raw CR terminal state stays in the KPI table below.
+    status, status_ok = display_status(uc_id, k)
     v = dict(
-        run_id=k["run_id"], engine=k["engine"], state=k["state"],
+        run_id=k["run_id"], engine=k["engine"],
+        status=status, status_ok=status_ok,
         params=params,
         kpis=[_row(key) for key in kpi_keys],
-        data=json.dumps(data),
+        data=json.dumps(data, separators=(",", ":")),
         deliv_h=max(220, 22 * len(deliv)) if deliv_horiz else 340,
         deliv_axis="y" if deliv_horiz else "x",
         deliv_valaxis="x" if deliv_horiz else "y",
         net_h=max(240, 26 * len(nodes)) if net_horiz else 340,
         net_axis="y" if net_horiz else "x",
         pngs=pngs, has_parquet=has_parquet, has_resources=has_resources,
-        has_graph=bool(graph), graph=json.dumps(graph) if graph else "null",
+        has_graph=bool(graph), graph=json.dumps(graph, separators=(",", ":")) if graph else "null",
         deliveries=deliveries,
     )
     html = env.get_template("variant.html").render(
@@ -1288,10 +1680,21 @@ def process_uc(env, ucdir, outroot):
             print(f"  {uc_id} {rid}  state={k['state']}  firstGS={k['first_gs']}  lastGS={k['last_gs']}")
 
     title, desc_html, abstract = uc_description(os.path.join(ucdir, "README.md"))
-    charts, conclusions = cross_run(uc_id, rows, ucout, cfg)
+    _crcharts, conclusions = cross_run(uc_id, rows, ucout, cfg)
     # EDFS-vs-TUS comparison PNGs into ucN/charts/ — generated but NOT linked on
     # the UC index page (kept as hidden deliverable artifacts).
     engine_compare(uc_id, rows, ucout, cfg)
+
+    # Charts shown on the UC index page. By design the cross-run / engine-compare
+    # PNGs stay hidden artifacts; only the curated per-UC charts below are linked
+    # (UC1 EDFS-vs-TUS delivery time, UC2 EDFS-vs-TUS delivery %, UC3 priority delivery,
+    # UC4 EDFS delivery rate by (n,dt) + priority, UC5 EDFS delivery % by n and RF).
+    page_charts = []
+    for fn in (engine_delivery_chart, delivery_pct_chart, priority_delivery_chart,
+               uc4_delivery_count_charts, uc5_delivery_pct_charts):
+        c = fn(uc_id, rows, ucout, cfg)
+        if c:
+            page_charts.extend(c if isinstance(c, list) else [c])
 
     # The automatic EDFS-vs-TUS comparison is no longer shown on the HTML page;
     # write it to a plain-text deliverable (comparison.txt) instead.
@@ -1309,14 +1712,23 @@ def process_uc(env, ucdir, outroot):
         if txt:
             conclusions_md = markdown.markdown(txt, extensions=["tables", "fenced_code"])
 
+    deliv_status = uc_id in DELIVERY_STATUS_UCS
     variants = []
     for r in sorted(rows, key=lambda x: (x["engine"], x["sat_count"], x["priority"], x["rf"] or 0)):
-        variants.append({"id": r["run_id"], "state": r["state"],
-                         "cells": [col_val(r, field) for _, field in cfg["cols"]]})
-    var_headers = ["variant"] + [h for h, _ in cfg["cols"]] + ["state"]
+        status, ok = display_status(uc_id, r)
+        tail = []
+        if deliv_status:
+            dsr = r.get("delivery_success_rate")
+            tail = [f"{dsr:.0f}%" if dsr is not None else "n/a"]
+        variants.append({"id": r["run_id"], "status": status, "status_ok": ok,
+                         "cells": [col_val(r, field) for _, field in cfg["cols"]],
+                         "tail": tail})
+    var_headers = (["variant"] + [h for h, _ in cfg["cols"]]
+                   + ["status" if deliv_status else "state"]
+                   + (["delivered %"] if deliv_status else []))
 
     uc = dict(id=uc_id, title=title or uc_id.upper(), description_html=desc_html,
-              abstract=abstract, charts=charts,
+              abstract=abstract, charts=page_charts,
               conclusions_md=conclusions_md,
               variants=variants, var_headers=var_headers)
     html = env.get_template("uc_index.html").render(

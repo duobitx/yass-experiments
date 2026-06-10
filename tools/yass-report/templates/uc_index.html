@@ -5,6 +5,15 @@
 
 <div class="doc">{{ uc.description_html|safe }}</div>
 
+{% if uc.charts %}
+<h2>Charts</h2>
+<div class="charts">
+{% for c in uc.charts %}
+  <div class="chart"><img src="{{ c.src }}" alt="{{ c.caption }}"><div class="cap">{{ c.caption }}</div></div>
+{% endfor %}
+</div>
+{% endif %}
+
 <h2>Variants ({{ uc.variants|length }})</h2>
 <table class="variants">
 <tr>{% for h in uc.var_headers %}<th>{{ h }}</th>{% endfor %}</tr>
@@ -12,7 +21,8 @@
 <tr>
   <td><a href="{{ v.id }}/index.html">{{ v.id }}</a></td>
   {% for c in v.cells %}<td>{{ c }}</td>{% endfor %}
-  <td>{% if v.state == 'Success' %}<span class="badge ok">{{ v.state }}</span>{% else %}<span class="badge bad">{{ v.state }}</span>{% endif %}</td>
+  <td>{% if v.status_ok %}<span class="badge ok">{{ v.status }}</span>{% else %}<span class="badge bad">{{ v.status }}</span>{% endif %}</td>
+  {% for c in v.tail %}<td>{{ c }}</td>{% endfor %}
 </tr>
 {% endfor %}
 </table>

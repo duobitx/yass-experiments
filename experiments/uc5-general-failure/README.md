@@ -42,6 +42,20 @@ UC5 sits between UC2 (every sat produces one file, faults active) and UC4
 of EDFS's eventual consistency under sustained but non-catastrophic
 degradation.
 
+**Relationship to UC2.** UC5 is essentially the same experiment as UC2 —
+the same constellation, the same continuous stream of non-terminal hardware
+faults (`Destroy` is excluded in both), measuring the same time-to-ground
+KPI — only with a different parametrization: a sparser, time-distributed
+workload (only ~20% of satellites produce, each a small finite batch of
+images over time, instead of every satellite producing one file at `t=0`)
+and a stricter 100% completeness bar. The one practical consequence worth
+calling out is that **UC5 is EDFS-only, so there is nothing to compare
+against**: there is no point-to-point (TUS) baseline here, because the
+eventual whole-set convergence under sustained relay has no point-to-point
+analogue (TUS would simply lose files under the fault stream). UC5 is
+therefore an absolute characterization of EDFS across the `RF` axis rather
+than a head-to-head.
+
 ## Success Condition
 The run ends successfully once a single ground station holds every image
 produced in the run.

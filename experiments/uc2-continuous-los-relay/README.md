@@ -106,13 +106,12 @@ expected to fall below.
 | `RF`              | 1, 3, 5 — **EDFS only**                             | Probes "is more replication actually helpful here?"                                                               |
 | `gs_count`        | fixed at 7 (ESTRACK)                                |                                                                                                                   |
 | `file_size`       | `32M`                                               | One regime per UC2 run; we sweep RF/sat_count rather than file size to keep the deliverable set focused.          |
-| `fault_intensity` | mean interval `5m`, jitter `50%`, duration `30-60s` | Encoded directly in each behaviour's `hardwareEvents.schedule`; the run-id includes a `seed` for reproducibility. |
 | `max_duration`    | `6h`                                                | Tight enough that "still in flight at the deadline" actually counts against the success rate.                     |
 
 **TUS parameter coverage.** TUS has no notion of file priority or
 replication factor — `priority` and `RF` are ignored by the engine.
-For TUS we therefore only sweep `(sat_count)` (with `fault_intensity`
-held to the same per-run schedule), pin `priority=default` and omit
+For TUS we therefore only sweep `(sat_count)` (under the same per-run
+fault schedule), pin `priority=default` and omit
 `RF`. Each TUS run is compared against the full `(priority, RF)`
 matrix of EDFS runs at the same `sat_count` and the same fault seed.
 
