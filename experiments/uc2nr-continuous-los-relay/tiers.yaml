@@ -1,0 +1,46 @@
+# UC2NR tiered sweep matrix. Driven by ./run.sh --tier <N>.
+# Identical matrix to UC2; UC2NR differs only in (1) even multi-constellation
+# satellite distribution and (2) a fully deterministic, phased fault schedule.
+#
+# Tier 1: headline curve — delivery success rate vs sat_count, EDFS vs TUS.
+#   Fixed: priority=default, RF=3 (EDFS), file_size=32M.
+#   Both engines sweep all six sat_counts.
+# Tier 2: parameter sensitivity at the n08 mid-point.
+#   Priority sweep (EDFS only), RF sweep (EDFS only).
+# Tier 3: deep dive at n100 — optional after Tier 1+2 analysis.
+#
+# Every SAT produces one file; every GS is a multi-receiver that stays alive
+# for the full run logging every RECEIVED event. No END_ON_ANY on GS.
+# fault schedule is deterministic: hardwareEvents fire every 5m for 30s with
+# zero jitter, phased per fsNode index so faults stay spread across the
+# constellation (~10% faulted at any instant). No seed / no RNG.
+
+tier_1:
+  - { engine: edfs, sat_count: 1,   file_size: 32M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 2,   file_size: 32M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 8,   file_size: 32M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 21,  file_size: 32M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: default, rf: 3 }
+  - { engine: edfs, sat_count: 200, file_size: 32M, priority: default, rf: 3 }
+  - { engine: tus,  sat_count: 1,   file_size: 32M }
+  - { engine: tus,  sat_count: 2,   file_size: 32M }
+  - { engine: tus,  sat_count: 8,   file_size: 32M }
+  - { engine: tus,  sat_count: 21,  file_size: 32M }
+  - { engine: tus,  sat_count: 100, file_size: 32M }
+  - { engine: tus,  sat_count: 200, file_size: 32M }
+
+tier_2:
+  # Priority sensitivity at n08 (EDFS only — TUS ignores priority)
+  - { engine: edfs, sat_count: 8, file_size: 32M, priority: low,  rf: 3 }
+  - { engine: edfs, sat_count: 8, file_size: 32M, priority: high, rf: 3 }
+  # RF sensitivity at n08 (EDFS only)
+  - { engine: edfs, sat_count: 8, file_size: 32M, priority: default, rf: 1 }
+  - { engine: edfs, sat_count: 8, file_size: 32M, priority: default, rf: 5 }
+
+tier_3:
+  # Optional deep dive at n100 — only run after Tier 1+2 analysis shows
+  # a parameter effect worth tracking at scale.
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: low,  rf: 3 }
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: high, rf: 3 }
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: default, rf: 1 }
+  - { engine: edfs, sat_count: 100, file_size: 32M, priority: default, rf: 5 }
