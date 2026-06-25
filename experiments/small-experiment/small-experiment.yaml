@@ -192,7 +192,7 @@ kind: ExperimentDefinition
 metadata:
   name: small-experiment
 spec:
-  maxDuration: "999999h"
+  maxDuration: "10m"
   behaviours:
     - fsNode: sat-01
       agent:
