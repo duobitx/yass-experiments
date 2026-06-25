@@ -1,0 +1,470 @@
+# Laptop-sized TUS experiment: 13 satellites (evenly-distributed Walker
+# constellation) + 7 ESTRACK ground stations. Self-contained - apply with:
+#   kubectl apply -f small-experiment.yaml
+#
+# Satellites form a Walker pattern: RAAN and mean anomaly are each stepped by
+# 360/13 deg so orbital planes and in-plane phases are uniformly spread. Common
+# inclination 60 deg on a near-circular ~1200 km shell. Each satellite produces
+# a 1 MB file every ~8-20 s (high rate, to generate visible traffic) and carries
+# a recurring non-Destroy hardware-fault stream.
+#
+# Ground stations are the 7 ESA ESTRACK core stations, receive-only. To fit the
+# single-node 8-core/22Gi kind cluster they use the lean ground-station-small
+# profile (250m/1Gi) defined below instead of ground-station-hwdef (1500m/4Gi):
+# 13x200m sat + 7x250m GS + infra ~= 6.3 of 8 CPU. The CPU headroom matters at
+# cold start, when all pods initialise at once and the kubelet/runtime overhead
+# (not counted in pod requests) would otherwise tip the node into saturation.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: small-experiment-tus
+  labels:
+    yass-namespace: "true"
+---
+apiVersion: int.esa.yass/v1
+kind: HardwareDefinition
+metadata:
+  name: ground-station-small
+spec:
+  cpu: 250m
+  memory: 1Gi
+  batteryCapacityWh: 1000
+  batteryChargeW: 1000
+  lowPowerThresholdWh: 0
+  energyConsumption:
+    lowPowerBaseW: 0
+    normalPowerBaseW: 0
+    perkByteDiskRD: 0
+    perkByteDiskWR: 0
+    perkByteTXWh: 0
+---
+apiVersion: int.esa.yass/v1
+kind: Layout
+metadata:
+  name: small-experiment-layout
+spec:
+  - fsNode: sat-01
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90001U 26001A   26145.50000000  .00000050  00000+0  10000-4 0  9991"
+        - "2 90001  60.0000   0.0000 0002299  92.4563   0.0000 13.16593850000011"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-02
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90002U 26001B   26145.50000000  .00000050  00000+0  10000-4 0  9992"
+        - "2 90002  60.0000  27.6923 0002299  92.4563  27.6923 13.16593850000010"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-03
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90003U 26001C   26145.50000000  .00000050  00000+0  10000-4 0  9993"
+        - "2 90003  60.0000  55.3846 0002299  92.4563  55.3846 13.16593850000015"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-04
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90004U 26001D   26145.50000000  .00000050  00000+0  10000-4 0  9994"
+        - "2 90004  60.0000  83.0769 0002299  92.4563  83.0769 13.16593850000010"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-05
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90005U 26001E   26145.50000000  .00000050  00000+0  10000-4 0  9995"
+        - "2 90005  60.0000 110.7692 0002299  92.4563 110.7692 13.16593850000017"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-06
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90006U 26001F   26145.50000000  .00000050  00000+0  10000-4 0  9996"
+        - "2 90006  60.0000 138.4615 0002299  92.4563 138.4615 13.16593850000012"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-07
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90007U 26001G   26145.50000000  .00000050  00000+0  10000-4 0  9997"
+        - "2 90007  60.0000 166.1538 0002299  92.4563 166.1538 13.16593850000017"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-08
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90008U 26001H   26145.50000000  .00000050  00000+0  10000-4 0  9998"
+        - "2 90008  60.0000 193.8462 0002299  92.4563 193.8462 13.16593850000014"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-09
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90009U 26001I   26145.50000000  .00000050  00000+0  10000-4 0  9999"
+        - "2 90009  60.0000 221.5385 0002299  92.4563 221.5385 13.16593850000011"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-10
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90010U 26001J   26145.50000000  .00000050  00000+0  10000-4 0  9991"
+        - "2 90010  60.0000 249.2308 0002299  92.4563 249.2308 13.16593850000017"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-11
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90011U 26001K   26145.50000000  .00000050  00000+0  10000-4 0  9992"
+        - "2 90011  60.0000 276.9231 0002299  92.4563 276.9231 13.16593850000012"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-12
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90012U 26001L   26145.50000000  .00000050  00000+0  10000-4 0  9993"
+        - "2 90012  60.0000 304.6154 0002299  92.4563 304.6154 13.16593850000019"
+    hardwareSpecRef: nano-sat
+  - fsNode: sat-13
+    nodeType: satellite
+    orbit:
+      tle:
+        - "1 90013U 26001M   26145.50000000  .00000050  00000+0  10000-4 0  9994"
+        - "2 90013  60.0000 332.3077 0002299  92.4563 332.3077 13.16593850000014"
+    hardwareSpecRef: nano-sat
+  - fsNode: estrack-cebreros
+    nodeType: groundStation
+    earthPosition:
+      lat: 40.453
+      lng: -4.368
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-small
+  - fsNode: estrack-malargue
+    nodeType: groundStation
+    earthPosition:
+      lat: -35.776
+      lng: -69.398
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-small
+  - fsNode: estrack-kourou
+    nodeType: groundStation
+    earthPosition:
+      lat: 5.251
+      lng: -52.804
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-small
+  - fsNode: estrack-newnorcia
+    nodeType: groundStation
+    earthPosition:
+      lat: -31.048
+      lng: 116.191
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-small
+  - fsNode: estrack-redu
+    nodeType: groundStation
+    earthPosition:
+      lat: 50.002
+      lng: 5.146
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-small
+  - fsNode: estrack-santamaria
+    nodeType: groundStation
+    earthPosition:
+      lat: 36.997
+      lng: -25.136
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-small
+  - fsNode: estrack-kiruna
+    nodeType: groundStation
+    earthPosition:
+      lat: 67.857
+      lng: 20.964
+      heightOverSeaLevel: 0
+    hardwareSpecRef: ground-station-small
+---
+apiVersion: int.esa.yass/v1
+kind: ExperimentDefinition
+metadata:
+  name: small-experiment
+spec:
+  maxDuration: "999999h"
+  behaviours:
+    - fsNode: sat-01
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "8"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-networkbandwidthreduced
+          type: NetworkBandwidthReduced
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2000
+          params:
+            networkBandwidth:
+              reductionPercent: 75
+    - fsNode: sat-02
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "9"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-networkfailure
+          type: NetworkFailure
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2001
+    - fsNode: sat-03
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "10"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-diskfull
+          type: DiskFull
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2002
+    - fsNode: sat-04
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "11"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-diskfailure
+          type: DiskFailure
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2003
+    - fsNode: sat-05
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "12"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-networkbandwidthreduced
+          type: NetworkBandwidthReduced
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2004
+          params:
+            networkBandwidth:
+              reductionPercent: 75
+    - fsNode: sat-06
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "13"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-networkfailure
+          type: NetworkFailure
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2005
+    - fsNode: sat-07
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "14"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-diskfull
+          type: DiskFull
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2006
+    - fsNode: sat-08
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "15"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-diskfailure
+          type: DiskFailure
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2007
+    - fsNode: sat-09
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "16"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-networkbandwidthreduced
+          type: NetworkBandwidthReduced
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2008
+          params:
+            networkBandwidth:
+              reductionPercent: 75
+    - fsNode: sat-10
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "17"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-networkfailure
+          type: NetworkFailure
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2009
+    - fsNode: sat-11
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "18"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-diskfull
+          type: DiskFull
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2010
+    - fsNode: sat-12
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "19"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-diskfailure
+          type: DiskFailure
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2011
+    - fsNode: sat-13
+      agent:
+        image: ghcr.io/duobitx/yass-agent-periodic
+        envsMap:
+          FILE_SIZE: "1M"
+          CHECK_INTERVAL_SECONDS: "20"
+          MAX_PHOTOS: "0"
+      hardwareEvents:
+        - name: random-networkbandwidthreduced
+          type: NetworkBandwidthReduced
+          startOffset: 1m
+          schedule:
+            intervalMean: 5m
+            intervalJitterPercent: 50
+            durationMean: 30s
+            durationJitterPercent: 50
+            seed: 2012
+          params:
+            networkBandwidth:
+              reductionPercent: 75
+    - fsNode: estrack-cebreros
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-malargue
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-kourou
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-newnorcia
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-redu
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-santamaria
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+    - fsNode: estrack-kiruna
+      agent:
+        image: ghcr.io/duobitx/yass-agent-receive-only
+      hardwareEvents: []
+---
+apiVersion: int.esa.yass/v1
+kind: Experiment
+metadata:
+  name: small-experiment-experiment
+  namespace: small-experiment-tus
+spec:
+  experimentDefRef: small-experiment
+  layoutDefRef: small-experiment-layout
+  engineContainers:
+    - name: engine-tus
+      image: "ghcr.io/duobitx/yass-tus-fs-engine"
+      env:
+        - name: GROUND_STATIONS
+          value: "estrack-cebreros,estrack-malargue,estrack-kourou,estrack-newnorcia,estrack-redu,estrack-santamaria,estrack-kiruna"
+  start: true
