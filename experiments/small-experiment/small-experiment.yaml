@@ -5,10 +5,13 @@
 # Satellites form a Walker pattern: RAAN and mean anomaly are each stepped by
 # 360/13 deg so orbital planes and in-plane phases are uniformly spread. Common
 # inclination 60 deg on a near-circular ~1200 km shell. Each satellite produces
-# a 1 MB file every ~8-20 s (high rate, to generate visible traffic) and carries
-# a recurring non-Destroy hardware-fault stream.
+# a 15 MB file every ~20-32 s - large enough that each sat->GS transfer stays
+# visible on the globe for ~30 s - and carries a recurring non-Destroy
+# hardware-fault stream.
 #
-# Ground stations are the 7 ESA ESTRACK core stations, receive-only. To fit the
+# Ground stations are the 7 ESA ESTRACK core stations, receive-only, and keep
+# receiving indefinitely (SUCCESS_AFTER_FILES very high) so they never complete
+# and transfers keep flowing for the live web-ui view. To fit the
 # single-node 8-core/22Gi kind cluster they use the lean ground-station-small
 # profile (250m/1Gi) defined below instead of ground-station-hwdef (1500m/4Gi):
 # 13x200m sat + 7x250m GS + infra ~= 6.3 of 8 CPU. The CPU headroom matters at
@@ -195,8 +198,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "8"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "20"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-networkbandwidthreduced
@@ -215,8 +218,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "9"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "21"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-networkfailure
@@ -232,8 +235,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "10"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "22"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-diskfull
@@ -249,8 +252,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "11"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "23"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-diskfailure
@@ -266,8 +269,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "12"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "24"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-networkbandwidthreduced
@@ -286,8 +289,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "13"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "25"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-networkfailure
@@ -303,8 +306,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "14"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "26"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-diskfull
@@ -320,8 +323,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "15"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "27"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-diskfailure
@@ -337,8 +340,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "16"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "28"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-networkbandwidthreduced
@@ -357,8 +360,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "17"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "29"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-networkfailure
@@ -374,8 +377,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "18"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "30"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-diskfull
@@ -391,8 +394,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "19"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "31"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-diskfailure
@@ -408,8 +411,8 @@ spec:
       agent:
         image: ghcr.io/duobitx/yass-agent-periodic
         envsMap:
-          FILE_SIZE: "1M"
-          CHECK_INTERVAL_SECONDS: "20"
+          FILE_SIZE: "15M"
+          CHECK_INTERVAL_SECONDS: "32"
           MAX_PHOTOS: "0"
       hardwareEvents:
         - name: random-networkbandwidthreduced
@@ -427,30 +430,44 @@ spec:
     - fsNode: estrack-cebreros
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          SUCCESS_AFTER_FILES: "1000000"
       hardwareEvents: []
     - fsNode: estrack-malargue
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          SUCCESS_AFTER_FILES: "1000000"
       hardwareEvents: []
     - fsNode: estrack-kourou
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          SUCCESS_AFTER_FILES: "1000000"
       hardwareEvents: []
     - fsNode: estrack-newnorcia
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          SUCCESS_AFTER_FILES: "1000000"
       hardwareEvents: []
     - fsNode: estrack-redu
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          SUCCESS_AFTER_FILES: "1000000"
       hardwareEvents: []
     - fsNode: estrack-santamaria
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          SUCCESS_AFTER_FILES: "1000000"
       hardwareEvents: []
     - fsNode: estrack-kiruna
       agent:
         image: ghcr.io/duobitx/yass-agent-receive-only
+        envsMap:
+          SUCCESS_AFTER_FILES: "1000000"
       hardwareEvents: []
 ---
 apiVersion: int.esa.yass/v1

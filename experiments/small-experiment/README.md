@@ -19,14 +19,19 @@ to watch traffic flow on the web-ui globe.
 
 ## Scenario
 
-- Every satellite runs `yass-agent-periodic` and creates a **1 MB** file every
-  **~8–20 s** (high rate, to generate visible traffic). `CHECK_INTERVAL_SECONDS`
-  is staggered (8..20s) so production does not fire in lock-step.
+- Every satellite runs `yass-agent-periodic` and creates a **15 MB** file every
+  **~20–32 s** — large enough that each sat→GS transfer stays visible on the
+  globe for ~30 s. `CHECK_INTERVAL_SECONDS` is staggered (20..32s) so production
+  does not fire in lock-step, and paced to roughly keep up with delivery
+  (~4 Mbps) rather than pile up backlog on the 8Gi sat disk.
 - Every satellite carries a **recurring non-`Destroy` hardware-fault stream**
   (mean interval 5m, jitter 50%, duration 30s ± 50%), rotated across the
   constellation: `NetworkBandwidthReduced` → `NetworkFailure` → `DiskFull` →
   `DiskFailure`, with a per-sat seed for reproducibility.
-- Ground stations run `yass-agent-receive-only`: no production, no faults.
+- Ground stations run `yass-agent-receive-only`: no production, no faults. They
+  set `SUCCESS_AFTER_FILES: "1000000"` so they **never complete** and keep
+  receiving indefinitely — transfers keep flowing for the live web-ui view
+  instead of stopping after the first delivered file.
 - `maxDuration: 999999h` — open-ended; tear down when done.
 
 ## Prerequisites
